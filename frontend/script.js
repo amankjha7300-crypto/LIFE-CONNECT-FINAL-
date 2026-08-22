@@ -1026,7 +1026,7 @@ function showTypingIndicator(container) {
 }
 
 function handleChatAction(btn, action) {
-  const container = btn.closest('.chat-ui__body');
+  const container = btn.closest('.chat-ui__body, .floating-chat-panel__body');
   if (!container) return;
   addChatMessage(container, 'user', action, null);
   btn.closest('.chat-msg__actions').remove();

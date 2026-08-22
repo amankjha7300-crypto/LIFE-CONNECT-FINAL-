@@ -69,64 +69,68 @@ async def get_llm_chat_response(messages: list) -> str:
     await asyncio.sleep(0.8)
     last_msg = (messages[-1]["content"] if messages else "").lower()
     
+    import re
+    def has_kw(kws):
+        return any(re.search(rf"\b{re.escape(k)}\b", last_msg) for k in kws)
+    
     # 1. Milk & Dairy queries
-    if any(k in last_msg for k in ["milk", "doodh", "dairy", "paneer", "curd", "dahi"]):
+    if has_kw(["milk", "doodh", "dairy", "paneer", "curd", "dahi"]):
         return (
             "Currently in the local market, full cream milk like Amul Gold or Mother Dairy is around ₹66 to ₹72 per liter, "
             "while toned or cow milk is approximately ₹54 to ₹58 per liter. "
             "Fresh paneer is about ₹90 to ₹120 for 200 grams. Would you like price details on any other daily grocery items?"
         )
     
-    # 2. Salt, Sugar, Tea & Spices
-    if any(k in last_msg for k in ["salt", "namak", "sugar", "cheeni", "tea", "chai", "ghee", "oil", "tel"]):
-        return (
-            "Tata Salt and standard iodized salt are currently around ₹25 to ₹30 per kilogram, while rock salt or Sendha Namak is about ₹40 to ₹60. "
-            "Refined sugar is selling at ₹42 to ₹46 per kilo, cooking mustard oil is roughly ₹140 to ₹170 per liter, and pure desi ghee is ₹550 to ₹700. "
-            "Let me know if you need rates for flour, rice, or pulses as well."
-        )
-        
-    # 3. Vegetables & Fruits
-    if any(k in last_msg for k in ["vegetable", "sabzi", "sabji", "potato", "aloo", "onion", "pyaz", "tomato", "tamatar", "fruit", "kela", "banana", "apple", "seb", "price", "rate", "bhav", "cost"]):
-        return (
-            "In the local vegetable mandi today, potatoes (aloo) are around ₹25 to ₹35 per kilo, onions (pyaz) are ₹30 to ₹45, and tomatoes (tamatar) range between ₹25 to ₹40 depending on quality. "
-            "Fresh green vegetables like palak, lauki, and bhindi are between ₹30 to ₹50 per kilo, and bananas are about ₹45 to ₹60 a dozen."
-        )
-        
-    # 4. Blood Pressure / Hypertension
-    if any(k in last_msg for k in ["bp", "blood pressure", "hypertension", "high pressure"]):
+    # 2. Blood Pressure / Hypertension
+    if has_kw(["bp", "blood pressure", "hypertension", "high pressure"]):
         return (
             "For seniors, maintaining a steady blood pressure around 120 to 130 over 80 mmHg is ideal. "
             "Limiting sodium and table salt, practicing daily morning walks, and having calming herbal teas help greatly. "
             "Common medicines prescribed by doctors include Telmisartan or Amlodipine. Please make sure to check your BP regularly and follow your doctor's exact prescription."
         )
 
-    # 5. Diabetes / Sugar
-    if any(k in last_msg for k in ["sugar", "diabetes", "diabetic", "glucose", "insulin"]):
+    # 3. Diabetes / Sugar
+    if has_kw(["sugar", "diabetes", "diabetic", "glucose", "insulin"]):
         return (
             "Managing blood sugar is all about consistent routines. Incorporating methi seeds water, whole grains, and leafy vegetables like karela helps regulate glucose levels. "
             "Doctors commonly prescribe Metformin or related tablets with meals. Remember to keep checking your fasting and post-meal sugar levels, and always follow your physician's advice."
         )
 
-    # 6. Joint pain / Arthritis
-    if any(k in last_msg for k in ["joint", "knee", "arthritis", "ghutna", "dard", "pain", "backache", "stiffness"]):
+    # 4. Joint pain / Arthritis
+    if has_kw(["joint", "knee", "arthritis", "ghutna", "dard", "pain", "backache", "stiffness"]):
         return (
             "Joint stiffness and knee aches are very common as we mature. Warm sesame or mustard oil massage, gentle knee flexion exercises, and warm turmeric milk at night can provide wonderful relief. "
             "For acute pain, topical gels like Volini or mild paracetamol are often used, but do consult your doctor before starting any regular pain medications."
         )
 
-    # 7. Acidity / Gas / Digestion
-    if any(k in last_msg for k in ["gas", "acidity", "indigestion", "stomach", "pet", "acid", "reflux", "constipation"]):
+    # 5. Acidity / Gas / Digestion
+    if has_kw(["gas", "acidity", "indigestion", "stomach", "pet", "acid", "reflux", "constipation"]):
         return (
             "For gentle digestive comfort, sipping warm water infused with roasted ajwain and jeera works wonders. "
             "Try having your dinner at least two hours before sleeping and avoid very spicy or oily foods. "
             "If you experience frequent acid reflux, antacids like Pantoprazole or Gelusil are commonly recommended by doctors."
         )
 
-    # 8. Medicines & Tablets
-    if any(k in last_msg for k in ["medicine", "tablet", "dawai", "dawa", "paracetamol", "crocin", "dolo", "vitamin", "calcium"]):
+    # 6. Medicines & Tablets
+    if has_kw(["medicine", "tablet", "dawai", "dawa", "paracetamol", "crocin", "dolo", "vitamin", "calcium"]):
         return (
             "Common everyday medicines include Paracetamol (Dolo 650 or Crocin) for mild aches or fever, Pantoprazole for acidity, and daily supplements like Calcium with Vitamin D3 and B-Complex for vitality. "
             "Always keep your medicines organized in a weekly pill organizer, take them with lukewarm water, and never alter dosages without consulting your doctor or pharmacist."
+        )
+
+    # 7. Salt, Sugar, Tea & Spices
+    if has_kw(["salt", "namak", "sugar", "cheeni", "tea", "chai", "ghee", "oil", "tel"]):
+        return (
+            "Tata Salt and standard iodized salt are currently around ₹25 to ₹30 per kilogram, while rock salt or Sendha Namak is about ₹40 to ₹60. "
+            "Refined sugar is selling at ₹42 to ₹46 per kilo, cooking mustard oil is roughly ₹140 to ₹170 per liter, and pure desi ghee is ₹550 to ₹700. "
+            "Let me know if you need rates for flour, rice, or pulses as well."
+        )
+        
+    # 8. Vegetables & Fruits
+    if has_kw(["vegetable", "vegetables", "sabzi", "sabji", "potato", "aloo", "onion", "pyaz", "tomato", "tamatar", "fruit", "fruits", "kela", "banana", "apple", "seb", "price", "rate", "bhav", "cost"]):
+        return (
+            "In the local vegetable mandi today, potatoes (aloo) are around ₹25 to ₹35 per kilo, onions (pyaz) are ₹30 to ₹45, and tomatoes (tamatar) range between ₹25 to ₹40 depending on quality. "
+            "Fresh green vegetables like palak, lauki, and bhindi are between ₹30 to ₹50 per kilo, and bananas are about ₹45 to ₹60 a dozen."
         )
 
     # General fallback
@@ -139,4 +143,5 @@ async def get_llm_chat_response(messages: list) -> str:
 async def get_llm_response(user_text: str) -> str:
     """Legacy endpoint for single text strings (used by voice router)."""
     return await get_llm_chat_response([{"role": "user", "content": user_text}])
+
 

@@ -142,6 +142,19 @@ def init_db():
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_wellness_user_date ON wellness_activities(user_id, date)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_community_members_user ON community_members(user_id)")
 
+        # Seed default demo user if not exists
+        cursor.execute("SELECT id FROM users WHERE email='demo@lifeconnect.local'")
+        if not cursor.fetchone():
+            import hashlib, secrets
+            salt = secrets.token_hex(16)
+            iterations = 100_000
+            key = hashlib.pbkdf2_hmac("sha256", "Demo123!".encode("utf-8"), salt.encode("utf-8"), iterations).hex()
+            demo_pw_hash = f"pbkdf2:{iterations}:{salt}:{key}"
+            cursor.execute("""
+                INSERT INTO users (full_name, email, mobile, password_hash, age, city, interests, decade, avatar, bio)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, ('Ramesh Sharma', 'demo@lifeconnect.local', '9876543210', demo_pw_hash, 68, 'New Delhi', 'Gardening,Reading,Classical Music', '1970s', 'R', 'Retired educator and avid classical music lover.'))
+
         # Seed communities if empty
         cursor.execute("SELECT COUNT(*) FROM communities")
         if cursor.fetchone()[0] == 0:
@@ -160,7 +173,7 @@ def init_db():
                 default_communities
             )
 
-    print("[LifeConnect] Database initialized with performance indexes.")
+    print("[LifeConnect] Database initialized with performance indexes and demo user.")
 
 
 if __name__ == "__main__":

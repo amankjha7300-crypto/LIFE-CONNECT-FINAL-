@@ -268,24 +268,17 @@ class TestLifeConnectBackend(unittest.TestCase):
         
         print("[PASS] Wellness tracking and Consolidated Dashboard Summary passed")
 
-    def test_08_chat_ai_knowledge(self):
-        """Verify AI response contains expert trained knowledge for illness, medicine, and prices."""
-        # 1. Milk Price query
-        s1, chat1 = http_req("/api/chat", method="POST", data={"messages": [{"role": "user", "content": "What is the price of milk today?"}]})
+    def test_08_companion_chatbot(self):
+        """Verify Companion Chatbot responds for app purposes, memories, and companionship."""
+        s1, chat1 = http_req("/api/chat", method="POST", data={"messages": [{"role": "user", "content": "How can I store my old photos and memories?"}]})
         self.assertEqual(s1, 200)
-        self.assertIn("milk", chat1["text"].lower())
+        self.assertIn("memory", chat1["text"].lower())
 
-        # 2. Blood pressure query
-        s2, chat2 = http_req("/api/chat", method="POST", data={"messages": [{"role": "user", "content": "Tell me about blood pressure and remedies"}]})
+        s2, chat2 = http_req("/api/chat", method="POST", data={"messages": [{"role": "user", "content": "Can you help me find my school friends?"}]})
         self.assertEqual(s2, 200)
-        self.assertIn("blood pressure", chat2["text"].lower())
+        self.assertIn("reconnect", chat2["text"].lower())
 
-        # 3. Medicine query
-        s3, chat3 = http_req("/api/chat", method="POST", data={"messages": [{"role": "user", "content": "What medicine is good for acidity?"}]})
-        self.assertEqual(s3, 200)
-        self.assertTrue(len(chat3["text"]) > 20)
-
-        print("[PASS] Chat AI domain knowledge (Groceries, Illnesses, Medicines) passed")
+        print("[PASS] Companion Chatbot (App purposes, Memory Vault, Reconnect) passed")
 
     def test_09_audio_status(self):
         """Verify audio engine status diagnostics."""
@@ -293,6 +286,53 @@ class TestLifeConnectBackend(unittest.TestCase):
         self.assertEqual(s, 200)
         self.assertIn("pipeline", data)
         print("[PASS] Audio processing status diagnostics passed")
+
+    def test_10_voice_search_engine(self):
+        """Verify Google-style Voice Search Engine responds with direct facts and commodity prices."""
+        # 1. Milk search
+        s1, res1 = http_req("/api/voice/search", method="POST", data={"query": "What is the price of milk and paneer today?"})
+        self.assertEqual(s1, 200)
+        self.assertTrue(res1["success"])
+        self.assertIn("milk", res1["answer"].lower())
+
+        # 2. Blood pressure search
+        s2, res2 = http_req("/api/voice/search", method="POST", data={"query": "What is the normal blood pressure for senior citizens?"})
+        self.assertEqual(s2, 200)
+        self.assertIn("blood pressure", res2["answer"].lower())
+
+        # 3. Cricket knowledge search
+        s3, res3 = http_req("/api/voice/search", method="POST", data={"query": "Who won the 1983 Cricket World Cup?"})
+        self.assertEqual(s3, 200)
+        self.assertIn("1983", res3["answer"].lower())
+
+        print("[PASS] Google-style Voice Search Engine (Prices, Health facts, Knowledge) passed")
+
+    def test_11_voice_assistant_greetings(self):
+        """Verify Voice Assistant responds with warm and culturally appropriate answers to greetings."""
+        greetings = [
+            ("Hello", "welcome"),
+            ("Good morning", "morning"),
+            ("Pranam", "pranam"),
+            ("Namaste", "namaste"),
+            ("Asalam walekum", "walekum assalam"),
+            ("Kem cho", "kem cho"),
+            ("Sat sri akal", "sat sri akal"),
+        ]
+        for query, expected in greetings:
+            s, res = http_req("/api/voice/search", method="POST", data={"query": query})
+            self.assertEqual(s, 200)
+            self.assertIn(expected.lower(), res["answer"].lower(), f"Failed on greeting: {query}")
+
+        print("[PASS] Voice Assistant Greetings (Hello, Good Morning, Pranam, Namaste, Asalam Walekum, Kem Cho, Sat Sri Akal) passed")
+
+    def test_12_gayatri_mantra(self):
+        """Verify Voice Assistant accurately recites and explains the sacred Gayatri Mantra."""
+        s, res = http_req("/api/voice/search", method="POST", data={"query": "Recite the Gayatri Mantra and its meaning"})
+        self.assertEqual(s, 200)
+        self.assertTrue(res["success"])
+        self.assertIn("prachodayat", res["answer"].lower())
+        self.assertIn("intellect", res["answer"].lower())
+        print("[PASS] Sacred Gayatri Mantra Recitation & Meaning passed")
 
 
 if __name__ == "__main__":

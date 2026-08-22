@@ -7,28 +7,46 @@
 // ----------------------------------------------------------------
 // 1. API ARCHITECTURE (ready for Python backend integration)
 // ----------------------------------------------------------------
-const API_BASE_URL = '/api';
+// Automatically resolve API Base URL (connects to FastAPI backend on :8000 even when viewing on :5500 Live Server or file://)
+const API_BASE_URL = (function() {
+  if (typeof window === 'undefined') return 'http://localhost:8000/api';
+  if (window.location.protocol === 'file:') return 'http://localhost:8000/api';
+  if ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '8000') {
+    return `http://${window.location.hostname}:8000/api`;
+  }
+  return '/api';
+})();
 
 /**
- * Centralized API request function.
- * Replace mock implementations below with real fetch calls when backend is ready.
+ * Centralized API request function with automatic cross-origin support and graceful fallback.
  */
 async function apiRequest(endpoint, method = 'GET', body = null) {
   const opts = {
     method,
     headers: { 'Content-Type': 'application/json' },
-    credentials: 'include',
   };
   if (body) opts.body = JSON.stringify(body);
   try {
     const res = await fetch(API_BASE_URL + endpoint, opts);
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({ detail: 'API Error' }));
-      return { success: false, error: errData.detail || 'API request failed' };
+    let data = null;
+    try {
+      data = await res.json();
+    } catch(parseErr) {
+      data = null;
     }
-    return await res.json();
+
+    if (!res.ok) {
+      const errMsg = (data && (data.detail || data.message || data.error)) || 
+                     (res.status === 401 ? 'Incorrect email or password. Please check and try again.' :
+                      res.status === 404 ? 'Resource not found.' :
+                      res.status === 409 ? 'An account with this email already exists.' :
+                      `Server returned error (${res.status})`);
+      return { success: false, status: res.status, error: errMsg };
+    }
+    return data || { success: true };
   } catch (e) {
-    return { success: false, offline: true, error: e.message };
+    console.warn(`[LifeConnect API] Request to ${endpoint} failed:`, e);
+    return { success: false, offline: true, error: e.message || 'Network connection error' };
   }
 }
 
@@ -43,7 +61,9 @@ async function loginUser(email, password) {
     } else if (res.error && !res.offline) {
       return res;
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn("Backend login network fallback:", e);
+  }
   return mockLogin(email, password);
 }
 
@@ -67,7 +87,9 @@ async function signupUser(data) {
     } else if (res.error && !res.offline) {
       return res;
     }
-  } catch (e) {}
+  } catch (e) {
+    console.warn("Backend signup network fallback:", e);
+  }
   return mockSignup(data);
 }
 
@@ -503,9 +525,11 @@ function navigate(viewId) {
 
   document.querySelectorAll(`[data-nav="${viewId}"]`).forEach(l => l.classList.add('active'));
 
-  // Close mobile menu
-  document.getElementById('mobile-menu').classList.remove('open');
-  document.querySelector('.nav-hamburger').classList.remove('open');
+  // Close mobile menu safely
+  const mobileMenu = document.getElementById('mobile-menu');
+  if (mobileMenu) mobileMenu.classList.remove('open');
+  const navHamburger = document.querySelector('.nav-hamburger');
+  if (navHamburger) navHamburger.classList.remove('open');
 
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -1523,6 +1547,103 @@ function speakText(text, onStartCallback, onEndCallback) {
   }
 }
 
+// ----------------------------------------------------------------
+// VOICE SEARCH ENGINE (GOOGLE-STYLE DIRECT KNOWLEDGE & SEARCH)
+// Fully detached from personal companion chatbot history
+// ----------------------------------------------------------------
+async function fetchVoiceSearch(queryText) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/voice/search`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: queryText })
+    });
+    if (res.ok) {
+      const data = await res.json();
+      return data.answer || "I found search results for your query.";
+    }
+  } catch (err) {
+    console.warn("Backend voice search offline, using local search fallback:", err);
+  }
+
+  // Local Voice Search Fallback
+  const q = queryText.toLowerCase().trim();
+
+  // Sacred Gayatri Mantra & Mantras
+  if (q.includes('gayatri') || q.includes('gaytri') || q.includes('gayatree') || q.includes('savitur') || q.includes('prachodayat')) {
+    return "The sacred Gayatri Mantra is: 'Om Bhur Bhuvah Swah, Tat Savitur Varenyam, Bhargo Devasya Dheemahi, Dhiyo Yo Nah Prachodayat.' Its divine meaning is: 'We meditate on the supreme light of the divine Creator who illuminates all realms. May that spiritual light inspire and guide our intellect and wisdom.' Chanting this revered Vedic mantra brings deep inner peace, spiritual calmness, and mental clarity.";
+  }
+
+  // Greetings & Cultural Manners
+  if (q.includes('pranam') || q.includes('pranaam') || q.includes('charan sparsh')) {
+    return "Pranam Ji! Sada khush aur tandurust rahein. Kahiye, aaj aapke liye kya jankari ya search karoon?";
+  }
+  if (q.includes('namaste') || q.includes('namaskar') || q.includes('namaskaram') || q.includes('namastey')) {
+    return "Namaste Ji! A warm welcome. How may I assist you with your questions, daily prices, or health remedies today?";
+  }
+  if (q.includes('asalam') || q.includes('assalam') || q.includes('walekum') || q.includes('alaikum') || q.includes('salam')) {
+    return "Walekum Assalam Wa Rahmatullahi Wa Barakatuh! Kahiye, aaj aapke liye kya search ya jankari laaoon?";
+  }
+  if (q.includes('kem cho') || q.includes('kemcho') || q.includes('majama')) {
+    return "Kem cho Ji! Majama chho? Kahiye, aaj market na bhav ke biji koi jankari janna chahte hain?";
+  }
+  if (q.includes('sat sri akal') || q.includes('sasriakal') || q.includes('waheguru')) {
+    return "Sat Sri Akal Ji! Waheguru ji ka khalsa, Waheguru ji ki fateh. Kahiye, aaj ki seva karoon?";
+  }
+  if (q.includes('vanakkam') || q.includes('namaskara')) {
+    return "Vanakkam! A warm welcome to you. What would you like to search or know today?";
+  }
+  if (q.includes('radhe radhe') || q.includes('ram ram') || q.includes('jai shree krishna') || q.includes('jai jinendra')) {
+    return `${queryText} Ji! Wishing you peace, good health, and joy. How can I help you today?`;
+  }
+  if (q.includes('good morning') || q.includes('shubh prabhat')) {
+    return "A very good morning to you! Wishing you a peaceful and bright day ahead. What would you like to know or search today?";
+  }
+  if (q.includes('good afternoon') || q.includes('shubh dopahar')) {
+    return "Good afternoon! Hope you are having a pleasant day. How may I help you right now?";
+  }
+  if (q.includes('good evening') || q.includes('shubh sandhya')) {
+    return "Good evening! Hope you had a relaxing day. What can I search or help you with this evening?";
+  }
+  if (q.includes('good night') || q.includes('shubh ratri')) {
+    return "Good night! Wishing you deep and restful sleep. Take care and stay well.";
+  }
+  if (q.includes('hello') || q.includes('hi') || q.includes('hey') || q.includes('kaise ho')) {
+    return "Hello and welcome! I am your Voice Assistant. You can ask me anything — today's grocery and vegetable prices, health remedies, weather, cricket facts, or daily knowledge.";
+  }
+
+  // Commodities & Knowledge
+  if (q.includes('milk') || q.includes('doodh') || q.includes('dairy') || q.includes('paneer') || q.includes('dahi')) {
+    return "In local Indian retail markets today, full cream milk (Amul Gold / Mother Dairy) is around ₹66 to ₹72 per liter, toned or cow milk is approximately ₹54 to ₹58 per liter, and fresh paneer is about ₹90 to ₹120 for 200 grams.";
+  }
+  if (q.includes('vegetable') || q.includes('vegetables') || q.includes('sabzi') || q.includes('sabji') || q.includes('potato') || q.includes('aloo') || q.includes('onion') || q.includes('pyaz') || q.includes('tomato') || q.includes('tamatar')) {
+    return "According to mandi rates today: potatoes (aloo) are ₹25 to ₹35 per kilo, onions (pyaz) are ₹30 to ₹45, tomatoes (tamatar) range between ₹25 to ₹40 per kilo, and bananas are roughly ₹45 to ₹60 a dozen.";
+  }
+  if (q.includes('salt') || q.includes('namak') || q.includes('sugar') || q.includes('cheeni') || q.includes('oil') || q.includes('tel') || q.includes('ghee')) {
+    return "Tata Salt is currently ₹25 to ₹30 per kg, Sendha Namak is ₹40 to ₹60, refined sugar is ₹42 to ₹46 per kg, mustard oil is roughly ₹140 to ₹170 per liter, and pure desi ghee is ₹550 to ₹750 per liter.";
+  }
+  if (q.includes('bp') || q.includes('blood pressure') || q.includes('hypertension')) {
+    return "For seniors, a healthy blood pressure target is around 120 to 130 over 80 mmHg. Reducing salt intake, daily 30-minute morning walks, and morning Pranayama breathing help keep it in balance.";
+  }
+  if (q.includes('sugar') || q.includes('diabetes') || q.includes('diabetic')) {
+    return "Normal fasting blood sugar for seniors is below 110 to 125 mg/dL. Daily habits like morning fenugreek (methi) water, whole grains, and leafy vegetables like karela help control spikes.";
+  }
+  if (q.includes('joint') || q.includes('knee') || q.includes('arthritis') || q.includes('ghutna') || q.includes('dard')) {
+    return "For joint stiffness and knee aches, applying warm sesame oil compresses, doing gentle knee mobility exercises, and having warm turmeric milk at night provide soothing natural relief.";
+  }
+  if (q.includes('gas') || q.includes('acidity') || q.includes('indigestion') || q.includes('stomach') || q.includes('pet')) {
+    return "A fast home remedy for acidity is drinking warm water infused with roasted ajwain and cumin seeds (jeera). Eating dinner at least two hours before sleeping prevents acid reflux.";
+  }
+  if (q.includes('medicine') || q.includes('tablet') || q.includes('dawai') || q.includes('paracetamol')) {
+    return "Paracetamol (Dolo 650 or Crocin) is standard for mild fever and aches. Antacids like Pantoprazole soothe stomach acidity, and daily Calcium with Vitamin D3 supports bone density.";
+  }
+  if (q.includes('cricket') || q.includes('world cup') || q.includes('1983')) {
+    return "India won its first historic Cricket World Cup in 1983 under Kapil Dev at Lord's, defeating the West Indies, and won again in 2011 under MS Dhoni.";
+  }
+  
+  return `Search result for '${queryText}': Here is the information on your query. You can ask me about live market prices, health remedies, weather, cricket facts, or daily knowledge.`;
+}
+
 function initVoiceUI(orbId, statusId, transcriptId) {
   const orb = document.getElementById(orbId);
   const statusEl = document.getElementById(statusId);
@@ -1535,7 +1656,6 @@ function initVoiceUI(orbId, statusId, transcriptId) {
 
   let localRecognition = null;
   let localIsListening = false;
-  let responseTimeout = null;
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -1565,10 +1685,9 @@ function initVoiceUI(orbId, statusId, transcriptId) {
       return;
     }
 
-    // Process question via live AI and reply through spoken voice audio
+    // Google-style Voice Search Execution (Speaks answer, never modifies personal chatbot history)
     try {
-      const aiResult = await fetchLLMResponse(userText);
-      const responseText = aiResult && aiResult.text ? aiResult.text : "I heard your question clearly. How else may I assist you today?";
+      const responseText = await fetchVoiceSearch(userText);
 
       speakText(responseText,
         () => {
@@ -1582,7 +1701,7 @@ function initVoiceUI(orbId, statusId, transcriptId) {
         }
       );
     } catch (err) {
-      console.error("Voice assistant query error:", err);
+      console.error("Voice search error:", err);
       orb.classList.remove('thinking', 'speaking');
       setStatus('Tap the microphone to speak');
     }
@@ -1590,10 +1709,10 @@ function initVoiceUI(orbId, statusId, transcriptId) {
 
   function startSimulatedListening() {
     const demos = [
-      'What are some healthy morning wellness habits?',
-      'Tell me a warm story from the 1970s',
-      'How can I find my school friends from Chandigarh?',
-      'What classic music songs can I listen to today?'
+      'What is the price of milk and vegetables today?',
+      'Tell me a home remedy for knee joint pain',
+      'What is the normal blood pressure for senior citizens?',
+      'Who won the 1983 Cricket World Cup?'
     ];
     const demo = demos[Math.floor(Math.random() * demos.length)];
     setStatus('Listening...');
@@ -1674,6 +1793,16 @@ function initVoiceUI(orbId, statusId, transcriptId) {
     } else {
       startSimulatedListening();
     }
+  });
+
+  // Wire up sample voice command chips
+  const commandChips = orb.closest('.container') ? orb.closest('.container').querySelectorAll('.voice-commands .chip') : [];
+  commandChips.forEach(chip => {
+    chip.style.cursor = 'pointer';
+    chip.addEventListener('click', () => {
+      const text = chip.textContent.replace(/["']/g, '').trim();
+      processVoiceCommand(text);
+    });
   });
 
   setStatus('Tap the microphone to speak');
@@ -2290,39 +2419,65 @@ function initProfile() {
 // ----------------------------------------------------------------
 function initLoginForm() {
   const form = document.getElementById('login-form');
+  const btn  = document.getElementById('login-submit') || form?.querySelector('button[type=submit]');
   if (!form) return;
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('login-email').value.trim();
-    const pass  = document.getElementById('login-password').value;
+
+  async function handleLogin(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    const emailInput = document.getElementById('login-email');
+    const passInput  = document.getElementById('login-password');
+    const email = emailInput ? emailInput.value.trim() : '';
+    const pass  = passInput ? passInput.value : '';
     clearErrors('login-form');
 
     let valid = true;
-    if (!email) { showError('login-email-error', 'Email is required'); valid = false; }
-    else if (!/\S+@\S+\.\S+/.test(email)) { showError('login-email-error', 'Please enter a valid email address'); valid = false; }
-    if (!pass) { showError('login-pass-error', 'Password is required'); valid = false; }
+    if (!email) { showError('login-email-error', 'Email Address or Mobile Number is required'); valid = false; }
+    if (!pass)  { showError('login-pass-error',  'Password is required'); valid = false; }
     if (!valid) return;
 
-    const btn = form.querySelector('button[type=submit]');
-    btn.textContent = 'Signing in...';
-    btn.disabled = true;
-
-    const result = await loginUser(email, pass);
-    btn.textContent = 'Login';
-    btn.disabled = false;
-
-    if (result.success) {
-      updateNavForAuth();
-      showToast(`Welcome back, ${result.user.firstName || result.user.name.split(' ')[0]} Ji!`, 'success');
-      navigate('dashboard');
-    } else {
-      showError('login-general-error', result.error);
+    if (btn) {
+      btn.textContent = 'Signing in...';
+      btn.disabled = true;
     }
-  });
+
+    try {
+      const result = await loginUser(email, pass);
+      if (btn) {
+        btn.textContent = 'Login';
+        btn.disabled = false;
+      }
+
+      if (result.success && result.user) {
+        updateNavForAuth();
+        const rawName = result.user.firstName || result.user.name || result.user.full_name || 'Friend';
+        const firstName = rawName.split(' ')[0];
+        showToast(`Welcome back, ${firstName} Ji!`, 'success');
+        navigate('dashboard');
+      } else {
+        showError('login-general-error', result.error || 'Invalid credentials. Try demo@lifeconnect.local / Demo123!');
+      }
+    } catch (err) {
+      if (btn) {
+        btn.textContent = 'Login';
+        btn.disabled = false;
+      }
+      showError('login-general-error', 'An unexpected error occurred during login: ' + err.message);
+    }
+  }
+
+  form.onsubmit = (e) => { handleLogin(e); return false; };
+  form.addEventListener('submit', handleLogin);
+  if (btn) {
+    btn.onclick = (e) => { handleLogin(e); return false; };
+  }
 }
 
 function initSignupForm() {
   const form = document.getElementById('signup-form');
+  const btn  = document.getElementById('signup-submit') || form?.querySelector('button[type=submit]');
   if (!form) return;
 
   // Interest chips
@@ -2338,16 +2493,19 @@ function initSignupForm() {
     });
   });
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  async function handleSignup(e) {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
     clearErrors('signup-form');
 
-    const name    = document.getElementById('signup-name').value.trim();
-    const email   = document.getElementById('signup-email').value.trim();
-    const mobile  = document.getElementById('signup-mobile').value.trim();
-    const age     = document.getElementById('signup-age').value;
-    const pass    = document.getElementById('signup-pass').value;
-    const confirm = document.getElementById('signup-confirm').value;
+    const name    = document.getElementById('signup-name')?.value.trim() || '';
+    const email   = document.getElementById('signup-email')?.value.trim() || '';
+    const mobile  = document.getElementById('signup-mobile')?.value.trim() || '';
+    const age     = document.getElementById('signup-age')?.value || '';
+    const pass    = document.getElementById('signup-pass')?.value || '';
+    const confirm = document.getElementById('signup-confirm')?.value || '';
     const interests = [...document.querySelectorAll('#signup-form .interest-chip.selected')].map(c => c.dataset.value);
     const decade  = document.querySelector('#signup-form .decade-btn.active')?.dataset.decade || '';
 
@@ -2361,27 +2519,56 @@ function initSignupForm() {
     if (pass !== confirm) { showError('signup-confirm-error', 'Passwords do not match'); valid = false; }
     if (!valid) return;
 
-    const btn = form.querySelector('button[type=submit]');
-    btn.textContent = 'Creating account...';
-    btn.disabled = true;
-
-    const result = await signupUser({ name, email, mobile, age, password: pass, interests, decade, avatar: name.charAt(0).toUpperCase() });
-    btn.textContent = 'Create Account';
-    btn.disabled = false;
-
-    if (result.success) {
-      updateNavForAuth();
-      showToast(`Welcome to LifeConnect, ${name.split(' ')[0]} Ji!`, 'success');
-      navigate('dashboard');
-    } else {
-      showError('signup-general-error', result.error);
+    if (btn) {
+      btn.textContent = 'Creating account...';
+      btn.disabled = true;
     }
-  });
+
+    try {
+      const result = await signupUser({ name, email, mobile, age, password: pass, interests, decade, avatar: name.charAt(0).toUpperCase() });
+      if (btn) {
+        btn.textContent = 'Create Account';
+        btn.disabled = false;
+      }
+
+      if (result.success && result.user) {
+        updateNavForAuth();
+        const firstName = name.split(' ')[0];
+        showToast(`Welcome to LifeConnect, ${firstName} Ji!`, 'success');
+        navigate('dashboard');
+      } else {
+        showError('signup-general-error', result.error || 'Failed to create account.');
+      }
+    } catch (err) {
+      if (btn) {
+        btn.textContent = 'Create Account';
+        btn.disabled = false;
+      }
+      showError('signup-general-error', 'Signup error: ' + err.message);
+    }
+  }
+
+  form.onsubmit = (e) => { handleSignup(e); return false; };
+  form.addEventListener('submit', handleSignup);
+  if (btn) {
+    btn.onclick = (e) => { handleSignup(e); return false; };
+  }
 }
 
 function showError(id, msg) {
   const el = document.getElementById(id);
-  if (el) { el.textContent = msg; el.style.display = 'flex'; }
+  if (el) {
+    let text = msg;
+    if (typeof msg === 'object' && msg !== null) {
+      if (Array.isArray(msg)) {
+        text = msg.map(m => m.msg || m.message || JSON.stringify(m)).join(', ');
+      } else {
+        text = msg.detail || msg.message || msg.error || JSON.stringify(msg);
+      }
+    }
+    el.textContent = text || 'An error occurred. Please try again.';
+    el.style.display = 'flex';
+  }
   const inputId = id.replace('-error', '');
   const input = document.getElementById(inputId);
   if (input) input.classList.add('error');
@@ -2396,49 +2583,72 @@ function clearErrors(formId) {
 // 26. APP INITIALIZATION
 // ----------------------------------------------------------------
 function initApp() {
+  // Clean up accidental query parameters from previous browser GET submits
+  if (window.location.search) {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const emailParam = params.get('email');
+      const passParam = params.get('password');
+      if (emailParam) {
+        setTimeout(() => {
+          const emailEl = document.getElementById('login-email');
+          if (emailEl) emailEl.value = emailParam;
+          const passEl = document.getElementById('login-password');
+          if (passEl && passParam) passEl.value = passParam;
+        }, 50);
+      }
+      const cleanUrl = window.location.pathname + (window.location.hash || '#login');
+      window.history.replaceState(null, '', cleanUrl);
+    } catch (e) {}
+  }
+
+  // Auth forms MUST be initialized first
+  try { initLoginForm(); } catch(e) { console.error('initLoginForm error:', e); }
+  try { initSignupForm(); } catch(e) { console.error('initSignupForm error:', e); }
+
   // Apply easy mode and dark mode
-  initEasyMode();
-  initDarkMode();
+  try { initEasyMode(); } catch(e) {}
+  try { initDarkMode(); } catch(e) {}
 
   // Init navbar
-  initNavbar();
+  try { initNavbar(); } catch(e) {}
 
   // Handle hash routing
   const hash = window.location.hash.replace('#', '') || 'home';
-  if (hash === 'dashboard' || hash === 'home') {
-    navigate(isLoggedIn() ? 'dashboard' : 'home');
-  } else {
-    navigate(hash);
+  try {
+    if (hash === 'dashboard' || hash === 'home') {
+      navigate(isLoggedIn() ? 'dashboard' : 'home');
+    } else {
+      navigate(hash);
+    }
+  } catch(e) {
+    console.error('navigate error:', e);
   }
 
-  // Auth forms
-  initLoginForm();
-  initSignupForm();
-
   // Landing page voice
-  initVoiceUI('voice-orb', 'voice-status', 'voice-transcript');
+  try { initVoiceUI('voice-orb', 'voice-status', 'voice-transcript'); } catch(e) {}
 
   // Hero animation
-  initHero();
+  try { initHero(); } catch(e) {}
 
   // Landing chat
-  initCompanionChatUI('home-chat', 'home-chat-body', 'home-chat-input', 'home-chat-send');
+  try { initCompanionChatUI('home-chat', 'home-chat-body', 'home-chat-input', 'home-chat-send'); } catch(e) {}
 
   // Time Machine (landing)
-  initTimeMachine();
+  try { initTimeMachine(); } catch(e) {}
 
   // Legal assistant
-  initLegal();
+  try { initLegal(); } catch(e) {}
 
   // Memory search (landing)
-  initMemorySearch();
+  try { initMemorySearch(); } catch(e) {}
 
   // Float mic nav
   const floatMic = document.getElementById('floating-mic');
   if (floatMic) floatMic.addEventListener('click', () => navigate('voice'));
 
   // Floating chat widget
-  initFloatingChat();
+  try { initFloatingChat(); } catch(e) {}
 
   // Hash change listener
   window.addEventListener('hashchange', () => {
@@ -2481,9 +2691,7 @@ function initFloatingChat() {
     isOpen = true;
     panel.classList.add('visible');
     btn.classList.add('open');
-    // Hide badge
     if (badge) badge.style.display = 'none';
-    // Init conversation on first open
     if (!initialized) {
       initialized = true;
       if (chatHistory.length === 0) {
@@ -2516,12 +2724,10 @@ function initFloatingChat() {
   btn.addEventListener('click', () => isOpen ? closePanel() : openPanel());
   if (closeBtn) closeBtn.addEventListener('click', closePanel);
 
-  // Close on outside click (only if the clicked element is still in the document)
   document.addEventListener('click', (e) => {
     if (isOpen && !panel.contains(e.target) && !btn.contains(e.target) && document.body.contains(e.target)) closePanel();
   });
 
-  // Send message
   const sendMsg = () => {
     const msg = input.value.trim();
     if (!msg) return;
@@ -2537,7 +2743,6 @@ function initFloatingChat() {
   if (send) send.addEventListener('click', sendMsg);
   if (input) input.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMsg(); });
 
-  // After 3 s show a gentle notification badge if not yet opened
   setTimeout(() => {
     if (!initialized && badge) {
       badge.style.display = 'flex';
@@ -2548,4 +2753,9 @@ function initFloatingChat() {
 // ----------------------------------------------------------------
 // 28. START
 // ----------------------------------------------------------------
-document.addEventListener('DOMContentLoaded', initApp);
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
+

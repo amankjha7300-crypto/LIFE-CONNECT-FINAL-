@@ -13,7 +13,7 @@ from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
 
 from database import get_db
-from models import get_llm_chat_response
+from models import get_llm_chat_response, get_voice_search_response
 
 router = APIRouter(prefix="/api")
 
@@ -188,10 +188,11 @@ def signup(data: SignupRequest):
 @router.post("/auth/login", tags=["Auth"])
 def login(data: LoginRequest):
     """Authenticate a user with PBKDF2 / legacy SHA256 validation."""
-    normalized_email = data.email.strip().lower()
+    normalized_input = data.email.strip().lower()
+    raw_input = data.email.strip()
     with get_db() as conn:
         user_row = conn.execute(
-            "SELECT * FROM users WHERE LOWER(email) = ?", (normalized_email,)
+            "SELECT * FROM users WHERE LOWER(email) = ? OR mobile = ?", (normalized_input, raw_input)
         ).fetchone()
         if not user_row:
             raise HTTPException(status_code=401, detail="Invalid email or password.")
@@ -657,12 +658,12 @@ def get_dashboard_summary(user_id: int):
 
 
 # ══════════════════════════════════════════════════════════════
-# CHAT / VOICE AI ENDPOINT
+# 1. COMPANION CHATBOT (FOR LIFE-CONNECT APP TASKS)
 # ══════════════════════════════════════════════════════════════
 
-@router.post("/chat", tags=["Chat"])
+@router.post("/chat", tags=["Companion Chatbot"])
 async def chat_endpoint(req: ChatRequest):
-    """Process a chat interaction maintaining history with domain-trained AI."""
+    """Process companion chatbot interactions for app tasks and personal support."""
     if not req.messages:
         raise HTTPException(status_code=400, detail="Messages list cannot be empty.")
     try:
@@ -670,4 +671,31 @@ async def chat_endpoint(req: ChatRequest):
         response_text = await get_llm_chat_response(messages)
         return {"text": response_text}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"LLM processing error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Chatbot error: {str(e)}")
+
+
+# ══════════════════════════════════════════════════════════════
+# 2. VOICE ASSISTANT (GOOGLE-STYLE SMART VOICE SEARCH ENGINE)
+# ══════════════════════════════════════════════════════════════
+
+class VoiceSearchRequest(BaseModel):
+    query: str = Field(..., min_length=1, max_length=1000)
+
+
+@router.post("/voice/search", tags=["Voice Search Assistant"])
+async def voice_search_endpoint(req: VoiceSearchRequest):
+    """Google-style voice search engine answering general queries, market prices, facts, and remedies."""
+    query = req.query.strip()
+    if not query:
+        raise HTTPException(status_code=400, detail="Search query cannot be empty.")
+    try:
+        spoken_answer = await get_voice_search_response(query)
+        return {
+            "success": True,
+            "query": query,
+            "answer": spoken_answer,
+            "type": "voice_search_result"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Voice search error: {str(e)}")
+

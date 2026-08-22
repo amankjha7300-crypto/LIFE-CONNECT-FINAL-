@@ -36,8 +36,7 @@
         <button class="nav-link" data-nav="memories" onclick="navigate('memories')" role="listitem">Memories</button>
         <button class="nav-link" data-nav="wellness" onclick="navigate('wellness')" role="listitem">Wellness</button>
         <button class="nav-link" data-nav="community" onclick="navigate('community')" role="listitem">Community</button>
-        <button class="nav-link" data-nav="companion" onclick="navigate('companion')" role="listitem">AI
-          Companion</button>
+        <button class="nav-link" data-nav="companion" onclick="navigate('companion')" role="listitem">AI Companion</button>
         <button id="nav-dashboard-link" class="nav-link" data-nav="dashboard" onclick="navigate('dashboard')"
           style="display:none;" role="listitem">My Home</button>
       </div>
@@ -681,7 +680,7 @@
               style="display:none;background:rgba(208,75,48,0.1);padding:12px;border-radius:var(--radius-md);margin-bottom:16px;">
             </div>
 
-            <form id="login-form" novalidate>
+            <form id="login-form" novalidate onsubmit="return false;">
               <div class="form-group">
                 <label class="form-label" for="login-email">Email Address or Mobile Number</label>
                 <input class="form-input" type="email" id="login-email" name="email" placeholder="your@email.com"
@@ -765,7 +764,7 @@
               style="display:none;background:rgba(208,75,48,0.1);padding:12px;border-radius:var(--radius-md);margin-bottom:16px;">
             </div>
 
-            <form id="signup-form" novalidate>
+            <form id="signup-form" novalidate onsubmit="return false;">
               <div class="form-group">
                 <label class="form-label" for="signup-name">Full Name</label>
                 <input class="form-input" type="text" id="signup-name" name="name" placeholder="Your full name"

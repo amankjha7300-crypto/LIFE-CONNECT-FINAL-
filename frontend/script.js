@@ -446,11 +446,6 @@ function navigate(viewId) {
   const widget = document.getElementById('floating-chat-widget');
   if (widget) {
     widget.style.display = hiddenOnViews.includes(viewId) ? 'none' : '';
-    // Collapse panel when switching pages
-    const panel = document.getElementById('floating-chat-panel');
-    const btn   = document.getElementById('floating-chat-btn');
-    if (panel) panel.classList.remove('visible');
-    if (btn)   btn.classList.remove('open');
   }
 
   // Run view-specific init
@@ -1033,9 +1028,20 @@ function handleChatAction(btn, action) {
   const typing = showTypingIndicator(container);
   setTimeout(() => {
     typing.remove();
-    const res = getAIResponse(action);
-    if (res) addChatMessage(container, 'ai', res.text, res.actions);
-    else addChatMessage(container, 'ai', 'I\'m here. What would you like to talk about?', ['Memories', 'Music', 'Friends', 'Wellness']);
+    if (action === 'Wellness') {
+      navigate('wellness');
+      addChatMessage(container, 'ai', "Taking you to Wellness...", null);
+    } else if (action === 'Nostalgia Library') {
+      navigate('nostalgia');
+      addChatMessage(container, 'ai', "Opening the Nostalgia Library...", null);
+    } else if (action === 'Memory Vault') {
+      navigate('vault');
+      addChatMessage(container, 'ai', "Unlocking your Memory Vault...", null);
+    } else {
+      const res = getAIResponse(action);
+      if (res) addChatMessage(container, 'ai', res.text, res.actions);
+      else addChatMessage(container, 'ai', 'I\'m here. What would you like to talk about?', ['Wellness', 'Nostalgia Library', 'Memory Vault']);
+    }
   }, 900);
 }
 
@@ -2031,7 +2037,7 @@ function initFloatingChat() {
         ? `${timeGreeting}, ${firstName} Ji! I'm Mitra. How can I help you today?`
         : `${timeGreeting}! I'm Mitra, your AI companion on LifeConnect. What would you like to explore?`;
       addChatMessage(body, 'ai', greeting,
-        ['Find an Old Friend', 'Share a Memory', "Today's Wellness", 'Just Chatting']);
+        ['Wellness', 'Nostalgia Library', 'Memory Vault']);
     }
     setTimeout(() => input && input.focus(), 300);
   }
@@ -2045,9 +2051,9 @@ function initFloatingChat() {
   btn.addEventListener('click', () => isOpen ? closePanel() : openPanel());
   if (closeBtn) closeBtn.addEventListener('click', closePanel);
 
-  // Close on outside click
+  // Close on outside click (only if the clicked element is still in the document)
   document.addEventListener('click', (e) => {
-    if (isOpen && !panel.contains(e.target) && !btn.contains(e.target)) closePanel();
+    if (isOpen && !panel.contains(e.target) && !btn.contains(e.target) && document.body.contains(e.target)) closePanel();
   });
 
   // Send message
@@ -2064,7 +2070,7 @@ function initFloatingChat() {
       const res = getAIResponse(msg);
       if (res) addChatMessage(body, 'ai', res.text, res.actions);
       else addChatMessage(body, 'ai', "I'm here. What would you like to talk about?",
-        ['Memories', 'Music', 'Friends', 'Wellness']);
+        ['Wellness', 'Nostalgia Library', 'Memory Vault']);
     }, delay);
   };
 

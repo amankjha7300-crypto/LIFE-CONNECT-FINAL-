@@ -749,7 +749,7 @@ function buildAIResponse(intent, originalMsg) {
       ];
       return {
         text: pick(greetings),
-        actions: ['Find an Old Friend', 'Share a Memory', 'Today\'s Activities', 'Just Chatting']
+        actions: ['Wellness', 'Nostalgia Library', 'Memory Vault']
       };
     }
 
@@ -964,7 +964,7 @@ function buildAIResponse(intent, originalMsg) {
       ];
       return {
         text: pick(generalResponses),
-        actions: ['Find an Old Friend', 'Share a Memory', 'Today\'s Wellness', 'Just Chatting']
+        actions: ['Wellness', 'Nostalgia Library', 'Memory Vault']
       };
     }
   }
@@ -986,6 +986,38 @@ function getAIResponse(msg) {
 }
 
 // ── Chat UI helpers ──────────────────────────────────────────────
+let chatHistory = JSON.parse(localStorage.getItem('chatHistory')) || [];
+function saveChatHistory() { localStorage.setItem('chatHistory', JSON.stringify(chatHistory)); }
+
+async function fetchLLMResponse(msg) {
+  chatHistory.push({ role: 'user', content: msg });
+  saveChatHistory();
+  try {
+    const res = await fetch('http://localhost:8000/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: chatHistory })
+    });
+    if (!res.ok) throw new Error('API Error');
+    const data = await res.json();
+    chatHistory.push({ role: 'assistant', content: data.text });
+    saveChatHistory();
+    return { text: data.text, actions: null };
+  } catch (err) {
+    console.error(err);
+    const localRes = getAIResponse(msg);
+    if (localRes) {
+      chatHistory.push({ role: 'assistant', content: localRes.text });
+      saveChatHistory();
+      return localRes;
+    }
+    const fallbackText = "I'm having trouble connecting right now, but I'm still here.";
+    chatHistory.push({ role: 'assistant', content: fallbackText });
+    saveChatHistory();
+    return { text: fallbackText, actions: ['Wellness', 'Nostalgia Library'] };
+  }
+}
+
 function addChatMessage(container, role, text, actions) {
   const msg = document.createElement('div');
   msg.className = `chat-msg ${role}`;
@@ -1038,9 +1070,9 @@ function handleChatAction(btn, action) {
       navigate('vault');
       addChatMessage(container, 'ai', "Unlocking your Memory Vault...", null);
     } else {
-      const res = getAIResponse(action);
-      if (res) addChatMessage(container, 'ai', res.text, res.actions);
-      else addChatMessage(container, 'ai', 'I\'m here. What would you like to talk about?', ['Wellness', 'Nostalgia Library', 'Memory Vault']);
+      fetchLLMResponse(action).then(res => {
+        addChatMessage(container, 'ai', res.text, res.actions);
+      });
     }
   }, 900);
 }
@@ -1052,32 +1084,35 @@ function initCompanionChatUI(containerId, bodyId, inputId, sendId) {
   if (!body || !input || !send) return;
 
   body.innerHTML = '';
-  const user = getStoredUser();
-  const firstName = user ? (user.firstName || user.name.split(' ')[0]) : null;
-  const hour = new Date().getHours();
-  const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-
-  const greeting = firstName
-    ? `${timeGreeting}, ${firstName} Ji. Good to have you here. What would you like to explore today?`
-    : `${timeGreeting}! I'm Mitra, your companion here on LifeConnect. What would you like to explore today?`;
-
-  addChatMessage(body, 'ai', greeting, ['Find an Old Friend', 'Share a Memory', 'Today\'s Activities', 'Just Chatting']);
+  
+  if (chatHistory.length === 0) {
+    const user = getStoredUser();
+    const firstName = user ? (user.firstName || user.name.split(' ')[0]) : null;
+    const hour = new Date().getHours();
+    const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+    const greeting = firstName
+      ? `${timeGreeting}, ${firstName} Ji. Good to have you here. What would you like to explore today?`
+      : `${timeGreeting}! I'm Mitra, your companion here on LifeConnect. What would you like to explore today?`;
+    
+    chatHistory.push({ role: 'assistant', content: greeting });
+    saveChatHistory();
+    addChatMessage(body, 'ai', greeting, ['Wellness', 'Nostalgia Library', 'Memory Vault']);
+  } else {
+    chatHistory.forEach(msg => {
+      addChatMessage(body, msg.role === 'user' ? 'user' : 'ai', msg.content, null);
+    });
+  }
 
   const sendMsg = () => {
     const msg = input.value.trim();
     if (!msg) return;
     addChatMessage(body, 'user', msg, null);
     input.value = '';
-    // Attentive: very short delay to feel instant, then natural typing
-    const words = msg.trim().split(/\s+/).length;
-    const delay = Math.min(400 + words * 60, 1200);
     const typing = showTypingIndicator(body);
-    setTimeout(() => {
+    fetchLLMResponse(msg).then(res => {
       typing.remove();
-      const res = getAIResponse(msg);
-      if (res) addChatMessage(body, 'ai', res.text, res.actions);
-      else addChatMessage(body, 'ai', "I'm here — what would you like to talk about?", ['Memories', 'Music', 'Friends', 'Wellness']);
-    }, delay);
+      addChatMessage(body, 'ai', res.text, res.actions);
+    });
   };
 
   send.addEventListener('click', sendMsg);
@@ -2029,15 +2064,23 @@ function initFloatingChat() {
     // Init conversation on first open
     if (!initialized) {
       initialized = true;
-      const user = getStoredUser();
-      const firstName = user ? (user.firstName || user.name.split(' ')[0]) : null;
-      const hour = new Date().getHours();
-      const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
-      const greeting = firstName
-        ? `${timeGreeting}, ${firstName} Ji! I'm Mitra. How can I help you today?`
-        : `${timeGreeting}! I'm Mitra, your AI companion on LifeConnect. What would you like to explore?`;
-      addChatMessage(body, 'ai', greeting,
-        ['Wellness', 'Nostalgia Library', 'Memory Vault']);
+      if (chatHistory.length === 0) {
+        const user = getStoredUser();
+        const firstName = user ? (user.firstName || user.name.split(' ')[0]) : null;
+        const hour = new Date().getHours();
+        const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+        const greeting = firstName
+          ? `${timeGreeting}, ${firstName} Ji! I'm Mitra. How can I help you today?`
+          : `${timeGreeting}! I'm Mitra, your AI companion on LifeConnect. What would you like to explore?`;
+          
+        chatHistory.push({ role: 'assistant', content: greeting });
+        saveChatHistory();
+        addChatMessage(body, 'ai', greeting, ['Wellness', 'Nostalgia Library', 'Memory Vault']);
+      } else {
+        chatHistory.forEach(msg => {
+          addChatMessage(body, msg.role === 'user' ? 'user' : 'ai', msg.content, null);
+        });
+      }
     }
     setTimeout(() => input && input.focus(), 300);
   }
@@ -2062,16 +2105,11 @@ function initFloatingChat() {
     if (!msg) return;
     addChatMessage(body, 'user', msg, null);
     input.value = '';
-    const words = msg.trim().split(/\s+/).length;
-    const delay = Math.min(350 + words * 55, 1100);
     const typing = showTypingIndicator(body);
-    setTimeout(() => {
+    fetchLLMResponse(msg).then(res => {
       typing.remove();
-      const res = getAIResponse(msg);
-      if (res) addChatMessage(body, 'ai', res.text, res.actions);
-      else addChatMessage(body, 'ai', "I'm here. What would you like to talk about?",
-        ['Wellness', 'Nostalgia Library', 'Memory Vault']);
-    }, delay);
+      addChatMessage(body, 'ai', res.text, res.actions);
+    });
   };
 
   if (send) send.addEventListener('click', sendMsg);

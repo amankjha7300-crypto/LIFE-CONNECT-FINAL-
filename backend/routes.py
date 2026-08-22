@@ -12,6 +12,7 @@ from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
 
 from database import get_connection
+from models import get_llm_chat_response
 
 router = APIRouter(prefix="/api")
 
@@ -425,3 +426,25 @@ def complete_wellness(activity_id: int):
 @router.get("/health", tags=["System"])
 def health_check():
     return {"status": "ok", "app": "LifeConnect API", "version": "1.0.0"}
+
+
+# ══════════════════════════════════════════════════════════════
+# CHAT (LLM)
+# ══════════════════════════════════════════════════════════════
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+class ChatRequest(BaseModel):
+    messages: List[ChatMessage]
+
+@router.post("/chat", tags=["Chat"])
+async def chat_endpoint(req: ChatRequest):
+    """Process a chat interaction maintaining history."""
+    try:
+        messages = [{"role": msg.role, "content": msg.content} for msg in req.messages]
+        response_text = await get_llm_chat_response(messages)
+        return {"text": response_text}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -4,10 +4,18 @@
 // "Reconnect with your past. Live meaningfully today."
 // ================================================================
 
+const LS_KEYS = {
+  SESSION: 'lc_session',
+  USER: 'lc_user',
+  TOKEN: 'lc_token',
+  OFFLINE_QUEUE: 'lc_offline_queue',
+  FONT_SCALE: 'lc_font_scale',
+  HIGH_CONTRAST: 'lc_high_contrast'
+};
+
 // ----------------------------------------------------------------
-// 1. API ARCHITECTURE (ready for Python backend integration)
+// 1. API ARCHITECTURE & RESILIENCE
 // ----------------------------------------------------------------
-// Automatically resolve API Base URL (connects to FastAPI backend on :8000 even when viewing on :5500 Live Server or file://)
 const API_BASE_URL = (function() {
   if (typeof window === 'undefined') return 'http://localhost:8000/api';
   if (window.location.protocol === 'file:') return 'http://localhost:8000/api';
@@ -18,47 +26,190 @@ const API_BASE_URL = (function() {
 })();
 
 /**
- * Centralized API request function with automatic cross-origin support and graceful fallback.
+ * Centralized API request function with JWT Authorization, retry logic, and offline detection.
  */
-async function apiRequest(endpoint, method = 'GET', body = null) {
-  const opts = {
-    method,
-    headers: { 'Content-Type': 'application/json' },
-  };
-  if (body) opts.body = JSON.stringify(body);
-  try {
-    const res = await fetch(API_BASE_URL + endpoint, opts);
-    let data = null;
-    try {
-      data = await res.json();
-    } catch(parseErr) {
-      data = null;
-    }
+async function apiRequest(endpoint, method = 'GET', body = null, retries = 2) {
+  const token = localStorage.getItem(LS_KEYS.TOKEN);
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
 
-    if (!res.ok) {
-      const errMsg = (data && (data.detail || data.message || data.error)) || 
-                     (res.status === 401 ? 'Incorrect email or password. Please check and try again.' :
-                      res.status === 404 ? 'Resource not found.' :
-                      res.status === 409 ? 'An account with this email already exists.' :
-                      `Server returned error (${res.status})`);
-      return { success: false, status: res.status, error: errMsg };
+  const opts = { method, headers };
+  if (body) opts.body = JSON.stringify(body);
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch(API_BASE_URL + endpoint, opts);
+      let data = null;
+      try { data = await res.json(); } catch(e) { data = null; }
+
+      if (!res.ok) {
+        const errMsg = (data && (data.detail || data.message || data.error)) || 
+                       (res.status === 401 ? 'Incorrect credentials or session expired.' :
+                        res.status === 404 ? 'Resource not found.' :
+                        res.status === 409 ? 'An account with this email already exists.' :
+                        res.status === 429 ? 'Rate limit reached. Please wait a moment.' :
+                        `Server error (${res.status})`);
+        return { success: false, status: res.status, error: errMsg };
+      }
+      return data || { success: true };
+    } catch (e) {
+      if (attempt === retries) {
+        console.warn(`[LifeConnect API] Request to ${endpoint} failed after ${retries} retries:`, e);
+        return { success: false, offline: true, error: e.message || 'Network connection error' };
+      }
+      await new Promise(r => setTimeout(r, 400 * Math.pow(2, attempt)));
     }
-    return data || { success: true };
-  } catch (e) {
-    console.warn(`[LifeConnect API] Request to ${endpoint} failed:`, e);
-    return { success: false, offline: true, error: e.message || 'Network connection error' };
   }
 }
 
-// Auth API stubs with live backend + local fallback
+// ----------------------------------------------------------------
+// 2. UNIVERSAL TOAST NOTIFICATIONS
+// ----------------------------------------------------------------
+function showToast(message, type = 'info', duration = 3500) {
+  const container = document.getElementById('toast-container');
+  if (!container) return;
+  const toast = document.createElement('div');
+  toast.className = `toast-msg ${type}`;
+  const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
+  toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => {
+    if (toast.parentNode) toast.parentNode.removeChild(toast);
+  }, duration);
+}
+
+// ----------------------------------------------------------------
+// 3. SENIOR ACCESSIBILITY CONTROLS
+// ----------------------------------------------------------------
+function setFontScale(scaleKey) {
+  document.body.classList.remove('font-sm', 'font-lg', 'font-xl');
+  if (scaleKey === 'sm') document.body.classList.add('font-sm');
+  if (scaleKey === 'lg') document.body.classList.add('font-lg');
+  if (scaleKey === 'xl') document.body.classList.add('font-xl');
+  localStorage.setItem(LS_KEYS.FONT_SCALE, scaleKey);
+  showToast(`Text size adjusted (${scaleKey.toUpperCase()})`, 'info', 2000);
+}
+
+function toggleHighContrast() {
+  const isHc = document.body.classList.toggle('high-contrast');
+  localStorage.setItem(LS_KEYS.HIGH_CONTRAST, isHc ? 'true' : 'false');
+  showToast(isHc ? 'High Contrast Mode Enabled' : 'High Contrast Mode Disabled', 'info', 2000);
+}
+
+// Restore saved accessibility preferences
+document.addEventListener('DOMContentLoaded', () => {
+  const savedScale = localStorage.getItem(LS_KEYS.FONT_SCALE);
+  if (savedScale) setFontScale(savedScale);
+  if (localStorage.getItem(LS_KEYS.HIGH_CONTRAST) === 'true') {
+    document.body.classList.add('high-contrast');
+  }
+});
+
+// ----------------------------------------------------------------
+// 4. FLOATING PERSISTENT MINI AUDIO PLAYER
+// ----------------------------------------------------------------
+function playMiniPlayerTrack(title, subtitle, audioUrl) {
+  const player = document.getElementById('mini-audio-player');
+  const titleEl = document.getElementById('player-title');
+  const subtitleEl = document.getElementById('player-subtitle');
+  const playBtn = document.getElementById('player-play-btn');
+  const audioEl = document.getElementById('global-audio-element');
+
+  if (!player || !audioEl) return;
+
+  if (titleEl) titleEl.textContent = title || 'Golden Era Song';
+  if (subtitleEl) subtitleEl.textContent = subtitle || 'LifeConnect Nostalgia Vault';
+  player.style.display = 'block';
+
+  if (audioUrl) {
+    audioEl.src = audioUrl;
+    audioEl.play().then(() => {
+      if (playBtn) playBtn.textContent = '⏸️';
+    }).catch(e => {
+      console.warn("Playback notice:", e);
+      if (playBtn) playBtn.textContent = '▶️';
+    });
+  } else {
+    if (playBtn) playBtn.textContent = '▶️';
+  }
+}
+
+function toggleMiniPlayerPlay() {
+  const audioEl = document.getElementById('global-audio-element');
+  const playBtn = document.getElementById('player-play-btn');
+  if (!audioEl) return;
+  if (audioEl.paused) {
+    audioEl.play();
+    if (playBtn) playBtn.textContent = '⏸️';
+  } else {
+    audioEl.pause();
+    if (playBtn) playBtn.textContent = '▶️';
+  }
+}
+
+function changeAudioSpeed(speed) {
+  const audioEl = document.getElementById('global-audio-element');
+  if (audioEl) {
+    audioEl.playbackRate = parseFloat(speed);
+    showToast(`Playback speed set to ${speed}x`, 'info', 1500);
+  }
+}
+
+function closeMiniPlayer() {
+  const player = document.getElementById('mini-audio-player');
+  const audioEl = document.getElementById('global-audio-element');
+  if (audioEl) audioEl.pause();
+  if (player) player.style.display = 'none';
+}
+
+// ----------------------------------------------------------------
+// 5. OFFLINE QUEUE & AUTOMATIC SYNC
+// ----------------------------------------------------------------
+function queueOfflineAction(action) {
+  const queue = JSON.parse(localStorage.getItem(LS_KEYS.OFFLINE_QUEUE) || '[]');
+  queue.push(action);
+  localStorage.setItem(LS_KEYS.OFFLINE_QUEUE, JSON.stringify(queue));
+  showToast('Action saved locally. Will sync when back online.', 'warning', 3000);
+}
+
+async function flushOfflineQueue() {
+  const queue = JSON.parse(localStorage.getItem(LS_KEYS.OFFLINE_QUEUE) || '[]');
+  if (queue.length === 0) return;
+
+  let synced = 0;
+  for (const item of queue) {
+    const res = await apiRequest(item.endpoint, item.method, item.body);
+    if (res && res.success) synced++;
+  }
+  localStorage.removeItem(LS_KEYS.OFFLINE_QUEUE);
+  if (synced > 0) {
+    showToast(`Successfully synced ${synced} offline action(s)!`, 'success', 3500);
+  }
+}
+
+window.addEventListener('online', () => {
+  showToast('Back online! Syncing pending offline data...', 'info', 3000);
+  flushOfflineQueue();
+});
+
+window.addEventListener('offline', () => {
+  showToast('Offline Mode: Your data is saved locally.', 'warning', 4000);
+});
+
+// Auth API helpers with live backend + local fallback
 async function loginUser(email, password) {
   try {
     const res = await apiRequest('/auth/login', 'POST', { email, password });
     if (res.success && res.user) {
-      localStorage.setItem(LS.SESSION, 'api-session-' + Date.now());
-      localStorage.setItem(LS.USER, JSON.stringify(res.user));
+      if (res.token) localStorage.setItem(LS_KEYS.TOKEN, res.token);
+      localStorage.setItem(LS_KEYS.SESSION, 'api-session-' + Date.now());
+      localStorage.setItem(LS_KEYS.USER, JSON.stringify(res.user));
+      showToast(`Welcome back, ${res.user.full_name.split(' ')[0]}!`, 'success');
       return res;
     } else if (res.error && !res.offline) {
+      showToast(res.error, 'error');
       return res;
     }
   } catch (e) {
@@ -81,10 +232,13 @@ async function signupUser(data) {
     };
     const res = await apiRequest('/auth/signup', 'POST', payload);
     if (res.success && res.user) {
-      localStorage.setItem(LS.SESSION, 'api-session-' + Date.now());
-      localStorage.setItem(LS.USER, JSON.stringify(res.user));
+      if (res.token) localStorage.setItem(LS_KEYS.TOKEN, res.token);
+      localStorage.setItem(LS_KEYS.SESSION, 'api-session-' + Date.now());
+      localStorage.setItem(LS_KEYS.USER, JSON.stringify(res.user));
+      showToast('Account created successfully!', 'success');
       return res;
     } else if (res.error && !res.offline) {
+      showToast(res.error, 'error');
       return res;
     }
   } catch (e) {
@@ -494,7 +648,7 @@ function showToast(msg, type = 'info') {
 // ----------------------------------------------------------------
 // 7. NAVIGATION / ROUTER
 // ----------------------------------------------------------------
-const VIEWS = ['home', 'dashboard', 'login', 'signup', 'reconnect', 'memories',
+const VIEWS = ['home', 'news', 'dashboard', 'login', 'signup', 'reconnect', 'memories',
                'wellness', 'community', 'companion', 'voice', 'legal', 'vault',
                'family', 'profile', 'nostalgia'];
 
@@ -546,6 +700,7 @@ function navigate(viewId) {
 }
 
 function onViewChange(viewId) {
+  if (viewId === 'news')      loadNewsPage();
   if (viewId === 'dashboard') initDashboard();
   if (viewId === 'reconnect') initReconnect();
   if (viewId === 'community') initCommunity();
@@ -2751,11 +2906,272 @@ function initFloatingChat() {
 }
 
 // ----------------------------------------------------------------
-// 28. START
+// 28. 24-HOUR INDIA & 12 MAJOR CITIES NEWS CONTROLLER
+// ----------------------------------------------------------------
+let currentNewsData = null;
+let currentCityFilter = 'All';
+let currentNewsSearch = '';
+let newsUtterance = null;
+
+const FALLBACK_NEWS_DATA = {
+  national_24h: [
+    {
+      id: 1,
+      title: "Senior Citizens Digital Pension Portal Upgrade Rolled Out Nationally",
+      category: "Governance & Welfare",
+      time_ago: "2 hours ago",
+      summary: "Ministry of Social Justice announces simplified digital life certificate verification with doorstep assistance for seniors over 60 across India.",
+      tag: "National Welfare",
+      read_time: "2 min read"
+    },
+    {
+      id: 2,
+      title: "Indian Railways Expands Lower Berth Auto-Allocation Quota for Elders",
+      category: "Transport & Infra",
+      time_ago: "4 hours ago",
+      summary: "IRCTC introduces enhanced priority booking for senior citizens, ensuring guaranteed lower berth preferences on Express and Vande Bharat trains.",
+      tag: "Travel & Railways",
+      read_time: "3 min read"
+    },
+    {
+      id: 3,
+      title: "AYUSH Ministry Launches Nationwide Morning Yoga & Pranayama Drive",
+      category: "Health & Wellness",
+      time_ago: "6 hours ago",
+      summary: "Free wellness parks established across 500 towns in India offering guided gentle breathing exercises, joint mobility sessions, and health check-ups.",
+      tag: "Senior Health",
+      read_time: "2 min read"
+    },
+    {
+      id: 4,
+      title: "Golden Era Music Archives Digitized for Public Access",
+      category: "Culture & Heritage",
+      time_ago: "9 hours ago",
+      summary: "Over 10,000 classic 1960s-1980s radio broadcasts, classical ragas, and vintage audio recordings restored and made free for senior listeners.",
+      tag: "Arts & Nostalgia",
+      read_time: "4 min read"
+    }
+  ],
+  cities: {
+    "New Delhi": [
+      { title: "Lodhi Gardens Launches Morning Senior Walking Club & Herbal Tea Corner", time_ago: "1 hour ago", category: "City Wellness", summary: "Delhi Municipal Corporation sets up shaded seating, free health check kiosks, and fresh herbal tea for morning walkers at Lodhi & Nehru Park." },
+      { title: "Mandi House Hosts Classical Hindustani Music Evening", time_ago: "5 hours ago", category: "Culture", summary: "Special tribute concert featuring legendary sitar compositions organized with free reserved seating for senior citizens." }
+    ],
+    "Mumbai": [
+      { title: "Marine Drive Promenade Enhances Senior Safety Lighting & Benches", time_ago: "2 hours ago", category: "City Infrastructure", summary: "BMC adds anti-skid walking paths, specialized benches, and dedicated volunteer guides along the Queen's Necklace promenade." },
+      { title: "Vintage Cinema Retrospective Opens in South Mumbai", time_ago: "6 hours ago", category: "Entertainment", summary: "Restored 1970s Bollywood classics screened daily with subsidized tickets for senior film enthusiasts." }
+    ],
+    "Bengaluru": [
+      { title: "Lalbagh Botanical Garden Introduces Electric Shuttle Buggies for Seniors", time_ago: "3 hours ago", category: "Eco & Transport", summary: "Free electric cart rides now available every morning to help senior visitors tour the glasshouse and flower displays comfortably." },
+      { title: "Malleshwaram Senior Tech Literacy Workshops Announced", time_ago: "7 hours ago", category: "Community", summary: "Free weekend classes helping elders master smartphone navigation, online banking safety, and video calls with grandkids." }
+    ],
+    "Kolkata": [
+      { title: "Heritage Tram Ride Service Relaunched Along Maidan Route", time_ago: "2 hours ago", category: "Heritage & Travel", summary: "Air-conditioned nostalgia tram tour features classic Bengali acoustic music and complimentary Darjeeling tea for senior passengers." },
+      { title: "Rabindra Sangeet Morning Recital at Victoria Memorial", time_ago: "4 hours ago", category: "Culture", summary: "Renowned vocalists perform timeless Tagore compositions amidst lush morning lawns, drawing hundreds of city elders." }
+    ],
+    "Chennai": [
+      { title: "Mylapore Heritage Walk & Carnatic Morning Concerts Return", time_ago: "3 hours ago", category: "Arts & Tradition", summary: "Sabhas across Mylapore inaugurate morning devotional music hours with dedicated elder seating and traditional filter coffee." },
+      { title: "Marina Beach Walkway Gets Wheelchair Access & Shade Canopies", time_ago: "6 hours ago", category: "Civic Amenities", summary: "Chennai Corporation completes beachside wooden ramp extension for seamless sea-breeze walks for seniors and wheelchair users." }
+    ],
+    "Hyderabad": [
+      { title: "Hussain Sagar Promenade Beautified with Senior Exercise Pavilions", time_ago: "2 hours ago", category: "Urban Parks", summary: "Hyderabad Development Authority adds low-impact hydraulic fitness equipment designed specifically for age 50+ park visitors." },
+      { title: "Charminar Heritage Evening Lights & Guided Storytelling Walk", time_ago: "8 hours ago", category: "Culture", summary: "Interactive history tours sharing stories of Nizam era architecture with comfortable electric cart transport." }
+    ],
+    "Ahmedabad": [
+      { title: "Sabarmati Riverfront Morning Laughter Club Expands to 10 Zones", time_ago: "1 hour ago", category: "Health & Joy", summary: "Popular riverfront laughter & breathing yoga sessions now accommodate over 1,500 daily senior walkers along the promenade." },
+      { title: "Old City Haveli Preservation Drive Guided Walks", time_ago: "5 hours ago", category: "Heritage", summary: "Guided architectural walks highlighting centuries-old wooden Pol houses with local Gujarati breakfast tasting." }
+    ],
+    "Pune": [
+      { title: "Shaniwar Wada Cultural Evening & Marathi Literature Meet", time_ago: "4 hours ago", category: "Literature & Arts", summary: "Veteran authors and poets gather for evening recitations in historic courtyard setting with reserved senior seating." },
+      { title: "Kothrud Senior Fitness Trails Opened at ARAI Hills", time_ago: "7 hours ago", category: "Fitness", summary: "Gently graded walking paths with rest kiosks and drinking water stations inaugurated for morning nature lovers." }
+    ],
+    "Jaipur": [
+      { title: "Amer Fort Introduces Battery Golf Carts & Heritage Courtyard Music", time_ago: "3 hours ago", category: "Heritage & Comfort", summary: "Senior visitors enjoy free cart transport up the palace incline and live Shehnai recitations in Rajasthan court." },
+      { title: "Ramniwas Garden Morning Ayurvedic Wellness Kiosk Opens", time_ago: "6 hours ago", category: "Ayurveda & Health", summary: "Certified doctors offer free pulse diagnostics, herbal teas, and joint care advice for morning walkers." }
+    ],
+    "Lucknow": [
+      { title: "Gomti Riverfront Morning Gazebo & Classical Ghazal Sessions", time_ago: "2 hours ago", category: "Music & Leisure", summary: "Lucknow Development Authority hosts sunrise musical gatherings along the riverfront promenade for city elders." },
+      { title: "Chikankari Craft Heritage Expo Opened at Hazratganj", time_ago: "5 hours ago", category: "Handicrafts", summary: "Special exhibition celebrating veteran master artisans with interactive embroidery workshops for senior hobbyists." }
+    ],
+    "Chandigarh": [
+      { title: "Sukhna Lake Morning Walking Festival Attracts 2,000+ Seniors", time_ago: "2 hours ago", category: "Fitness & Nature", summary: "Clean air walking rally, bird watching guide tours, and complimentary herbal immunity drinks hosted by UT administration." },
+      { title: "Rose Garden Senior Reading Lounge & Chess Club Inaugurated", time_ago: "6 hours ago", category: "Community", summary: "Shaded garden pavilion equipped with newspapers, magazines from 1970-1990s, and wooden chess boards." }
+    ],
+    "Kochi": [
+      { title: "Water Metro Launches Scenic Backwater Morning Excursions for Seniors", time_ago: "3 hours ago", category: "Eco Transport", summary: "Electric boat cruises offer serene views of Fort Kochi, coconut groves, and Chinese fishing nets with priority boarding." },
+      { title: "Marine Drive Promenade Kathakali Recital Evening", time_ago: "7 hours ago", category: "Traditional Dance", summary: "Open-air classical Kathakali makeup demonstration and performance with free seaside seating for senior art lovers." }
+    ]
+  }
+};
+
+async function loadNewsPage() {
+  const nationalGrid = document.getElementById('national-news-grid');
+  const cityGrid = document.getElementById('city-news-grid');
+  if (!nationalGrid || !cityGrid) return;
+
+  try {
+    const res = await apiRequest('/news');
+    if (res && res.success && res.data) {
+      currentNewsData = res.data;
+    }
+  } catch (e) {
+    console.warn("Backend news load fallback:", e);
+  }
+
+  if (!currentNewsData) {
+    currentNewsData = FALLBACK_NEWS_DATA;
+  }
+
+  renderNationalNews();
+  renderCityNews();
+}
+
+function renderNationalNews() {
+  const container = document.getElementById('national-news-grid');
+  if (!container || !currentNewsData || !currentNewsData.national_24h) return;
+
+  let items = currentNewsData.national_24h;
+  if (currentNewsSearch) {
+    const q = currentNewsSearch.toLowerCase();
+    items = items.filter(n => n.title.toLowerCase().includes(q) || n.summary.toLowerCase().includes(q) || n.category.toLowerCase().includes(q));
+  }
+
+  container.innerHTML = items.map(n => `
+    <article class="news-card">
+      <div>
+        <div class="news-card__top">
+          <span class="news-badge-category">${n.category}</span>
+          <span class="news-badge-time">⏱️ ${n.time_ago}</span>
+        </div>
+        <h3 class="news-card__title">${n.title}</h3>
+        <p class="news-card__summary">${n.summary}</p>
+      </div>
+      <div class="news-card__footer">
+        <span class="news-card__tag">🏷️ ${n.tag || 'India News'}</span>
+        <span>📖 ${n.read_time || '2 min'}</span>
+      </div>
+    </article>
+  `).join('');
+}
+
+function selectNewsCity(city) {
+  currentCityFilter = city;
+  document.querySelectorAll('.city-tab').forEach(btn => {
+    btn.classList.toggle('active', btn.getAttribute('data-city') === city);
+  });
+  renderCityNews();
+}
+
+function renderCityNews() {
+  const container = document.getElementById('city-news-grid');
+  if (!container || !currentNewsData || !currentNewsData.cities) return;
+
+  let cityStories = [];
+  const citiesObj = currentNewsData.cities;
+
+  if (currentCityFilter === 'All') {
+    Object.keys(citiesObj).forEach(cName => {
+      citiesObj[cName].forEach(item => {
+        cityStories.push({ ...item, cityName: cName });
+      });
+    });
+  } else if (citiesObj[currentCityFilter]) {
+    citiesObj[currentCityFilter].forEach(item => {
+      cityStories.push({ ...item, cityName: currentCityFilter });
+    });
+  }
+
+  if (currentNewsSearch) {
+    const q = currentNewsSearch.toLowerCase();
+    cityStories = cityStories.filter(s => s.title.toLowerCase().includes(q) || s.summary.toLowerCase().includes(q) || s.cityName.toLowerCase().includes(q));
+  }
+
+  if (cityStories.length === 0) {
+    container.innerHTML = `<div class="card p-8 text-center" style="grid-column:1/-1; background:#E0F2FE; color:#0284C7; font-weight:700;">No news stories found matching your filter.</div>`;
+    return;
+  }
+
+  container.innerHTML = cityStories.map(s => `
+    <article class="news-card">
+      <div>
+        <div class="news-card__top">
+          <span class="news-badge-category">${s.category}</span>
+          <span class="news-badge-time">📍 ${s.cityName} • ${s.time_ago}</span>
+        </div>
+        <h3 class="news-card__title">${s.title}</h3>
+        <p class="news-card__summary">${s.summary}</p>
+      </div>
+      <div class="news-card__footer">
+        <span class="news-card__tag">🏙️ ${s.cityName} City Bulletin</span>
+        <button onclick="readSingleNews('${s.title.replace(/'/g, "\\'")}')" class="btn btn-ghost btn-sm" style="color:var(--cosmic-orange); font-weight:700;" title="Listen to story">🔊 Listen</button>
+      </div>
+    </article>
+  `).join('');
+}
+
+function filterNewsSearch(val) {
+  currentNewsSearch = val.trim();
+  renderNationalNews();
+  renderCityNews();
+}
+
+function readNewsAloud() {
+  if (!('speechSynthesis' in window)) {
+    showToast("Speech synthesis is not supported on this browser.", "warning");
+    return;
+  }
+
+  const btn = document.getElementById('news-voice-btn');
+
+  if (window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+    if (btn) {
+      btn.classList.remove('speaking');
+      btn.innerHTML = `<span id="news-voice-icon">🔊</span> Listen to Today's Headlines`;
+    }
+    showToast("Audio bulletin stopped.", "info");
+    return;
+  }
+
+  if (!currentNewsData || !currentNewsData.national_24h) return;
+
+  const textToRead = "Here is your 24-hour India and City News summary. " + 
+    currentNewsData.national_24h.map(n => n.title + ". " + n.summary).join(" ") +
+    " City updates include senior walking clubs in Delhi and Mumbai, and Lalbagh electric shuttles in Bengaluru.";
+
+  newsUtterance = new SpeechSynthesisUtterance(textToRead);
+  newsUtterance.rate = 0.9;
+  newsUtterance.onend = () => {
+    if (btn) {
+      btn.classList.remove('speaking');
+      btn.innerHTML = `<span id="news-voice-icon">🔊</span> Listen to Today's Headlines`;
+    }
+  };
+
+  if (btn) {
+    btn.classList.add('speaking');
+    btn.innerHTML = `<span id="news-voice-icon">⏹️</span> Reading News (Tap to Stop)`;
+  }
+
+  window.speechSynthesis.speak(newsUtterance);
+  showToast("Playing 24-Hour Voice News Summary...", "success");
+}
+
+function readSingleNews(title) {
+  if (!('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  const utt = new SpeechSynthesisUtterance(title);
+  utt.rate = 0.95;
+  window.speechSynthesis.speak(utt);
+}
+
+// ----------------------------------------------------------------
+// 29. START
 // ----------------------------------------------------------------
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', initApp);
 } else {
   initApp();
 }
+
 

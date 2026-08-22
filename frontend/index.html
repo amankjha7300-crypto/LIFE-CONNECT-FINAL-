@@ -32,6 +32,7 @@
 
       <div class="nav-links" role="list">
         <button class="nav-link active" data-nav="home" onclick="navigate('home')" role="listitem">Home</button>
+        <button class="nav-link nav-link--news" data-nav="news" onclick="navigate('news')" role="listitem">📰 News (24h)</button>
         <button class="nav-link" data-nav="reconnect" onclick="navigate('reconnect')" role="listitem">Reconnect</button>
         <button class="nav-link" data-nav="memories" onclick="navigate('memories')" role="listitem">Memories</button>
         <button class="nav-link" data-nav="wellness" onclick="navigate('wellness')" role="listitem">Wellness</button>
@@ -42,6 +43,12 @@
       </div>
 
       <div class="nav-actions" id="nav-actions">
+        <div class="accessibility-toolbar" title="Senior Text & Contrast Controls">
+          <button onclick="setFontScale('sm')" class="btn-access" title="Normal Font Size">A</button>
+          <button onclick="setFontScale('lg')" class="btn-access" title="Large Font Size">A+</button>
+          <button onclick="setFontScale('xl')" class="btn-access" title="Extra Large Font Size">A++</button>
+          <button onclick="toggleHighContrast()" id="hc-toggle-btn" class="btn-access" title="Toggle High Contrast Mode">👁️</button>
+        </div>
         <button class="btn btn-secondary btn-sm" onclick="navigate('login')">Login</button>
         <button class="btn btn-primary btn-sm" onclick="navigate('signup')">Get Started</button>
         <button id="dark-mode-toggle" class="btn btn-ghost btn-sm" title="Toggle dark mode">🌙</button>
@@ -61,6 +68,9 @@
         <polyline points="9 22 9 12 15 12 15 22" />
       </svg>
       Home
+    </button>
+    <button class="mobile-menu__link" data-nav="news" onclick="navigate('news')">
+      📰 News (24h)
     </button>
     <button class="mobile-menu__link" data-nav="reconnect" onclick="navigate('reconnect')">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -124,7 +134,72 @@
   </div>
 
   <!-- ================================================================ PAGE CONTENT -->
-  <main class="page-content" id="page-content">
+    <!-- ============================================================ NEWS VIEW (24H INDIA & 12 CITIES) -->
+    <div id="view-news" class="view">
+      <!-- Cosmic Orange & Sky Blue Hero Header -->
+      <header class="news-hero">
+        <div class="container news-hero__inner">
+          <div class="news-hero__badge">
+            <span class="live-pulse"></span> Live 24-Hour Feed • India & 12 Major Cities
+          </div>
+          <h1 class="news-hero__title">What Happened in India in the <span class="cosmic-highlight">Last 24 Hours</span></h1>
+          <p class="news-hero__subtitle">Curated positive news, senior welfare updates, cultural events, and city highlights across 12 major Indian cities.</p>
+          
+          <div class="news-hero__actions">
+            <button onclick="readNewsAloud()" id="news-voice-btn" class="btn btn-cosmic-voice">
+              <span id="news-voice-icon">🔊</span> Listen to Today's Headlines
+            </button>
+            <div class="news-search-box">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="news-search-input" onkeyup="filterNewsSearch(this.value)" placeholder="Search news by keyword or city..." aria-label="Search news">
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div class="container py-12">
+        <!-- National 24-Hour Highlights -->
+        <div class="news-section-header">
+          <div>
+            <h2 class="section-title">🇮🇳 Top 24-Hour Headlines Across India</h2>
+            <p class="section-sub">Latest welfare schemes, senior healthcare, railways updates, and cultural milestones from the past day.</p>
+          </div>
+        </div>
+
+        <div class="national-news-grid" id="national-news-grid">
+          <!-- Dynamically populated national stories -->
+        </div>
+
+        <!-- 12 Major Cities Bulletin -->
+        <div class="news-section-header mt-12">
+          <div>
+            <h2 class="section-title">🏙️ 12 Major Indian Cities Bulletin</h2>
+            <p class="section-sub">Select your city or explore local morning walk clubs, heritage walks, classical concerts, and civic updates.</p>
+          </div>
+        </div>
+
+        <!-- City Selector Tabs -->
+        <div class="city-selector-tabs" id="city-selector-tabs">
+          <button onclick="selectNewsCity('All')" class="city-tab active" data-city="All">🌐 All 12 Cities</button>
+          <button onclick="selectNewsCity('New Delhi')" class="city-tab" data-city="New Delhi">🏛️ New Delhi</button>
+          <button onclick="selectNewsCity('Mumbai')" class="city-tab" data-city="Mumbai">🌊 Mumbai</button>
+          <button onclick="selectNewsCity('Bengaluru')" class="city-tab" data-city="Bengaluru">💻 Bengaluru</button>
+          <button onclick="selectNewsCity('Kolkata')" class="city-tab" data-city="Kolkata">📜 Kolkata</button>
+          <button onclick="selectNewsCity('Chennai')" class="city-tab" data-city="Chennai">🛕 Chennai</button>
+          <button onclick="selectNewsCity('Hyderabad')" class="city-tab" data-city="Hyderabad">🕌 Hyderabad</button>
+          <button onclick="selectNewsCity('Ahmedabad')" class="city-tab" data-city="Ahmedabad">🏙️ Ahmedabad</button>
+          <button onclick="selectNewsCity('Pune')" class="city-tab" data-city="Pune">🌄 Pune</button>
+          <button onclick="selectNewsCity('Jaipur')" class="city-tab" data-city="Jaipur">🏰 Jaipur</button>
+          <button onclick="selectNewsCity('Lucknow')" class="city-tab" data-city="Lucknow">👑 Lucknow</button>
+          <button onclick="selectNewsCity('Chandigarh')" class="city-tab" data-city="Chandigarh">🌾 Chandigarh</button>
+          <button onclick="selectNewsCity('Kochi')" class="city-tab" data-city="Kochi">🌴 Kochi</button>
+        </div>
+
+        <div class="city-news-grid" id="city-news-grid">
+          <!-- Dynamically populated city stories -->
+        </div>
+      </div>
+    </div>
 
     <!-- ============================================================ HOME VIEW -->
     <div id="view-home" class="view active">
@@ -1716,8 +1791,31 @@
     </div>
   </div>
 
+  <!-- Floating Mini Audio Player -->
+  <div id="mini-audio-player" class="mini-audio-player" style="display:none;" role="region" aria-label="Audio Player">
+    <div class="player-content">
+      <div class="player-info">
+        <span class="player-icon" id="player-icon">🎵</span>
+        <div class="player-text">
+          <div id="player-title" class="player-title">Golden Era Nostalgia</div>
+          <div id="player-subtitle" class="player-subtitle">Playing classic audio...</div>
+        </div>
+      </div>
+      <div class="player-controls">
+        <button onclick="toggleMiniPlayerPlay()" id="player-play-btn" class="btn-player" aria-label="Pause or Play">⏸️</button>
+        <select onchange="changeAudioSpeed(this.value)" class="player-speed" title="Playback Speed">
+          <option value="0.8">0.8x</option>
+          <option value="1.0" selected>1.0x</option>
+          <option value="1.2">1.2x</option>
+        </select>
+        <button onclick="closeMiniPlayer()" class="btn-player-close" title="Close Audio Player">✕</button>
+      </div>
+    </div>
+    <audio id="global-audio-element" style="display:none;"></audio>
+  </div>
+
   <!-- Toast Container -->
-  <div id="toast-container" role="alert" aria-live="polite"></div>
+  <div id="toast-container" class="toast-container" role="alert" aria-live="polite"></div>
 
   <!-- Scripts -->
   <script src="script.js"></script>

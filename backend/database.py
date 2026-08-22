@@ -136,11 +136,14 @@ def init_db():
 
         # ── Performance Indexes ────────────────────────────────────────
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_city ON users(city)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_decade ON users(decade)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_memories_user_id ON memories(user_id, year)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_connections_user ON connections(user_id, friend_id)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_connections_friend ON connections(friend_id)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_wellness_user_date ON wellness_activities(user_id, date)")
         cursor.execute("CREATE INDEX IF NOT EXISTS idx_community_members_user ON community_members(user_id)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_communities_category ON communities(category)")
 
         # Seed default demo user if not exists
         cursor.execute("SELECT id FROM users WHERE email='demo@lifeconnect.local'")

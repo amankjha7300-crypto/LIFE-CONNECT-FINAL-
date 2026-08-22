@@ -83,10 +83,24 @@ async def get_llm_chat_response(messages: list) -> str:
 # live market prices (groceries/veggies/milk), health facts, remedies, weather, sports, and info.
 # ══════════════════════════════════════════════════════════════════════════════
 
+# In-memory LRU cache for frequent voice search queries
+_voice_search_cache: Dict[str, str] = {}
+
 async def get_voice_search_response(query_text: str) -> str:
-    """Google-style Voice Search Engine.
+    """Google-style Voice Search Engine with in-memory query caching.
     Direct, factual, spoken voice answers for real-world queries, greetings, market prices, illnesses, and facts.
     """
+    clean_key = query_text.strip().lower()
+    if clean_key in _voice_search_cache:
+        return _voice_search_cache[clean_key]
+
+    res = await _compute_voice_search(query_text)
+    if len(_voice_search_cache) > 200:
+        _voice_search_cache.clear()  # simple cache purge on max size
+    _voice_search_cache[clean_key] = res
+    return res
+
+async def _compute_voice_search(query_text: str) -> str:
     if OPENAI_AVAILABLE and openai_api_key:
         try:
             from openai import AsyncOpenAI

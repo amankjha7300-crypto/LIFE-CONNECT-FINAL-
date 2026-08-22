@@ -441,6 +441,18 @@ function navigate(viewId) {
   // Scroll to top
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
+  // Show / hide the floating chat widget (hidden on landing/login/signup)
+  const hiddenOnViews = ['home', 'login', 'signup'];
+  const widget = document.getElementById('floating-chat-widget');
+  if (widget) {
+    widget.style.display = hiddenOnViews.includes(viewId) ? 'none' : '';
+    // Collapse panel when switching pages
+    const panel = document.getElementById('floating-chat-panel');
+    const btn   = document.getElementById('floating-chat-btn');
+    if (panel) panel.classList.remove('visible');
+    if (btn)   btn.classList.remove('open');
+  }
+
   // Run view-specific init
   onViewChange(viewId);
 }
@@ -1050,12 +1062,16 @@ function initCompanionChatUI(containerId, bodyId, inputId, sendId) {
     if (!msg) return;
     addChatMessage(body, 'user', msg, null);
     input.value = '';
+    // Attentive: very short delay to feel instant, then natural typing
+    const words = msg.trim().split(/\s+/).length;
+    const delay = Math.min(400 + words * 60, 1200);
     const typing = showTypingIndicator(body);
     setTimeout(() => {
       typing.remove();
       const res = getAIResponse(msg);
       if (res) addChatMessage(body, 'ai', res.text, res.actions);
-    }, 800 + Math.random() * 400);
+      else addChatMessage(body, 'ai', "I'm here — what would you like to talk about?", ['Memories', 'Music', 'Friends', 'Wellness']);
+    }, delay);
   };
 
   send.addEventListener('click', sendMsg);
@@ -1960,6 +1976,9 @@ function initApp() {
   const floatMic = document.getElementById('floating-mic');
   if (floatMic) floatMic.addEventListener('click', () => navigate('voice'));
 
+  // Floating chat widget
+  initFloatingChat();
+
   // Hash change listener
   window.addEventListener('hashchange', () => {
     const v = window.location.hash.replace('#', '');
@@ -1979,6 +1998,88 @@ function initApp() {
 }
 
 // ----------------------------------------------------------------
-// 27. START
+// 27. FLOATING CHAT WIDGET
+// ----------------------------------------------------------------
+function initFloatingChat() {
+  const widget = document.getElementById('floating-chat-widget');
+  const btn    = document.getElementById('floating-chat-btn');
+  const panel  = document.getElementById('floating-chat-panel');
+  const closeBtn = document.getElementById('floating-chat-close');
+  const body   = document.getElementById('floating-chat-body');
+  const input  = document.getElementById('floating-chat-input');
+  const send   = document.getElementById('floating-chat-send');
+  const badge  = document.getElementById('floating-chat-badge');
+  if (!widget || !btn || !panel) return;
+
+  let isOpen = false;
+  let initialized = false;
+
+  function openPanel() {
+    isOpen = true;
+    panel.classList.add('visible');
+    btn.classList.add('open');
+    // Hide badge
+    if (badge) badge.style.display = 'none';
+    // Init conversation on first open
+    if (!initialized) {
+      initialized = true;
+      const user = getStoredUser();
+      const firstName = user ? (user.firstName || user.name.split(' ')[0]) : null;
+      const hour = new Date().getHours();
+      const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+      const greeting = firstName
+        ? `${timeGreeting}, ${firstName} Ji! I'm Mitra. How can I help you today?`
+        : `${timeGreeting}! I'm Mitra, your AI companion on LifeConnect. What would you like to explore?`;
+      addChatMessage(body, 'ai', greeting,
+        ['Find an Old Friend', 'Share a Memory', "Today's Wellness", 'Just Chatting']);
+    }
+    setTimeout(() => input && input.focus(), 300);
+  }
+
+  function closePanel() {
+    isOpen = false;
+    panel.classList.remove('visible');
+    btn.classList.remove('open');
+  }
+
+  btn.addEventListener('click', () => isOpen ? closePanel() : openPanel());
+  if (closeBtn) closeBtn.addEventListener('click', closePanel);
+
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (isOpen && !panel.contains(e.target) && !btn.contains(e.target)) closePanel();
+  });
+
+  // Send message
+  const sendMsg = () => {
+    const msg = input.value.trim();
+    if (!msg) return;
+    addChatMessage(body, 'user', msg, null);
+    input.value = '';
+    const words = msg.trim().split(/\s+/).length;
+    const delay = Math.min(350 + words * 55, 1100);
+    const typing = showTypingIndicator(body);
+    setTimeout(() => {
+      typing.remove();
+      const res = getAIResponse(msg);
+      if (res) addChatMessage(body, 'ai', res.text, res.actions);
+      else addChatMessage(body, 'ai', "I'm here. What would you like to talk about?",
+        ['Memories', 'Music', 'Friends', 'Wellness']);
+    }, delay);
+  };
+
+  if (send) send.addEventListener('click', sendMsg);
+  if (input) input.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendMsg(); });
+
+  // After 3 s show a gentle notification badge if not yet opened
+  setTimeout(() => {
+    if (!initialized && badge) {
+      badge.style.display = 'flex';
+    }
+  }, 3000);
+}
+
+// ----------------------------------------------------------------
+// 28. START
 // ----------------------------------------------------------------
 document.addEventListener('DOMContentLoaded', initApp);

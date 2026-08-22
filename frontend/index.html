@@ -1661,6 +1661,46 @@
     </div>
   </div>
 
+  <!-- ============================================================ FLOATING CHATBOT -->
+  <div id="floating-chat-widget" aria-label="Chat with Mitra" style="display:none;">
+    <!-- Floating toggle button -->
+    <button id="floating-chat-btn" class="floating-chat-btn" aria-label="Open Mitra chat" title="Chat with Mitra">
+      <span class="floating-chat-btn__avatar">🌻</span>
+      <span class="floating-chat-btn__badge" id="floating-chat-badge" style="display:none;">1</span>
+      <span class="floating-chat-btn__pulse"></span>
+    </button>
+
+    <!-- Floating chat panel -->
+    <div id="floating-chat-panel" class="floating-chat-panel" role="dialog" aria-modal="true" aria-label="Mitra AI Companion">
+      <div class="floating-chat-panel__header">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="floating-chat-panel__avatar">🌻</div>
+          <div>
+            <div class="floating-chat-panel__name">Mitra</div>
+            <div class="floating-chat-panel__status" id="floating-chat-status">
+              <span class="status-dot"></span> Online · Always here for you
+            </div>
+          </div>
+        </div>
+        <button id="floating-chat-close" class="floating-chat-panel__close" aria-label="Close chat">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+      <div class="floating-chat-panel__body" id="floating-chat-body"></div>
+      <div class="floating-chat-panel__input-row">
+        <input id="floating-chat-input" type="text" class="floating-chat-panel__input"
+          placeholder="Talk to Mitra…" autocomplete="off" aria-label="Type a message to Mitra">
+        <button id="floating-chat-send" class="floating-chat-panel__send" aria-label="Send">
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div id="toast-container" role="alert" aria-live="polite"></div>
 

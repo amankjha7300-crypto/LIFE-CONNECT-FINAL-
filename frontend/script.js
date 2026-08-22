@@ -1149,6 +1149,9 @@ function initCompanion() {
   });
 
   initCompanionChatUI('companion-chat', 'companion-chat-body', 'companion-chat-input', 'companion-chat-send');
+
+  // Wire up voice orb click handler
+  initVoiceUI('companion-voice-orb', 'companion-voice-status', 'companion-voice-transcript');
 }
 
 // ----------------------------------------------------------------
@@ -1179,6 +1182,10 @@ function initVoiceUI(orbId, statusId, transcriptId) {
   const statusEl = document.getElementById(statusId);
   const transcriptEl = document.getElementById(transcriptId);
   if (!orb) return;
+
+  // Prevent duplicate listeners on repeated calls
+  if (orb.dataset.voiceInit === 'true') return;
+  orb.dataset.voiceInit = 'true';
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 

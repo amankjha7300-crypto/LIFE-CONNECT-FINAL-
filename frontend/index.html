@@ -1,0 +1,1686 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description"
+    content="LifeConnect — Your AI-powered Life Companion for people 50+. Reconnect with old friends, rediscover memories, stay active and live meaningfully.">
+  <meta name="theme-color" content="#405C32">
+  <title>LifeConnect — Reconnect with your past. Live meaningfully today.</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+</head>
+
+<body>
+
+  <!-- ================================================================ NAVBAR -->
+  <nav id="navbar" role="navigation" aria-label="Main navigation">
+    <div class="container nav-inner">
+      <a class="nav-logo" onclick="navigate('home')" href="#home" aria-label="LifeConnect Home">
+        <div class="nav-logo__icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <path d="M12 2L8 6H4l2 4-4 2 4 2-2 4h4l4 4 4-4h4l-2-4 4-2-4-2 2-4h-4z" />
+          </svg>
+        </div>
+        <span>
+          <span class="nav-logo__name">LifeConnect</span>
+          <span class="nav-logo__sub">For a beautiful life after 50</span>
+        </span>
+      </a>
+
+      <div class="nav-links" role="list">
+        <button class="nav-link active" data-nav="home" onclick="navigate('home')" role="listitem">Home</button>
+        <button class="nav-link" data-nav="reconnect" onclick="navigate('reconnect')" role="listitem">Reconnect</button>
+        <button class="nav-link" data-nav="memories" onclick="navigate('memories')" role="listitem">Memories</button>
+        <button class="nav-link" data-nav="wellness" onclick="navigate('wellness')" role="listitem">Wellness</button>
+        <button class="nav-link" data-nav="community" onclick="navigate('community')" role="listitem">Community</button>
+        <button class="nav-link" data-nav="companion" onclick="navigate('companion')" role="listitem">AI
+          Companion</button>
+        <button id="nav-dashboard-link" class="nav-link" data-nav="dashboard" onclick="navigate('dashboard')"
+          style="display:none;" role="listitem">My Home</button>
+      </div>
+
+      <div class="nav-actions" id="nav-actions">
+        <button class="btn btn-secondary btn-sm" onclick="navigate('login')">Login</button>
+        <button class="btn btn-primary btn-sm" onclick="navigate('signup')">Get Started</button>
+      </div>
+
+      <button class="nav-hamburger" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Mobile Menu -->
+  <div id="mobile-menu" role="dialog" aria-modal="true" aria-label="Navigation menu">
+    <button class="mobile-menu__link" data-nav="home" onclick="navigate('home')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+        <polyline points="9 22 9 12 15 12 15 22" />
+      </svg>
+      Home
+    </button>
+    <button class="mobile-menu__link" data-nav="reconnect" onclick="navigate('reconnect')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 00-3-3.87" />
+        <path d="M16 3.13a4 4 0 010 7.75" />
+      </svg>
+      Reconnect
+    </button>
+    <button class="mobile-menu__link" data-nav="memories" onclick="navigate('memories')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="3" width="18" height="18" rx="2" />
+        <circle cx="8.5" cy="8.5" r="1.5" />
+        <polyline points="21 15 16 10 5 21" />
+      </svg>
+      Memories
+    </button>
+    <button class="mobile-menu__link" data-nav="wellness" onclick="navigate('wellness')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path
+          d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+      </svg>
+      Wellness
+    </button>
+    <button class="mobile-menu__link" data-nav="community" onclick="navigate('community')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M23 21v-2a4 4 0 00-3-3.87" />
+      </svg>
+      Community
+    </button>
+    <button class="mobile-menu__link" data-nav="companion" onclick="navigate('companion')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+      </svg>
+      AI Companion
+    </button>
+    <button class="mobile-menu__link" data-nav="vault" onclick="navigate('vault')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2z" />
+      </svg>
+      Memory Vault
+    </button>
+    <button class="mobile-menu__link" data-nav="legal" onclick="navigate('legal')">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+        <polyline points="14 2 14 8 20 8" />
+      </svg>
+      Document Help
+    </button>
+    <div style="border-top:1px solid var(--border);margin-top:16px;padding-top:16px;">
+      <button id="mobile-menu-get-started" class="btn btn-primary btn-block mb-3" onclick="navigate('signup')">Get
+        Started Free</button>
+      <button class="btn btn-secondary btn-block" onclick="navigate('login')">Login</button>
+    </div>
+  </div>
+
+  <!-- ================================================================ PAGE CONTENT -->
+  <main class="page-content" id="page-content">
+
+    <!-- ============================================================ HOME VIEW -->
+    <div id="view-home" class="view active">
+
+      <!-- HERO -->
+      <section class="hero container" aria-labelledby="hero-headline">
+        <div class="hero__text">
+          <div class="hero__eyebrow">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L8 6H4l2 4-4 2 4 2-2 4h4l4 4 4-4h4l-2-4 4-2-4-2 2-4h-4z" />
+            </svg>
+            Made for people 50+
+          </div>
+          <h1 class="hero__headline" id="hero-headline">
+            Reconnecting hearts.<br>Reviving <span>beautiful memories.</span>
+          </h1>
+          <p class="hero__sub">
+            A safe and joyful space for people 50+ to reconnect with loved ones, relive the past, stay active and live
+            each day meaningfully.
+          </p>
+          <div class="hero__actions">
+            <button class="btn btn-primary btn-lg" onclick="navigate('signup')" id="hero-get-started">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
+              Get Started
+            </button>
+            <button class="btn btn-secondary btn-lg"
+              onclick="document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'})">
+              How It Works
+            </button>
+          </div>
+          <div class="hero__social-proof">
+            <div class="avatar-stack" aria-hidden="true">
+              <div class="avatar-stack__item">R</div>
+              <div class="avatar-stack__item">S</div>
+              <div class="avatar-stack__item">M</div>
+              <div class="avatar-stack__item">K</div>
+            </div>
+            <p class="hero__social-text"><strong>Thousands of families</strong> reconnecting their stories</p>
+          </div>
+        </div>
+
+        <div class="hero__image-wrap animate-on-scroll" aria-hidden="true">
+          <div
+            style="width:100%;height:100%;background:linear-gradient(135deg, #DCE8C8 0%, #EEF5E4 40%, #FFE0B2 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:40px;">
+            <div style="font-size:80px;">👨‍👩‍👧‍👦</div>
+            <div style="text-align:center;">
+              <div
+                style="font-family:var(--font-serif);font-size:22px;font-weight:700;color:var(--text-dark);margin-bottom:8px;">
+                Reconnect. Remember. Live.</div>
+              <div style="font-size:15px;color:var(--text-sec);">Where every memory matters</div>
+            </div>
+            <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+              <span class="badge badge-orange">50+ Community</span>
+              <span class="badge badge-green">AI Companion</span>
+              <span class="badge badge-cream">Memory Vault</span>
+            </div>
+          </div>
+          <div class="hero__image-badge">
+            <div class="hero__image-badge-icon">🤝</div>
+            <div class="hero__image-badge-text">
+              <strong>Find Old Friends</strong>
+              <span>Reconnect with your past</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- FEATURE CARDS -->
+      <section class="section" style="background:var(--white);">
+        <div class="container">
+          <div class="text-center mb-6">
+            <div class="section-label">Everything in one place</div>
+            <h2 class="section-title" style="margin:0 auto 16px;">Your life. <span>Beautifully connected.</span></h2>
+          </div>
+          <div class="grid-4">
+            <article class="feature-card" onclick="navigate('reconnect')" tabindex="0" role="button"
+              aria-label="Find Old Friends — go to Reconnect page">
+              <div class="feature-card__img" style="background:linear-gradient(135deg,#DCE8C8,#EEF5E4);">
+                <span style="font-size:72px;">👥</span>
+              </div>
+              <div class="feature-card__body">
+                <div class="feature-card__tag">Reconnect</div>
+                <h3 class="feature-card__title">Find Old Friends</h3>
+                <p class="feature-card__text">Reconnect with classmates, colleagues, neighbours and old friends from
+                  across the years.</p>
+                <button class="btn btn-ghost btn-sm" tabindex="-1" aria-hidden="true">Explore →</button>
+              </div>
+            </article>
+
+            <article class="feature-card" onclick="navigate('memories')" tabindex="0" role="button"
+              aria-label="Relive memories — go to Memories page">
+              <div class="feature-card__img" style="background:linear-gradient(135deg,#FFE0B2,#FFF8E8);">
+                <span style="font-size:72px;">📻</span>
+              </div>
+              <div class="feature-card__body">
+                <div class="feature-card__tag">Nostalgia</div>
+                <h3 class="feature-card__title">Relive the Good Old Days</h3>
+                <p class="feature-card__text">Rediscover songs, movies, magazines, radio programmes and moments from
+                  your era.</p>
+                <button class="btn btn-ghost btn-sm" tabindex="-1" aria-hidden="true">Explore →</button>
+              </div>
+            </article>
+
+            <article class="feature-card" onclick="navigate('wellness')" tabindex="0" role="button"
+              aria-label="Stay Healthy — go to Wellness page">
+              <div class="feature-card__img" style="background:linear-gradient(135deg,#EEF5E4,#DCE8C8);">
+                <span style="font-size:72px;">🧘</span>
+              </div>
+              <div class="feature-card__body">
+                <div class="feature-card__tag">Wellness</div>
+                <h3 class="feature-card__title">Stay Healthy & Active</h3>
+                <p class="feature-card__text">Yoga, meditation, light fitness, brain games and activities for body and
+                  mind.</p>
+                <button class="btn btn-ghost btn-sm" tabindex="-1" aria-hidden="true">Explore →</button>
+              </div>
+            </article>
+
+            <article class="feature-card" onclick="navigate('vault')" tabindex="0" role="button"
+              aria-label="Build Your Legacy — go to Memory Vault">
+              <div class="feature-card__img" style="background:linear-gradient(135deg,#FFF8E8,#FFE0B2);">
+                <span style="font-size:72px;">📖</span>
+              </div>
+              <div class="feature-card__body">
+                <div class="feature-card__tag">Legacy</div>
+                <h3 class="feature-card__title">Build Your Legacy</h3>
+                <p class="feature-card__text">Preserve your stories, photos, voice recordings and memories for future
+                  generations.</p>
+                <button class="btn btn-ghost btn-sm" tabindex="-1" aria-hidden="true">Explore →</button>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <!-- HOW IT WORKS -->
+      <section class="how-it-works" id="how-it-works" aria-labelledby="hiw-title">
+        <div class="container text-center">
+          <div class="section-label">Simple to start</div>
+          <h2 class="section-title" id="hiw-title">How LifeConnect <span>Works for You</span></h2>
+          <p class="section-body" style="margin:0 auto;color:rgba(255,255,255,0.72);">Three simple steps to a more
+            connected, meaningful life.</p>
+          <div class="steps-grid">
+            <div class="step animate-on-scroll">
+              <div class="step__num">01</div>
+              <h3 class="step__title">Tell us about your life.</h3>
+              <p class="step__text">Share a little about yourself — your school, city, decade, interests and the people
+                who matter to you.</p>
+            </div>
+            <div class="step animate-on-scroll">
+              <div class="step__num">02</div>
+              <h3 class="step__title">LifeConnect learns what matters to you.</h3>
+              <p class="step__text">Our AI companion gently learns your memories, favourite songs, movies, friends and
+                daily routines.</p>
+            </div>
+            <div class="step animate-on-scroll">
+              <div class="step__num">03</div>
+              <h3 class="step__title">Get personalised connections and memories.</h3>
+              <p class="step__text">Discover old friends, relive memories, stay active and have meaningful conversations
+                every day.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI COMPANION (LANDING) -->
+      <section class="section" aria-labelledby="companion-title">
+        <div class="container companion-wrap">
+          <div class="animate-on-scroll">
+            <div class="section-label">Your personal AI</div>
+            <h2 class="section-title" id="companion-title">Meet Your <span>AI Companion</span></h2>
+            <p class="section-body mb-5">
+              Your companion gradually learns what makes you smile — your favourite songs, the films you loved, the
+              friends you miss, the memories that shaped you. Every conversation makes it a little more like talking to
+              someone who truly knows you.
+            </p>
+            <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:24px;">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div
+                  style="width:36px;height:36px;border-radius:50%;background:var(--orange-light);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+                  🎵</div>
+                <span style="font-size:var(--text-base);color:var(--text-sec);">Remembers your favourite songs and music
+                  era</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div
+                  style="width:36px;height:36px;border-radius:50%;background:var(--green-pale);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+                  👥</div>
+                <span style="font-size:var(--text-base);color:var(--text-sec);">Helps you find and reconnect with old
+                  friends</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div
+                  style="width:36px;height:36px;border-radius:50%;background:var(--cream-dark);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+                  📖</div>
+                <span style="font-size:var(--text-base);color:var(--text-sec);">Helps preserve your life story for
+                  family</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div
+                  style="width:36px;height:36px;border-radius:50%;background:var(--orange-light);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">
+                  🏠</div>
+                <span style="font-size:var(--text-base);color:var(--text-sec);">Always there — in your language, at your
+                  pace</span>
+              </div>
+            </div>
+            <div
+              style="padding:16px;background:var(--orange-light);border-radius:var(--radius-md);font-size:var(--text-sm);color:var(--text-dark);display:flex;gap:10px;">
+              <span>ℹ️</span>
+              <span>This is an AI companion. It learns from your conversations to offer better suggestions over time. AI
+                responses can be imperfect.</span>
+            </div>
+          </div>
+          <div class="chat-ui animate-on-scroll" id="home-chat">
+            <div class="chat-ui__header">
+              <div class="chat-ui__avatar">🌻</div>
+              <div>
+                <div class="chat-ui__name">Mitra — Your AI Companion</div>
+                <div class="chat-ui__status">AI · Always learning · Always kind</div>
+              </div>
+            </div>
+            <div class="chat-ui__body" id="home-chat-body"></div>
+            <div class="chat-ui__input">
+              <input id="home-chat-input" type="text" placeholder="Type something... or just say hello"
+                aria-label="Chat with your AI companion">
+              <button class="chat-ui__send" id="home-chat-send" aria-label="Send message">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <line x1="22" y1="2" x2="11" y2="13" />
+                  <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VOICE SECTION -->
+      <section class="voice-section" id="voice-landing" aria-labelledby="voice-title">
+        <div class="container">
+          <div class="section-label">Hands-free</div>
+          <h2 class="section-title" id="voice-title">Just Speak. <span>We'll Handle the Rest.</span></h2>
+          <p class="section-body" style="margin:0 auto 8px;">No complicated menus. No tiny buttons. Just your voice.</p>
+          <div class="voice-orb-wrap">
+            <button class="voice-orb" id="voice-orb" aria-label="Tap to start voice command">
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
+                <path d="M19 10v2a7 7 0 01-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="23" />
+                <line x1="8" y1="23" x2="16" y2="23" />
+              </svg>
+            </button>
+            <div class="voice-rings" aria-hidden="true">
+              <div class="voice-ring"></div>
+              <div class="voice-ring"></div>
+              <div class="voice-ring"></div>
+            </div>
+          </div>
+          <div class="voice-status" id="voice-status" aria-live="polite">Tap the microphone to speak</div>
+          <div class="voice-transcript" id="voice-transcript" aria-live="polite"></div>
+          <div class="voice-commands" role="list" aria-label="Example voice commands">
+            <span class="chip" role="listitem">"Call my daughter"</span>
+            <span class="chip" role="listitem">"Show my old photos"</span>
+            <span class="chip" role="listitem">"Play Lata Mangeshkar songs"</span>
+            <span class="chip" role="listitem">"Find my school friends"</span>
+            <span class="chip" role="listitem">"Book a doctor appointment"</span>
+          </div>
+          <p style="margin-top:24px;font-size:13px;color:var(--text-light);">Note: Real-world actions like calls and
+            bookings require connected services and backend integration. This demo shows the voice interface experience.
+          </p>
+        </div>
+      </section>
+
+      <!-- EMOTIONAL WELLBEING -->
+      <section class="section" style="background:var(--white);" aria-labelledby="wellbeing-title">
+        <div class="container">
+          <div class="wellbeing-banner animate-on-scroll">
+            <div class="section-label" style="justify-content:center;">Emotional well-being</div>
+            <h2 class="section-title" id="wellbeing-title">AI That <span>Notices and Cares</span></h2>
+            <p class="section-body" style="margin:0 auto 32px;max-width:600px;">LifeConnect may gently notice changes in
+              how you interact — and offer a kind word, your favourite music, or a prompt to connect with family.
+              <em>This is not medical monitoring. It's simply a caring companion.</em>
+            </p>
+
+            <div class="chat-msg ai" style="display:inline-flex;max-width:500px;margin:0 auto 24px;">
+              <div class="chat-msg__avatar" style="background:var(--orange-light);">🌻</div>
+              <div>
+                <div class="chat-msg__bubble" style="background:var(--cream);">
+                  You seem a little quiet today, Sharma Ji. Would you like me to call your son or play your favourite
+                  songs?
+                </div>
+                <div class="chat-msg__actions" style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+                  <button class="chat-msg__btn wellbeing-action" data-action="call">Call Son</button>
+                  <button class="chat-msg__btn wellbeing-action" data-action="music">Play Favourite Songs</button>
+                  <button class="chat-msg__btn wellbeing-action" data-action="fine">I'm Fine, Thank You</button>
+                </div>
+              </div>
+            </div>
+            <p style="font-size:13px;color:var(--text-light);max-width:540px;margin:0 auto;">This AI can notice changes
+              in interaction patterns and offer emotional well-being support. It does not diagnose or treat any medical
+              or mental health condition.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- AI MEMORY SEARCH -->
+      <section class="section" style="background:var(--cream);" aria-labelledby="memory-search-title">
+        <div class="container">
+          <div class="text-center mb-6">
+            <div class="section-label">AI Memory Search</div>
+            <h2 class="section-title" id="memory-search-title">Don't Remember the Name? <span>Just Tell Us What You
+                Remember.</span></h2>
+            <p class="section-body" style="margin:0 auto 48px;">Describe a song, movie, book or place from your memory
+              in your own words — even vaguely. We'll try to find it for you.</p>
+          </div>
+          <div class="memory-search-box" style="max-width:700px;margin:0 auto;">
+            <textarea class="memory-search-input" id="memory-search-input-landing" rows="3"
+              placeholder="I remember a Hindi song from my childhood. There was a train and a woman wearing a red saree..."
+              aria-label="Describe your memory to search for it"></textarea>
+            <div style="margin-top:16px;display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;">
+              <button class="btn btn-secondary"
+                onclick="document.getElementById('memory-search-input-landing').value='I used to read Nandan magazine when I was a child.'">Try:
+                Nandan Magazine</button>
+              <button class="btn btn-primary" id="memory-search-btn-landing">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                Search Memories
+              </button>
+            </div>
+          </div>
+          <div id="memory-search-results-landing" style="max-width:700px;margin:0 auto;"></div>
+        </div>
+      </section>
+
+      <!-- TIME MACHINE -->
+      <section class="time-machine" aria-labelledby="timemachine-title">
+        <div class="container text-center">
+          <div class="section-label" style="color:var(--orange-light);justify-content:center;">Nostalgia</div>
+          <h2 class="section-title" style="color:var(--white);" id="timemachine-title">Take a <span
+              style="color:var(--orange-light);font-style:italic;">Trip Back in Time.</span></h2>
+          <p style="font-size:var(--text-md);color:rgba(255,255,255,.72);max-width:500px;margin:0 auto;">Click any year
+            to rediscover the songs, movies, cricket, radio and culture of that era.</p>
+          <div class="year-selector" id="year-selector-landing" role="group" aria-label="Select a year"></div>
+          <div class="era-content" id="era-content-landing"></div>
+          <div style="margin-top:32px;">
+            <button class="btn btn-primary btn-lg" onclick="navigate('memories')">Explore Full Nostalgia Library
+              →</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- TRUST SECTION -->
+      <section class="section" style="background:var(--white);" aria-labelledby="trust-title">
+        <div class="container text-center">
+          <div class="section-label">Your privacy matters</div>
+          <h2 class="section-title" id="trust-title">Built on <span>Trust and Safety</span></h2>
+          <p class="section-body" style="margin:0 auto 48px;">LifeConnect is designed with privacy at its core. You are
+            always in control.</p>
+          <div class="trust-grid">
+            <div class="trust-item animate-on-scroll">
+              <div class="trust-item__icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                </svg>
+              </div>
+              <h3 class="trust-item__title">Private by Default</h3>
+              <p class="trust-item__text">Your profile and memories are private. You choose exactly what to share and
+                with whom.</p>
+            </div>
+            <div class="trust-item animate-on-scroll">
+              <div class="trust-item__icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M23 21v-2a4 4 0 00-3-3.87" />
+                </svg>
+              </div>
+              <h3 class="trust-item__title">Permission-Based Sharing</h3>
+              <p class="trust-item__text">Family Bridge requires your explicit permission. Nothing is shared without
+                your knowledge and approval.</p>
+            </div>
+            <div class="trust-item animate-on-scroll">
+              <div class="trust-item__icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0110 0v4" />
+                </svg>
+              </div>
+              <h3 class="trust-item__title">Secure Memories</h3>
+              <p class="trust-item__text">Your memory vault is accessible only to you. Future generations can only see
+                what you choose to leave for them.</p>
+            </div>
+            <div class="trust-item animate-on-scroll">
+              <div class="trust-item__icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </div>
+              <h3 class="trust-item__title">AI Transparency</h3>
+              <p class="trust-item__text">Your AI companion is always clearly identified as AI. It does not pretend to
+                be a person, and all its limitations are clearly stated.</p>
+            </div>
+            <div class="trust-item animate-on-scroll">
+              <div class="trust-item__icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path
+                    d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+                </svg>
+              </div>
+              <h3 class="trust-item__title">Human Support</h3>
+              <p class="trust-item__text">Behind the AI, there's a team of real people who care about your experience.
+                Human support is always available.</p>
+            </div>
+            <div class="trust-item animate-on-scroll">
+              <div class="trust-item__icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="9 11 12 14 22 4" />
+                  <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+                </svg>
+              </div>
+              <h3 class="trust-item__title">You Are in Control</h3>
+              <p class="trust-item__text">Delete your data, change your preferences, or leave anytime. Your memories
+                belong to you.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CLOSING CTA -->
+      <section class="cta-banner" aria-labelledby="cta-title">
+        <div class="container">
+          <div class="section-label" style="color:var(--orange-light);justify-content:center;">Your next chapter</div>
+          <h2 class="section-title" id="cta-title">Your story <span>isn't over.</span><br>There's still so much to
+            reconnect with.</h2>
+          <p>Your memories. Your people. Your interests. Your next chapter.</p>
+          <div class="flex gap-3" style="justify-content:center;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-lg" onclick="navigate('signup')" id="cta-start">Start Your LifeConnect
+              Journey</button>
+            <button class="btn btn-secondary btn-lg"
+              onclick="document.getElementById('how-it-works').scrollIntoView({behavior:'smooth'})">Explore How It
+              Works</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- FOOTER -->
+      <footer class="footer" role="contentinfo">
+        <div class="container">
+          <div class="footer-grid">
+            <div>
+              <div class="footer-brand__logo">
+                <div class="nav-logo__icon" style="width:36px;height:36px;">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                    <path d="M12 2L8 6H4l2 4-4 2 4 2-2 4h4l4 4 4-4h4l-2-4 4-2-4-2 2-4h-4z" />
+                  </svg>
+                </div>
+                <span class="footer-brand__name">LifeConnect</span>
+              </div>
+              <p class="footer-brand__tag">Reconnect with your past. Live meaningfully today. A digital home for the
+                next chapter of life.</p>
+              <div class="footer-trust">
+                <div class="footer-trust-item">✓ Private by default</div>
+                <div class="footer-trust-item">✓ AI transparency — always</div>
+                <div class="footer-trust-item">✓ Permission-based family sharing</div>
+                <div class="footer-trust-item">✓ Your memories, your control</div>
+              </div>
+            </div>
+            <div>
+              <div class="footer-col__title">Explore</div>
+              <a class="footer-col__link" onclick="navigate('reconnect')">Reconnect</a>
+              <a class="footer-col__link" onclick="navigate('memories')">Memories</a>
+              <a class="footer-col__link" onclick="navigate('wellness')">Wellness</a>
+              <a class="footer-col__link" onclick="navigate('community')">Community</a>
+              <a class="footer-col__link" onclick="navigate('vault')">Memory Vault</a>
+              <a class="footer-col__link" onclick="navigate('companion')">AI Companion</a>
+            </div>
+            <div>
+              <div class="footer-col__title">Support</div>
+              <a class="footer-col__link" onclick="showToast('Help centre coming soon.','info')">Help Centre</a>
+              <a class="footer-col__link" onclick="showToast('Privacy policy coming soon.','info')">Privacy Policy</a>
+              <a class="footer-col__link" onclick="showToast('Terms of service coming soon.','info')">Terms of
+                Service</a>
+              <a class="footer-col__link" onclick="showToast('Contact form coming soon.','info')">Contact Us</a>
+            </div>
+            <div>
+              <div class="footer-col__title">Account</div>
+              <a id="footer-get-started" class="footer-col__link" onclick="navigate('signup')">Get Started</a>
+              <a class="footer-col__link" onclick="navigate('login')">Login</a>
+              <a class="footer-col__link" onclick="navigate('profile')">Profile</a>
+              <a class="footer-col__link" onclick="navigate('legal')">Document Help</a>
+            </div>
+          </div>
+          <div class="footer-bottom">
+            <span>© 2025 LifeConnect. Demo application — not a production service.</span>
+            <span>Made with care for India's 50+ generation.</span>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <!-- END HOME VIEW -->
+
+    <!-- ============================================================ LOGIN VIEW -->
+    <div id="view-login" class="view">
+      <div class="auth-layout">
+        <div class="auth-left">
+          <div class="auth-left__logo">
+            <div class="nav-logo__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.2">
+                <path d="M12 2L8 6H4l2 4-4 2 4 2-2 4h4l4 4 4-4h4l-2-4 4-2-4-2 2-4h-4z" />
+              </svg></div>
+            <span class="nav-logo__name" style="color:var(--white);font-size:26px;">LifeConnect</span>
+          </div>
+          <h2 class="auth-left__tagline">Welcome back to your <span>beautiful journey.</span></h2>
+          <p class="auth-left__sub">Your memories, friends and companion are waiting for you.</p>
+          <div class="auth-features">
+            <div class="auth-feature">
+              <div class="auth-feature-icon">👥</div>Find old friends from your school and college days
+            </div>
+            <div class="auth-feature">
+              <div class="auth-feature-icon">🎵</div>Relive the music, movies and moments of your era
+            </div>
+            <div class="auth-feature">
+              <div class="auth-feature-icon">📖</div>Preserve your life story for future generations
+            </div>
+            <div class="auth-feature">
+              <div class="auth-feature-icon">🌻</div>Talk to your AI companion anytime, in your language
+            </div>
+          </div>
+        </div>
+        <div class="auth-right">
+          <div class="auth-form-wrap">
+            <button onclick="navigate('home')"
+              style="background:none;border:none;color:var(--text-sec);font-size:var(--text-sm);cursor:pointer;margin-bottom:24px;display:flex;align-items:center;gap:6px;padding:0;">
+              ← Back to Home
+            </button>
+            <h1 class="auth-form-title">Welcome back</h1>
+            <p class="auth-form-sub">Sign in to continue your journey.</p>
+
+            <div
+              style="padding:12px 16px;background:var(--green-pale);border-radius:var(--radius-md);border:1px solid var(--green-light);margin-bottom:24px;font-size:var(--text-sm);color:var(--text-sec);">
+              <strong>Demo credentials:</strong> demo@lifeconnect.local / Demo123!
+            </div>
+
+            <div id="login-general-error" class="form-error"
+              style="display:none;background:rgba(208,75,48,0.1);padding:12px;border-radius:var(--radius-md);margin-bottom:16px;">
+            </div>
+
+            <form id="login-form" novalidate>
+              <div class="form-group">
+                <label class="form-label" for="login-email">Email Address or Mobile Number</label>
+                <input class="form-input" type="email" id="login-email" name="email" placeholder="your@email.com"
+                  autocomplete="email" required aria-required="true">
+                <div id="login-email-error" class="form-error" style="display:none;"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="login-password">Password</label>
+                <input class="form-input" type="password" id="login-password" name="password"
+                  placeholder="Your password" autocomplete="current-password" required aria-required="true">
+                <div id="login-pass-error" class="form-error" style="display:none;"></div>
+              </div>
+              <div style="text-align:right;margin-bottom:24px;">
+                <a onclick="showToast('Password reset would send an email. (Demo mode)','info')"
+                  style="color:var(--orange);font-size:var(--text-sm);cursor:pointer;">Forgot password?</a>
+              </div>
+              <button type="submit" class="btn btn-primary btn-block btn-lg" id="login-submit">Login</button>
+            </form>
+
+            <div class="auth-divider">or continue with</div>
+            <button class="btn btn-secondary btn-block mb-3"
+              onclick="showToast('Google sign-in requires backend integration. Please use email login.','info')">
+              <svg width="20" height="20" viewBox="0 0 24 24">
+                <path fill="#4285F4"
+                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                <path fill="#34A853"
+                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                <path fill="#FBBC05"
+                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+                <path fill="#EA4335"
+                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+              </svg>
+              Continue with Google
+            </button>
+
+            <div class="auth-alt">Don't have an account? <a onclick="navigate('signup')">Create account</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ SIGNUP VIEW -->
+    <div id="view-signup" class="view">
+      <div class="auth-layout">
+        <div class="auth-left">
+          <div class="auth-left__logo">
+            <div class="nav-logo__icon"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"
+                stroke="currentColor" stroke-width="2.2">
+                <path d="M12 2L8 6H4l2 4-4 2 4 2-2 4h4l4 4 4-4h4l-2-4 4-2-4-2 2-4h-4z" />
+              </svg></div>
+            <span class="nav-logo__name" style="color:var(--white);font-size:26px;">LifeConnect</span>
+          </div>
+          <h2 class="auth-left__tagline">Start your journey of <span>reconnection and remembrance.</span></h2>
+          <p class="auth-left__sub">Join thousands of people who have found old friends, rediscovered memories and are
+            living each day more meaningfully.</p>
+          <div class="auth-features">
+            <div class="auth-feature">
+              <div class="auth-feature-icon">🆓</div>Always free to join and explore
+            </div>
+            <div class="auth-feature">
+              <div class="auth-feature-icon">🔒</div>Your data is private and secure
+            </div>
+            <div class="auth-feature">
+              <div class="auth-feature-icon">🗣️</div>Use voice instead of typing
+            </div>
+            <div class="auth-feature">
+              <div class="auth-feature-icon">👨‍👩‍👧</div>Share memories with family when you choose
+            </div>
+          </div>
+        </div>
+        <div class="auth-right" style="align-items:flex-start;padding-top:32px;">
+          <div class="auth-form-wrap">
+            <button onclick="navigate('home')"
+              style="background:none;border:none;color:var(--text-sec);font-size:var(--text-sm);cursor:pointer;margin-bottom:24px;display:flex;align-items:center;gap:6px;padding:0;">
+              ← Back to Home
+            </button>
+            <h1 class="auth-form-title">Create your account</h1>
+            <p class="auth-form-sub">Your journey begins here.</p>
+
+            <div id="signup-general-error" class="form-error"
+              style="display:none;background:rgba(208,75,48,0.1);padding:12px;border-radius:var(--radius-md);margin-bottom:16px;">
+            </div>
+
+            <form id="signup-form" novalidate>
+              <div class="form-group">
+                <label class="form-label" for="signup-name">Full Name</label>
+                <input class="form-input" type="text" id="signup-name" name="name" placeholder="Your full name"
+                  autocomplete="name" required aria-required="true">
+                <div id="signup-name-error" class="form-error" style="display:none;"></div>
+              </div>
+              <div class="grid-2" style="gap:16px;">
+                <div class="form-group">
+                  <label class="form-label" for="signup-age">Age</label>
+                  <input class="form-input" type="number" id="signup-age" name="age" placeholder="Your age" min="40"
+                    max="120" autocomplete="off">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="signup-mobile">Mobile Number</label>
+                  <input class="form-input" type="tel" id="signup-mobile" name="mobile" placeholder="10-digit mobile"
+                    autocomplete="tel">
+                  <div id="signup-mobile-error" class="form-error" style="display:none;"></div>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="signup-email">Email Address</label>
+                <input class="form-input" type="email" id="signup-email" name="email" placeholder="your@email.com"
+                  autocomplete="email" required aria-required="true">
+                <div id="signup-email-error" class="form-error" style="display:none;"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="signup-pass">Password</label>
+                <input class="form-input" type="password" id="signup-pass" name="password"
+                  placeholder="Minimum 8 characters" autocomplete="new-password" required aria-required="true">
+                <div id="signup-pass-error" class="form-error" style="display:none;"></div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="signup-confirm">Confirm Password</label>
+                <input class="form-input" type="password" id="signup-confirm" name="confirm"
+                  placeholder="Repeat your password" autocomplete="new-password" required aria-required="true">
+                <div id="signup-confirm-error" class="form-error" style="display:none;"></div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">What would you most like to reconnect with?</label>
+                <div class="interest-grid">
+                  <div class="interest-chip" data-value="Old Friends">👥 Old Friends</div>
+                  <div class="interest-chip" data-value="Music">🎵 Music</div>
+                  <div class="interest-chip" data-value="Movies">🎬 Movies</div>
+                  <div class="interest-chip" data-value="Books">📚 Books</div>
+                  <div class="interest-chip" data-value="Family">👨‍👩‍👧 Family</div>
+                  <div class="interest-chip" data-value="Hobbies">🎨 Hobbies</div>
+                  <div class="interest-chip" data-value="Wellness">🧘 Wellness</div>
+                  <div class="interest-chip" data-value="Community">🤝 Community</div>
+                  <div class="interest-chip" data-value="Memories">💭 Memories</div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Which decade means the most to you?</label>
+                <div class="interest-grid">
+                  <button type="button" class="interest-chip decade-btn" data-decade="1960s">1960s</button>
+                  <button type="button" class="interest-chip decade-btn" data-decade="1970s">1970s</button>
+                  <button type="button" class="interest-chip decade-btn" data-decade="1980s">1980s</button>
+                  <button type="button" class="interest-chip decade-btn" data-decade="1990s">1990s</button>
+                  <button type="button" class="interest-chip decade-btn" data-decade="2000s">2000s</button>
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block btn-lg" id="signup-submit">Create Account</button>
+            </form>
+            <div class="auth-alt">Already have an account? <a onclick="navigate('login')">Login</a></div>
+            <p style="font-size:12px;color:var(--text-light);text-align:center;margin-top:16px;">This is a demo
+              application. Do not use real personal data.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================ DASHBOARD VIEW -->
+    <div id="view-dashboard" class="view">
+      <section class="dashboard-hero">
+        <div class="container">
+          <div style="position:relative;z-index:1;">
+            <h1 class="dashboard-greeting" id="dashboard-greeting">Good Morning, Sharma Ji ☀️</h1>
+            <p class="dashboard-sub" id="dashboard-sub">Here's something special for you today.</p>
+            <button class="dashboard-mic" onclick="navigate('voice')" id="dashboard-voice-btn" aria-label="Tap to talk">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
+                <path d="M19 10v2a7 7 0 01-14 0v-2" />
+              </svg>
+              Tap to Talk
+            </button>
+          </div>
+        </div>
+      </section>
+      <section class="section-sm">
+        <div class="container">
+          <h2 class="section-title mb-5">Your Day <span>at a Glance</span></h2>
+          <div class="dashboard-cards">
+            <div class="dash-card" onclick="navigate('memories')" role="button" tabindex="0"
+              aria-label="Today's Memory">
+              <div class="dash-card__emoji">📻</div>
+              <div class="dash-card__title">Today's Memory</div>
+              <div class="dash-card__text">A song from 1975 that you might remember — "Ek Ajnabee Haseena Se" by Kishore
+                Kumar.</div>
+            </div>
+            <div class="dash-card" onclick="navigate('reconnect')" role="button" tabindex="0" aria-label="Old Friends">
+              <div class="dash-card__emoji">👥</div>
+              <div class="dash-card__title">Old Friend Found</div>
+              <div class="dash-card__text">3 people from your 1978 batch at DAV College may be on LifeConnect. Would you
+                like to see?</div>
+            </div>
+            <div class="dash-card" onclick="navigate('wellness')" role="button" tabindex="0"
+              aria-label="Today's Wellness">
+              <div class="dash-card__emoji">🧘</div>
+              <div class="dash-card__title">Today's Wellness</div>
+              <div class="dash-card__text">Start with a 10-minute morning yoga — gentle, peaceful and perfect for today.
+              </div>
+            </div>
+            <div class="dash-card" onclick="navigate('community')" role="button" tabindex="0" aria-label="Community">
+              <div class="dash-card__emoji">🤝</div>
+              <div class="dash-card__title">Community Activity</div>
+              <div class="dash-card__text">The "1970s Alumni" group is active. 12 new memories shared today.</div>
+            </div>
+            <div class="dash-card" onclick="navigate('family')" role="button" tabindex="0" aria-label="Family Bridge">
+              <div class="dash-card__emoji">💌</div>
+              <div class="dash-card__title">Family Bridge</div>
+              <div class="dash-card__text">Your daughter shared a family photo with a note — "Thinking of you, Papa."
+              </div>
+            </div>
+            <div class="dash-card" onclick="navigate('vault')" role="button" tabindex="0" aria-label="Memory Vault">
+              <div class="dash-card__emoji">📖</div>
+              <div class="dash-card__title">Memory Vault</div>
+              <div class="dash-card__text">You have 8 memories saved. Would you like to add one more from today?</div>
+            </div>
+          </div>
+
+          <div style="margin-top:48px;display:grid;grid-template-columns:1fr 1fr;gap:32px;" class="companion-wrap">
+            <div>
+              <h2 class="section-title mb-3">Talk to <span>Your Companion</span></h2>
+              <div class="chat-ui" id="dashboard-chat">
+                <div class="chat-ui__header">
+                  <div class="chat-ui__avatar">🌻</div>
+                  <div>
+                    <div class="chat-ui__name">Mitra</div>
+                    <div class="chat-ui__status">AI Companion · Always here</div>
+                  </div>
+                </div>
+                <div class="chat-ui__body" id="dashboard-chat-body"></div>
+                <div class="chat-ui__input">
+                  <input id="dashboard-chat-input" type="text" placeholder="Say something..."
+                    aria-label="Chat with Mitra">
+                  <button class="chat-ui__send" id="dashboard-chat-send" aria-label="Send">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.5">
+                      <line x1="22" y1="2" x2="11" y2="13" />
+                      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div>
+              <h2 class="section-title mb-3">Daily <span>Wellness</span></h2>
+              <div
+                style="background:var(--white);border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-md);">
+                <div id="wellness-progress"
+                  style="font-size:var(--text-base);color:var(--text-sec);margin-bottom:12px;">0 of 9 activities
+                  completed today</div>
+                <div style="background:var(--border);border-radius:var(--radius-full);height:8px;margin-bottom:24px;">
+                  <div id="wellness-bar"
+                    style="background:var(--green-deep);height:100%;border-radius:var(--radius-full);width:0%;transition:width .4s ease;">
+                  </div>
+                </div>
+                <div class="activity-grid" style="grid-template-columns:1fr 1fr;" id="activity-grid"></div>
+                <button class="btn btn-ghost btn-sm btn-block mt-4" onclick="navigate('wellness')">See All Activities
+                  →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================ RECONNECT VIEW -->
+    <div id="view-reconnect" class="view">
+      <div class="page-hero">
+        <div class="container">
+          <div class="section-label">Find your people</div>
+          <h1 class="section-title">Maybe Someone From Your <span>Past Is Here.</span></h1>
+          <p class="section-body">23 people from your 1978 school batch are already on LifeConnect. Search by school,
+            city, batch or profession.</p>
+        </div>
+      </div>
+      <section class="section-sm">
+        <div class="container">
+          <div class="search-bar">
+            <div class="search-input-wrap">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                aria-hidden="true">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              <input id="reconnect-search" type="search" placeholder="Search by name, school, city, profession..."
+                aria-label="Search for friends">
+            </div>
+            <select class="form-input" id="batch-filter" style="width:auto;min-width:140px;"
+              aria-label="Filter by batch year">
+              <option value="">All Batches</option>
+              <option value="1973">Batch 1973</option>
+              <option value="1974">Batch 1974</option>
+              <option value="1975">Batch 1975</option>
+              <option value="1976">Batch 1976</option>
+              <option value="1977">Batch 1977</option>
+              <option value="1978">Batch 1978</option>
+              <option value="1979">Batch 1979</option>
+              <option value="1980">Batch 1980</option>
+            </select>
+            <select class="form-input" id="city-filter" style="width:auto;min-width:140px;" aria-label="Filter by city">
+              <option value="">All Cities</option>
+              <option value="chandigarh">Chandigarh</option>
+              <option value="delhi">Delhi</option>
+              <option value="amritsar">Amritsar</option>
+              <option value="shimla">Shimla</option>
+              <option value="dehradun">Dehradun</option>
+            </select>
+          </div>
+          <div id="friends-grid" class="grid-4" role="list" aria-label="People you may know" style="gap:20px;"></div>
+          <div
+            style="margin-top:32px;padding:16px;background:var(--green-pale);border-radius:var(--radius-md);font-size:var(--text-sm);color:var(--text-sec);display:flex;gap:12px;align-items:flex-start;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              style="flex-shrink:0;color:var(--green-deep);">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            </svg>
+            <span>Privacy: People only see information you've chosen to share. Reconnect requests require acceptance
+              from both sides.</span>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================ MEMORIES VIEW -->
+    <div id="view-memories" class="view">
+      <div class="page-hero">
+        <div class="container">
+          <div class="section-label">Nostalgia and remembrance</div>
+          <h1 class="section-title">Memories That <span>Shaped You</span></h1>
+          <p class="section-body">Rediscover the songs, movies, books, magazines and moments that made your era
+            unforgettable.</p>
+        </div>
+      </div>
+
+      <!-- Time Machine -->
+      <section style="background:var(--text-dark);padding:80px 0;">
+        <div class="container text-center">
+          <div class="section-label" style="color:var(--orange-light);justify-content:center;">Time Machine</div>
+          <h2 class="section-title" style="color:var(--white);">Pick a Year. <span
+              style="color:var(--orange-light);">Travel Back.</span></h2>
+          <div class="year-selector" id="year-selector" role="group" aria-label="Select a decade"></div>
+          <div class="era-content" id="era-content"></div>
+        </div>
+      </section>
+
+      <!-- Nostalgia Library -->
+      <section class="section">
+        <div class="container">
+          <div class="section-label">Nostalgia Library</div>
+          <h2 class="section-title">Timeless <span>Classics</span></h2>
+          <p class="section-body mb-5">Explore songs, movies, magazines, radio shows and more. All content links to
+            legal, licensed sources.</p>
+          <div class="category-filter" role="group" aria-label="Filter by category">
+            <button class="chip nostalgia-cat-btn active" data-cat="songs">🎵 Songs</button>
+            <button class="chip nostalgia-cat-btn" data-cat="movies">🎬 Movies</button>
+            <button class="chip nostalgia-cat-btn" data-cat="magazines">📕 Magazines</button>
+            <button class="chip nostalgia-cat-btn" data-cat="radio">📻 Radio</button>
+          </div>
+          <div class="grid-4 nostalgia-grid" role="list"></div>
+          <p style="margin-top:24px;font-size:13px;color:var(--text-light);">LifeConnect does not host copyrighted
+            content. All links open external licensed platforms.</p>
+        </div>
+      </section>
+
+      <!-- AI Memory Search -->
+      <section style="background:var(--cream);padding:80px 0;">
+        <div class="container">
+          <div class="text-center mb-6">
+            <div class="section-label">AI Memory Search</div>
+            <h2 class="section-title">Describe It. <span>We'll Find It.</span></h2>
+            <p class="section-body" style="margin:0 auto;">Remember a song, film or book but can't recall the name?
+              Describe it in your own words.</p>
+          </div>
+          <div class="memory-search-box" style="max-width:680px;margin:0 auto;">
+            <textarea class="memory-search-input" id="memory-search-input" rows="3"
+              placeholder="I remember a Hindi song from my childhood. There was a train and a woman wearing a red saree..."
+              aria-label="Describe your memory"></textarea>
+            <div style="margin-top:16px;display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;">
+              <button class="btn btn-secondary"
+                onclick="document.getElementById('memory-search-input').value='I used to read Nandan magazine when I was a child.'">Try:
+                Nandan</button>
+              <button class="btn btn-primary" id="memory-search-btn">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                Search
+              </button>
+            </div>
+          </div>
+          <div id="memory-search-results" style="max-width:680px;margin:0 auto;"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================ WELLNESS VIEW -->
+    <div id="view-wellness" class="view">
+      <div class="page-hero">
+        <div class="container">
+          <div class="section-label">Active living</div>
+          <h1 class="section-title">Stay Active. <span>Stay Curious. Stay Connected.</span></h1>
+          <p class="section-body">Small, joyful activities for body and mind. Every day, at your own pace.</p>
+        </div>
+      </div>
+      <section class="section-sm">
+        <div class="container">
+          <div
+            style="background:var(--white);border-radius:var(--radius-lg);padding:24px;box-shadow:var(--shadow-md);margin-bottom:32px;">
+            <div id="wellness-progress-wellness"
+              style="font-size:var(--text-md);font-weight:600;color:var(--text-dark);margin-bottom:12px;">0 of 9
+              activities completed today</div>
+            <div style="background:var(--border);border-radius:var(--radius-full);height:10px;">
+              <div id="wellness-bar-wellness"
+                style="background:var(--green-deep);height:100%;border-radius:var(--radius-full);width:0%;transition:width .4s ease;">
+              </div>
+            </div>
+          </div>
+          <div class="activity-grid" id="activity-grid-wellness" role="list" aria-label="Today's wellness activities">
+          </div>
+          <div style="margin-top:32px;padding:20px;background:var(--orange-light);border-radius:var(--radius-md);">
+            <p style="font-size:var(--text-base);color:var(--text-dark);">
+              <strong>Important:</strong> These activities are for general wellness enjoyment. Always consult your
+              doctor before starting any new physical exercise programme.
+            </p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================ COMMUNITY VIEW -->
+    <div id="view-community" class="view">
+      <div class="page-hero">
+        <div class="container">
+          <div class="section-label">Your people</div>
+          <h1 class="section-title">Join People Who Share Your <span>Memories and Interests.</span></h1>
+          <p class="section-body">Communities built around shared schools, eras, music, hobbies and neighbourhoods.</p>
+        </div>
+      </div>
+      <section class="section-sm">
+        <div class="container">
+          <div id="community-grid" class="grid-4" role="list" aria-label="Available communities" style="gap:20px;">
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================ COMPANION VIEW -->
+    <div id="view-companion" class="view">
+      <div class="page-hero">
+        <div class="container">
+          <div class="section-label">Your AI companion</div>
+          <h1 class="section-title">Choose the Companion <span>You Feel Comfortable With.</span></h1>
+          <p class="section-body">Your AI companion is always clearly identified as AI. It learns from you, but it is
+            not a real person.</p>
+        </div>
+      </div>
+      <section class="section-sm">
+        <div class="container">
+          <div class="avatar-select-grid" role="group" aria-label="Choose your AI companion">
+            <div class="avatar-option selected" data-emoji="🌻" data-name="Mitra" tabindex="0" role="button"
+              aria-pressed="true">
+              <span class="avatar-option__face">🌻</span>
+              <div class="avatar-option__name">Mitra</div>
+              <p class="avatar-option__desc">Warm, gentle and always patient. Like a trusted family friend who has known
+                you for years.</p>
+              <span class="avatar-option__ai-badge">AI Companion</span>
+            </div>
+            <div class="avatar-option" data-emoji="📚" data-name="Guru" tabindex="0" role="button" aria-pressed="false">
+              <span class="avatar-option__face">📚</span>
+              <div class="avatar-option__name">Guru</div>
+              <p class="avatar-option__desc">Knowledge-focused and thoughtful. Loves exploring history, books and
+                intellectual conversations.</p>
+              <span class="avatar-option__ai-badge">AI Companion</span>
+            </div>
+            <div class="avatar-option" data-emoji="🎵" data-name="Saheli" tabindex="0" role="button"
+              aria-pressed="false">
+              <span class="avatar-option__face">🎵</span>
+              <div class="avatar-option__name">Saheli</div>
+              <p class="avatar-option__desc">Cheerful and musical. Loves talking about films, songs, stories and happy
+                memories.</p>
+              <span class="avatar-option__ai-badge">AI Companion</span>
+            </div>
+          </div>
+
+          <div style="margin-top:48px;">
+            <div class="tab-bar" role="tablist">
+              <button class="tab-btn active" data-tab="tab-voice" role="tab" aria-selected="true">Voice</button>
+              <button class="tab-btn" data-tab="tab-text" role="tab" aria-selected="false">Text Chat</button>
+              <button class="tab-btn" data-tab="tab-memory" role="tab" aria-selected="false">Memory</button>
+              <button class="tab-btn" data-tab="tab-history" role="tab" aria-selected="false">History</button>
+            </div>
+
+            <div id="tab-voice" class="tab-panel active" role="tabpanel">
+              <div style="text-align:center;padding:48px 0;">
+                <div class="voice-orb-wrap">
+                  <button class="voice-orb" id="companion-voice-orb" aria-label="Start voice conversation">
+                    <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
+                      <path d="M19 10v2a7 7 0 01-14 0v-2" />
+                      <line x1="12" y1="19" x2="12" y2="23" />
+                      <line x1="8" y1="23" x2="16" y2="23" />
+                    </svg>
+                  </button>
+                  <div class="voice-rings" aria-hidden="true">
+                    <div class="voice-ring"></div>
+                    <div class="voice-ring"></div>
+                    <div class="voice-ring"></div>
+                  </div>
+                </div>
+                <p class="voice-status" id="companion-voice-status" aria-live="polite">Tap to talk to your companion</p>
+                <p class="voice-transcript" id="companion-voice-transcript" aria-live="polite"></p>
+              </div>
+            </div>
+
+            <div id="tab-text" class="tab-panel" role="tabpanel">
+              <div class="chat-ui" id="companion-chat">
+                <div class="chat-ui__header">
+                  <div class="chat-ui__avatar" id="companion-avatar-display">🌻</div>
+                  <div>
+                    <div class="chat-ui__name" id="companion-name-display">Mitra — AI Companion</div>
+                    <div class="chat-ui__status">AI · Not a real person · Always honest</div>
+                  </div>
+                </div>
+                <div class="chat-ui__body" id="companion-chat-body"></div>
+                <div class="chat-ui__input">
+                  <input id="companion-chat-input" type="text" placeholder="Talk to your companion..."
+                    aria-label="Chat with your companion">
+                  <button class="chat-ui__send" id="companion-chat-send" aria-label="Send">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.5">
+                      <line x1="22" y1="2" x2="11" y2="13" />
+                      <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div id="tab-memory" class="tab-panel" role="tabpanel">
+              <div class="settings-section">
+                <div class="settings-section-title">Your AI Companion's Memory</div>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row__label">Remember my favourite songs</div>
+                    <div class="settings-row__sub">Companion suggests music based on your preferences</div>
+                  </div>
+                  <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                </div>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row__label">Remember conversation topics</div>
+                    <div class="settings-row__sub">Companion can refer back to previous conversations</div>
+                  </div>
+                  <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+                </div>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row__label">Learn my daily routine</div>
+                    <div class="settings-row__sub">Companion adapts to your schedule and habits</div>
+                  </div>
+                  <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="settings-row">
+                  <div>
+                    <div class="settings-row__label">Share memories with family</div>
+                    <div class="settings-row__sub">Allow Family Bridge to see companion conversation highlights</div>
+                  </div>
+                  <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+                </div>
+                <button class="btn btn-secondary btn-sm mt-4"
+                  onclick="showToast('Memory cleared. Your companion will start fresh.','success')">Clear Companion
+                  Memory</button>
+              </div>
+            </div>
+
+            <div id="tab-history" class="tab-panel" role="tabpanel">
+              <div class="settings-section">
+                <div class="settings-section-title">Recent Conversations</div>
+                <div style="display:flex;flex-direction:column;gap:12px;">
+                  <div style="padding:16px;background:var(--cream);border-radius:var(--radius-md);">
+                    <div style="font-size:var(--text-sm);color:var(--text-light);margin-bottom:6px;">Today</div>
+                    <div style="font-size:var(--text-base);color:var(--text-dark);">"Good morning, Sharma Ji! I found an
+                      old song you might like..."</div>
+                  </div>
+                  <div style="padding:16px;background:var(--cream);border-radius:var(--radius-md);">
+                    <div style="font-size:var(--text-sm);color:var(--text-light);margin-bottom:6px;">Yesterday</div>
+                    <div style="font-size:var(--text-base);color:var(--text-dark);">"You asked about reconnecting with
+                      college friends from Chandigarh..."</div>
+                  </div>
+                  <div style="padding:16px;background:var(--cream);border-radius:var(--radius-md);">
+                    <div style="font-size:var(--text-sm);color:var(--text-light);margin-bottom:6px;">2 days ago</div>
+                    <div style="font-size:var(--text-base);color:var(--text-dark);">"You shared a memory about your
+                      first bicycle in 1972..."</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================ VOICE VIEW -->
+    <div id="view-voice" class="view">
+      <div class="page-hero">
+        <div class="container">
+          <div class="section-label">Voice first</div>
+          <h1 class="section-title">Just Speak. <span>We'll Handle the Rest.</span></h1>
+          <p class="section-body">No complicated menus. No small buttons. Just your natural voice.</p>
+        </div>
+      </div>
+      <section class="voice-section" style="padding-top:64px;">
+        <div class="container">
+          <div class="voice-orb-wrap">
+            <button class="voice-orb" id="voice-page-orb" aria-label="Tap to speak a command">
+              <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
+                <path d="M19 10v2a7 7 0 01-14 0v-2" />
+                <line x1="12" y1="19" x2="12" y2="23" />
+                <line x1="8" y1="23" x2="16" y2="23" />
+              </svg>
+            </button>
+            <div class="voice-rings" aria-hidden="true">
+              <div class="voice-ring"></div>
+              <div class="voice-ring"></div>
+              <div class="voice-ring"></div>
+            </div>
+          </div>
+          <div class="voice-status" id="voice-page-status" aria-live="polite">Tap the microphone to speak</div>
+          <div class="voice-transcript" id="voice-page-transcript" aria-live="polite"></div>
+          <div class="voice-commands" role="list">
+            <span class="chip" role="listitem">"Call my daughter"</span>
+            <span class="chip" role="listitem">"Show my old photos"</span>
+            <span class="chip" role="listitem">"Play Lata Mangeshkar songs"</span>
+            <span class="chip" role="listitem">"Find my school friends"</span>
+            <span class="chip" role="listitem">"Book a doctor appointment"</span>
+            <span class="chip" role="listitem">"Order my medicines"</span>
+            <span class="chip" role="listitem">"What year was the 1983 World Cup?"</span>
+          </div>
+          <p
+            style="margin-top:32px;font-size:13px;color:var(--text-light);max-width:540px;margin-left:auto;margin-right:auto;">
+            Real actions like calls, bookings and medicine orders require connected services and backend integration.
+            This demo shows the voice interface experience. Browser speech recognition is used where available.
+          </p>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================ LEGAL VIEW -->
+    <div id="view-legal" class="view">
+      <div class="page-hero">
+        <div class="container">
+          <div class="section-label">Plain language help</div>
+          <h1 class="section-title">Understand Important Things <span>Without Complicated Language.</span></h1>
+          <p class="section-body">Understand before you sign. Our AI explains documents in simple, everyday language.
+          </p>
+        </div>
+      </div>
+      <section class="section-sm">
+        <div class="container" style="max-width:760px;">
+          <div class="legal-disclaimer">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              style="flex-shrink:0;">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+            <div><strong>Important Disclaimer:</strong> This tool explains documents in simpler language. It is not a
+              lawyer, financial advisor, or government authority. Always consult a qualified professional for legal,
+              financial, or government matters before making decisions.</div>
+          </div>
+          <h2 class="section-title mb-4" style="font-size:var(--text-xl);">What would you like help
+            <span>understanding?</span>
+          </h2>
+          <div class="topic-chips" id="legal-topic-chips" role="group" aria-label="Choose a document type"></div>
+          <div class="chat-ui">
+            <div class="chat-ui__header">
+              <div class="chat-ui__avatar">📋</div>
+              <div>
+                <div class="chat-ui__name">Document Explainer — AI</div>
+                <div class="chat-ui__status">AI · Explains in simple language · Not professional advice</div>
+              </div>
+            </div>
+            <div class="chat-ui__body" id="legal-chat-body" style="min-height:300px;"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================ VAULT VIEW -->
+    <div id="view-vault" class="view">
+      <div class="page-hero">
+        <div class="container">
+          <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:24px;">
+            <div>
+              <div class="section-label">Your legacy</div>
+              <h1 class="section-title">Your Life Story <span>Deserves to Be Remembered.</span></h1>
+              <p class="section-body">Every memory is precious. Preserve them here for yourself and for the people who
+                come after you.</p>
+            </div>
+            <button class="btn btn-primary btn-lg" onclick="openAddMemoryModal()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19" />
+                <line x1="5" y1="12" x2="19" y2="12" />
+              </svg>
+              Add Memory
+            </button>
+          </div>
+        </div>
+      </div>
+      <section class="section-sm">
+        <div class="container">
+          <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:32px;" role="group" aria-label="Memory types">
+            <button class="chip active">All Memories</button>
+            <button class="chip">Stories</button>
+            <button class="chip">Photos</button>
+            <button class="chip">Voice</button>
+            <button class="chip">Letters</button>
+            <button class="chip">Recipes</button>
+          </div>
+          <div id="timeline-container"></div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================ FAMILY VIEW -->
+    <div id="view-family" class="view">
+      <div class="page-hero">
+        <div class="container">
+          <div class="section-label">Family Bridge</div>
+          <h1 class="section-title">Turn Memories Into <span>Conversations.</span></h1>
+          <p class="section-body">Share a memory from your life with family today — and turn it into a connection that
+            lasts.</p>
+        </div>
+      </div>
+      <section class="section-sm">
+        <div class="container" style="max-width:680px;">
+          <div id="family-bridge-card"></div>
+          <div style="margin-top:32px;padding:20px;background:var(--green-pale);border-radius:var(--radius-md);">
+            <h3
+              style="font-family:var(--font-serif);font-size:var(--text-lg);font-weight:700;color:var(--text-dark);margin-bottom:12px;">
+              📱 Family App Integration</h3>
+            <p style="font-size:var(--text-base);color:var(--text-sec);line-height:1.6;">Family members use the
+              LifeConnect Family app to view shared memories, respond to prompts and connect with their loved ones.
+              Sharing requires explicit permission and can be revoked at any time.</p>
+            <button class="btn btn-secondary btn-sm mt-4"
+              onclick="showToast('Family app requires backend integration. (Demo mode)','info')">Invite Family
+              Members</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================ PROFILE VIEW -->
+    <div id="view-profile" class="view">
+      <div class="profile-header">
+        <div class="container text-center">
+          <div class="profile-avatar-lg" id="profile-avatar-display" aria-label="Profile photo">R</div>
+          <h1 id="profile-name-display"
+            style="font-family:var(--font-serif);font-size:var(--text-2xl);font-weight:700;margin-bottom:8px;">Rajesh
+            Sharma</h1>
+          <p id="profile-email-display" style="opacity:.75;font-size:var(--text-base);">demo@lifeconnect.local</p>
+          <p id="profile-city-display" style="opacity:.6;font-size:var(--text-sm);margin-top:4px;">Chandigarh</p>
+        </div>
+      </div>
+      <section class="section-sm">
+        <div class="container" style="max-width:680px;">
+          <div class="settings-section">
+            <div class="settings-section-title">Accessibility</div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-row__label">Easy Mode</div>
+                <div class="settings-row__sub">Larger text, larger buttons, simplified navigation</div>
+              </div>
+              <label class="toggle">
+                <input type="checkbox" id="easy-mode-toggle">
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-row__label">Text Size</div>
+                <div class="settings-row__sub">Adjust the reading size</div>
+              </div>
+              <select class="form-input" id="text-size-select" style="width:auto;">
+                <option value="15">Small</option>
+                <option value="17" selected>Normal</option>
+                <option value="19">Large</option>
+                <option value="21">Extra Large</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">Privacy & Sharing</div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-row__label">Show profile in Reconnect</div>
+                <div class="settings-row__sub">Others can find you when searching</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-row__label">Family Bridge sharing</div>
+                <div class="settings-row__sub">Share selected memories with family</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-row__label">AI Companion Memory</div>
+                <div class="settings-row__sub">Allow companion to remember conversations</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">Notifications</div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-row__label">Daily memory reminder</div>
+                <div class="settings-row__sub">Add one memory each day</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-row__label">Community activity</div>
+                <div class="settings-row__sub">When your communities are active</div>
+              </div>
+              <label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-row__label">Reconnect requests</div>
+                <div class="settings-row__sub">When someone wants to reconnect with you</div>
+              </div>
+              <label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label>
+            </div>
+          </div>
+
+          <div class="settings-section">
+            <div class="settings-section-title">Account</div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-row__label">Export my data</div>
+                <div class="settings-row__sub">Download all your memories and information</div>
+              </div>
+              <button class="btn btn-secondary btn-sm"
+                onclick="showToast('Data export requires backend integration.','info')">Export</button>
+            </div>
+            <div class="settings-row">
+              <div>
+                <div class="settings-row__label" style="color:#C03A22;">Sign Out</div>
+                <div class="settings-row__sub">Sign out of your account</div>
+              </div>
+              <button class="btn btn-sm" style="background:#FEE2E2;color:#C03A22;border:none;" onclick="logout()">Sign
+                Out</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ============================================================ NOSTALGIA VIEW (standalone) -->
+    <div id="view-nostalgia" class="view">
+      <div class="page-hero">
+        <div class="container">
+          <div class="section-label">Nostalgia Library</div>
+          <h1 class="section-title">Timeless <span>Classics from Your Era</span></h1>
+          <p class="section-body">Songs, movies, magazines, radio programmes and more — legally available for your
+            rediscovery.</p>
+        </div>
+      </div>
+      <section class="section-sm">
+        <div class="container">
+          <div class="category-filter" role="group" aria-label="Filter by category">
+            <button class="chip nostalgia-cat-btn active" data-cat="songs">🎵 Songs</button>
+            <button class="chip nostalgia-cat-btn" data-cat="movies">🎬 Movies</button>
+            <button class="chip nostalgia-cat-btn" data-cat="magazines">📕 Magazines</button>
+            <button class="chip nostalgia-cat-btn" data-cat="radio">📻 Radio</button>
+          </div>
+          <div class="grid-4 nostalgia-grid" role="list"></div>
+        </div>
+      </section>
+    </div>
+
+  </main>
+  <!-- END PAGE CONTENT -->
+
+  <!-- ================================================================ BOTTOM NAVIGATION (Mobile) -->
+  <nav id="bottom-nav" aria-label="Mobile navigation">
+    <div class="bottom-nav-inner">
+      <button class="bottom-nav-item active" data-nav="home" onclick="navigate('home')" aria-label="Home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+        <span>Home</span>
+      </button>
+      <button class="bottom-nav-item" data-nav="reconnect" onclick="navigate('reconnect')" aria-label="Reconnect">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+        </svg>
+        <span>Reconnect</span>
+      </button>
+      <button class="bottom-nav-item" data-nav="memories" onclick="navigate('memories')" aria-label="Memories">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="18" height="18" rx="2" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <polyline points="21 15 16 10 5 21" />
+        </svg>
+        <span>Memories</span>
+      </button>
+      <button class="bottom-nav-item" data-nav="wellness" onclick="navigate('wellness')" aria-label="Wellness">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path
+            d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+        </svg>
+        <span>Wellness</span>
+      </button>
+      <button class="bottom-nav-item" data-nav="community" onclick="navigate('community')" aria-label="Community">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M23 21v-2a4 4 0 00-3-3.87" />
+        </svg>
+        <span>Community</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Floating Microphone Button -->
+  <button id="floating-mic" aria-label="Open voice assistant" title="Talk to LifeConnect">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
+      <path d="M19 10v2a7 7 0 01-14 0v-2" />
+      <line x1="12" y1="19" x2="12" y2="23" />
+      <line x1="8" y1="23" x2="16" y2="23" />
+    </svg>
+  </button>
+
+  <!-- ================================================================ MODALS -->
+
+  <!-- Add Memory Modal -->
+  <div class="modal-overlay" id="add-memory-modal" role="dialog" aria-modal="true" aria-labelledby="add-memory-title">
+    <div class="modal">
+      <button class="modal-close" onclick="closeAddMemoryModal()" aria-label="Close">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+      <h2 class="modal-title" id="add-memory-title">Add a New Memory</h2>
+      <div class="form-group">
+        <label class="form-label" for="mem-year">Year</label>
+        <input class="form-input" type="number" id="mem-year" placeholder="e.g. 1975" min="1900" max="2025">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="mem-title">Memory Title</label>
+        <input class="form-input" type="text" id="mem-title" placeholder="e.g. First day at college">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="mem-content">Your Story</label>
+        <textarea class="form-input" id="mem-content" rows="4"
+          placeholder="Write about this memory in your own words..."></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="mem-type">Memory Type</label>
+        <select class="form-input" id="mem-type">
+          <option value="story">Story</option>
+          <option value="photo">Photo Description</option>
+          <option value="voice">Voice Recording Note</option>
+          <option value="recipe">Recipe</option>
+          <option value="letter">Letter</option>
+          <option value="lesson">Life Lesson</option>
+          <option value="milestone">Milestone</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:12px;">
+        <button class="btn btn-secondary flex-1" onclick="closeAddMemoryModal()">Cancel</button>
+        <button class="btn btn-primary flex-1" onclick="saveNewMemory()">Save Memory</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" role="alert" aria-live="polite"></div>
+
+  <!-- Scripts -->
+  <script src="script.js"></script>
+  <script>
+    // Initialize Lucide icons after DOM is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      if (typeof lucide !== 'undefined') lucide.createIcons();
+      // Initialize voice on companion page
+      document.addEventListener('viewchange', (e) => {
+        if (e.detail === 'companion') {
+          initVoiceUI('companion-voice-orb', 'companion-voice-status', 'companion-voice-transcript');
+        }
+        if (e.detail === 'voice') {
+          initVoiceUI('voice-page-orb', 'voice-page-status', 'voice-page-transcript');
+        }
+      });
+    });
+  </script>
+</body>
+
+</html>

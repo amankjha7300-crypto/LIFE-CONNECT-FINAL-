@@ -66,7 +66,10 @@ if FRONTEND_DIR.exists():
 
     @app.get("/{full_path:path}", include_in_schema=False)
     def serve_spa(full_path: str):
-        """Fall back to index.html for all SPA routes."""
+        """Fall back to index.html for all SPA routes (excluding missing API routes)."""
+        if full_path.startswith("api/"):
+            from fastapi.responses import JSONResponse
+            return JSONResponse(status_code=404, content={"detail": f"API route '/{full_path}' not found."})
         requested = FRONTEND_DIR / full_path
         if requested.exists() and requested.is_file():
             return FileResponse(str(requested))

@@ -1,8 +1,12 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from fastapi.responses import StreamingResponse
 import io
-from .audio_utils import transcribe_audio, synthesize_speech
-from .models import get_llm_response
+try:
+    from audio_utils import transcribe_audio, synthesize_speech
+    from models import get_llm_response
+except ImportError:
+    from .audio_utils import transcribe_audio, synthesize_speech
+    from .models import get_llm_response
 from pydantic import BaseModel
 
 router = APIRouter(prefix="/api/audio")

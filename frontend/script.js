@@ -1054,7 +1054,7 @@ async function fetchLLMResponse(msg) {
   chatHistory.push({ role: 'user', content: msg });
   saveChatHistory();
   try {
-    const res = await fetch('http://localhost:8000/api/chat', {
+    const res = await fetch(`${API_BASE_URL}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ messages: chatHistory })

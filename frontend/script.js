@@ -20,45 +20,107 @@ async function apiRequest(endpoint, method = 'GET', body = null) {
     credentials: 'include',
   };
   if (body) opts.body = JSON.stringify(body);
-  // TODO: Replace with real fetch call
-  // const res = await fetch(API_BASE_URL + endpoint, opts);
-  // return res.json();
-  return Promise.resolve({ mock: true });
+  try {
+    const res = await fetch(API_BASE_URL + endpoint, opts);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({ detail: 'API Error' }));
+      return { success: false, error: errData.detail || 'API request failed' };
+    }
+    return await res.json();
+  } catch (e) {
+    return { success: false, offline: true, error: e.message };
+  }
 }
 
-// Auth API stubs (replace with real calls when backend is ready)
+// Auth API stubs with live backend + local fallback
 async function loginUser(email, password) {
-  // TODO: return fetch(API_BASE_URL + '/auth/login', { method:'POST', body:... })
+  try {
+    const res = await apiRequest('/auth/login', 'POST', { email, password });
+    if (res.success && res.user) {
+      localStorage.setItem(LS.SESSION, 'api-session-' + Date.now());
+      localStorage.setItem(LS.USER, JSON.stringify(res.user));
+      return res;
+    } else if (res.error && !res.offline) {
+      return res;
+    }
+  } catch (e) {}
   return mockLogin(email, password);
 }
 
 async function signupUser(data) {
-  // TODO: return fetch(API_BASE_URL + '/auth/signup', { method:'POST', body:... })
+  try {
+    const payload = {
+      full_name: data.name || data.full_name,
+      email: data.email,
+      password: data.password,
+      mobile: data.mobile || null,
+      age: parseInt(data.age) || null,
+      city: data.city || null,
+      interests: data.interests || [],
+      decade: data.decade || null,
+    };
+    const res = await apiRequest('/auth/signup', 'POST', payload);
+    if (res.success && res.user) {
+      localStorage.setItem(LS.SESSION, 'api-session-' + Date.now());
+      localStorage.setItem(LS.USER, JSON.stringify(res.user));
+      return res;
+    } else if (res.error && !res.offline) {
+      return res;
+    }
+  } catch (e) {}
   return mockSignup(data);
 }
 
 async function getProfile() {
-  // TODO: return fetch(API_BASE_URL + '/profile')
-  return getStoredUser();
+  const stored = getStoredUser();
+  if (stored && stored.id) {
+    const res = await apiRequest('/profile/' + stored.id);
+    if (res && res.id) return res;
+  }
+  return stored;
 }
 
 async function getMemories() {
-  // TODO: return fetch(API_BASE_URL + '/memories')
+  const stored = getStoredUser();
+  if (stored && stored.id) {
+    const res = await apiRequest('/memories/' + stored.id);
+    if (res && res.memories) return res.memories;
+  }
   return getStoredMemories();
 }
 
 async function saveMemory(data) {
-  // TODO: return fetch(API_BASE_URL + '/memories', { method:'POST', body:... })
+  const stored = getStoredUser();
+  if (stored && stored.id) {
+    const payload = {
+      user_id: stored.id,
+      year: parseInt(data.year) || new Date().getFullYear(),
+      title: data.title,
+      content: data.content || '',
+      media_type: data.media_type || 'story',
+      emoji: data.emoji || '📖',
+    };
+    const res = await apiRequest('/memories', 'POST', payload);
+    if (res && res.success) {
+      saveStoredMemory(res.memory || data);
+      return res.memory || data;
+    }
+  }
   return saveStoredMemory(data);
 }
 
 async function getFriends() {
-  // TODO: return fetch(API_BASE_URL + '/friends')
+  const stored = getStoredUser();
+  if (stored && stored.id) {
+    const res = await apiRequest('/connections/' + stored.id);
+    if (res && res.connections && res.connections.length > 0) return res.connections;
+  }
   return MOCK_DATA.friends;
 }
 
 async function getCommunities() {
-  // TODO: return fetch(API_BASE_URL + '/communities')
+  const res = await apiRequest('/communities');
+  if (res && res.communities && res.communities.length > 0) return res.communities;
   return MOCK_DATA.communities;
 }
 
@@ -415,6 +477,7 @@ const VIEWS = ['home', 'dashboard', 'login', 'signup', 'reconnect', 'memories',
                'family', 'profile', 'nostalgia'];
 
 function navigate(viewId) {
+  if (typeof stopSpeaking === 'function') stopSpeaking();
   // Auth guard
   const protectedViews = ['dashboard', 'vault', 'family', 'profile', 'companion'];
   if (protectedViews.includes(viewId) && !isLoggedIn()) {
@@ -686,8 +749,34 @@ function initDarkMode() {
 // ----------------------------------------------------------------
 // 11. AI COMPANION CHAT
 // ----------------------------------------------------------------
-let companionAvatar = '🌻';
-let companionName = 'Mitra';
+let companionName = getAvatar() || 'Mitra';
+let companionAvatar = companionName === 'Guru' ? '📚' : (companionName === 'Saheli' ? '🎵' : '🌻');
+
+function updateFloatingChatUI() {
+  const btnIcon = document.querySelector('.floating-chat-btn__avatar');
+  if (btnIcon) btnIcon.textContent = companionAvatar;
+  
+  const headerAvatar = document.querySelector('.floating-chat-panel__avatar');
+  if (headerAvatar) headerAvatar.textContent = companionAvatar;
+  
+  const headerName = document.querySelector('.floating-chat-panel__name');
+  if (headerName) headerName.textContent = companionName;
+  
+  const input = document.getElementById('floating-chat-input');
+  if (input) {
+    input.placeholder = `Talk to ${companionName}…`;
+    input.setAttribute('aria-label', `Type a message to ${companionName}`);
+  }
+
+  const panel = document.getElementById('floating-chat-panel');
+  if (panel) panel.setAttribute('aria-label', `${companionName} AI Companion`);
+  
+  const btn = document.getElementById('floating-chat-btn');
+  if (btn) btn.setAttribute('aria-label', `Open Chat with ${companionName}`);
+  
+  const companionAvatarDisplay = document.getElementById('companion-avatar-display');
+  if (companionAvatarDisplay) companionAvatarDisplay.textContent = companionAvatar;
+}
 
 // ── Intent classifier ────────────────────────────────────────────
 /**
@@ -734,12 +823,24 @@ function classifyIntent(msg) {
   if (has('magazine', 'nandan', 'champak', 'dharmayug', 'sarika', 'radio', 'vividh bharati', 'binaca'))
     return 'nostalgia_misc';
 
+  // Daily Necessities & Grocery Market Prices
+  if (has('milk', 'doodh', 'salt', 'namak', 'vegetable', 'vegetables', 'sabzi', 'sabji', 'potato', 'aloo', 'onion', 'pyaz', 'tomato', 'tamatar', 'fruit', 'fruits', 'kela', 'banana', 'apple', 'seb', 'atta', 'rice', 'chawal', 'dal', 'ghee', 'oil', 'tel', 'sugar', 'cheeni', 'price', 'prices', 'rate', 'rates', 'bhav', 'cost', 'mandi', 'grocery', 'ration'))
+    return 'daily_goods_prices';
+
+  // Medicines & Pharmacy
+  if (has('medicine', 'medicines', 'tablet', 'tablets', 'pill', 'pills', 'capsule', 'dawa', 'dawai', 'paracetamol', 'crocin', 'dolo', 'metformin', 'pantoprazole', 'antacid', 'vitamin', 'calcium', 'd3', 'insulin', 'painkiller', 'syrup', 'dosage', 'pharmacy', 'chemist'))
+    return 'medicine_query';
+
+  // Illnesses & Chronic Conditions
+  if (has('illness', 'illnesses', 'disease', 'diseases', 'fever', 'cold', 'cough', 'flu', 'bp', 'blood pressure', 'hypertension', 'sugar', 'diabetes', 'diabetic', 'arthritis', 'joint pain', 'knee pain', 'ghutna', 'dard', 'pain', 'backache', 'gas', 'acidity', 'indigestion', 'acid reflux', 'cholesterol', 'asthma', 'infection'))
+    return 'illness_disease';
+
   // Daily life
   if (has('travel', 'trip', 'visit', 'hill station', 'pilgrimage', 'yatra', 'tour'))
     return 'travel';
   if (has('hobby', 'gardening', 'cooking', 'painting', 'reading', 'writing', 'craft', 'kitab', 'book'))
     return 'hobby';
-  if (has('doctor', 'medicine', 'hospital', 'health', 'pain', 'illness', 'treatment', 'tablet', 'dawa', 'dawai', 'symptoms', 'disease'))
+  if (has('doctor', 'hospital', 'treatment', 'symptoms', 'checkup', 'clinic'))
     return 'health_query';
   if (has('sleep', 'insomnia', 'can\'t sleep', 'neend', 'rest'))
     return 'sleep';
@@ -940,11 +1041,107 @@ function buildAIResponse(intent, originalMsg) {
         actions: ['Go to Community', 'Tell Me About Groups', 'Not Right Now']
       };
 
+    // ── Daily Necessities & Grocery Market Prices ─────────────────
+    case 'daily_goods_prices': {
+      if (t.includes('milk') || t.includes('doodh') || t.includes('dairy') || t.includes('paneer') || t.includes('dahi')) {
+        return {
+          text: `In current local retail markets${nameSuffix}, full cream milk (Amul Gold / Mother Dairy) is around ₹66 to ₹72 per liter, while toned or cow milk is approximately ₹54 to ₹58 per liter.\n\nFresh paneer is about ₹90 to ₹120 for 200 grams, and fresh curd (dahi) is ₹35 to ₹45 for a 400g pack.\n\nWould you like price details on other groceries or vegetables?`,
+          actions: ['Vegetable Prices', 'Salt & Sugar Rates', 'Check Oil & Ghee']
+        };
+      }
+      if (t.includes('salt') || t.includes('namak') || t.includes('sugar') || t.includes('cheeni') || t.includes('oil') || t.includes('tel') || t.includes('ghee') || t.includes('tea') || t.includes('chai')) {
+        return {
+          text: `Tata Salt and standard iodized table salt are currently around ₹25 to ₹30 per kg${nameSuffix}, while Rock Salt (Sendha Namak) is ₹40 to ₹60.\n\nRefined sugar is selling at ₹42 to ₹46 per kg, cooking mustard oil is roughly ₹140 to ₹170 per liter, and pure Desi Ghee is ₹550 to ₹750 per liter.\n\nLet me know if you need rates for flour, rice, or seasonal vegetables!`,
+          actions: ['Milk Prices', 'Vegetables Mandi Rates', 'Grains & Dals']
+        };
+      }
+      if (t.includes('vegetable') || t.includes('vegetables') || t.includes('sabzi') || t.includes('sabji') || t.includes('potato') || t.includes('aloo') || t.includes('onion') || t.includes('pyaz') || t.includes('tomato') || t.includes('tamatar') || t.includes('mandi')) {
+        return {
+          text: `In the local vegetable mandi today${nameSuffix}:\n• Potatoes (Aloo): ₹25 – ₹35 per kg\n• Onions (Pyaz): ₹30 – ₹45 per kg\n• Tomatoes (Tamatar): ₹25 – ₹40 per kg\n• Green vegetables (Palak, Lauki, Bhindi): ₹30 – ₹50 per kg\n• Fresh Ginger (Adrak): ₹120 – ₹160 per kg.\n\nBuying from morning mandis usually gets you the freshest produce at the best prices!`,
+          actions: ['Fruit Prices', 'Milk & Dairy Rates', 'General Grocery Rates']
+        };
+      }
+      if (t.includes('fruit') || t.includes('fruits') || t.includes('kela') || t.includes('banana') || t.includes('apple') || t.includes('seb') || t.includes('papaya')) {
+        return {
+          text: `Current fruit prices in the local market${nameSuffix}:\n• Bananas: ₹45 – ₹65 per dozen\n• Apples (Shimla/Kashmiri): ₹120 – ₹200 per kg\n• Fresh Papaya: ₹40 – ₹60 per kg\n• Oranges / Mosambi: ₹60 – ₹90 per kg.\n\nFresh seasonal fruits are wonderful for daily vitality and digestion!`,
+          actions: ['Vegetable Rates', 'Milk & Salt Prices', 'Wellness Tips']
+        };
+      }
+      return {
+        text: `Here is the current benchmark price guide for daily essentials${nameSuffix}:\n• Full Cream Milk: ₹66 – ₹72 / L\n• Tata Table Salt: ₹25 – ₹30 / kg\n• Whole Wheat Atta: ₹38 – ₹48 / kg (₹380 – ₹450 per 10kg bag)\n• Toor / Arhar Dal: ₹150 – ₹180 / kg\n• Potatoes & Onions: ₹25 – ₹40 / kg\n• Desi Ghee: ₹550 – ₹750 / L.\n\nWhich specific item would you like to check?`,
+        actions: ['Milk & Dairy', 'Vegetable Mandi', 'Cooking Oil & Spices']
+      };
+    }
+
+    // ── Illnesses & Chronic Conditions ───────────────────────────
+    case 'illness_disease': {
+      if (t.includes('bp') || t.includes('blood pressure') || t.includes('hypertension')) {
+        return {
+          text: `Maintaining a healthy blood pressure around 120–130/80 mmHg is ideal for seniors${nameSuffix}.\n\nA few helpful habits: limit table salt and processed snacks, take a 20–30 minute gentle morning walk, and practice deep breathing or Pranayama.\n\nIf you experience severe headaches or dizziness, check your readings immediately and consult your physician.`,
+          actions: ['Talk About Diet', 'Daily Walking Tips', 'Check Medicines']
+        };
+      }
+      if (t.includes('sugar') || t.includes('diabetes') || t.includes('diabetic') || t.includes('glucose')) {
+        return {
+          text: `Managing blood sugar is all about steady daily habits${nameSuffix}. Starting the morning with methi (fenugreek) water, having whole multigrain rotis, and including leafy greens like karela and palak help regulate glucose.\n\nMake sure to check your fasting and post-meal sugar levels regularly, take prescribed medicines with meals, and consult your doctor for periodic HbA1c tests.`,
+          actions: ['Diabetic Diet Ideas', 'Wellness Routine', 'Doctor Checkup']
+        };
+      }
+      if (t.includes('joint') || t.includes('knee') || t.includes('arthritis') || t.includes('ghutna') || t.includes('dard') || t.includes('pain') || t.includes('backache')) {
+        return {
+          text: `Joint stiffness and knee aches are very common with age${nameSuffix}. Gentle knee mobility stretches, applying warm sesame oil compresses, and having warm turmeric milk (haldi doodh) at night provide soothing relief.\n\nAvoid standing or sitting cross-legged for extended periods. If pain is acute or swollen, please have your orthopedic doctor evaluate it.`,
+          actions: ['Gentle Stretches', 'Turmeric Milk Remedy', 'Speak to Doctor']
+        };
+      }
+      if (t.includes('gas') || t.includes('acidity') || t.includes('indigestion') || t.includes('acid reflux') || t.includes('stomach') || t.includes('pet')) {
+        return {
+          text: `For gentle digestive comfort${nameSuffix}, sipping warm water with roasted ajwain (carom seeds) and jeera is a time-tested remedy.\n\nTry eating dinner at least 2 hours before bed, stay upright for 30 minutes after eating, and avoid oily deep-fried snacks. If acidity persists, antacids like Pantoprazole or Gelusil are commonly recommended by doctors.`,
+          actions: ['Ajwain Water Remedy', 'Healthy Dinner Tips', 'Wellness Section']
+        };
+      }
+      if (t.includes('cold') || t.includes('cough') || t.includes('fever') || t.includes('flu')) {
+        return {
+          text: `For seasonal colds and coughs${nameSuffix}, steam inhalation with tulsi or eucalyptus, warm ginger-tulsi-honey kadha, and keeping well-hydrated work wonders.\n\nGet plenty of warm rest. If you have a high fever or difficulty breathing, please consult your doctor right away.`,
+          actions: ['Kadha Recipe', 'Rest & Wellness', 'Doctor Advice']
+        };
+      }
+      return {
+        text: `Living healthy after 50 is about simple, consistent habits${nameSuffix} — balanced home-cooked meals, daily hydration, light physical movement, and regular health checkups.\n\nTell me what specific symptom or illness you'd like guidance on, and I'll share helpful insights. Remember to always consult your doctor for medical prescriptions.`,
+        actions: ['Blood Pressure', 'Diabetes Care', 'Joint Pain Tips']
+      };
+    }
+
+    // ── Medicines & Pharmacy ──────────────────────────────────────
+    case 'medicine_query': {
+      if (t.includes('paracetamol') || t.includes('crocin') || t.includes('dolo') || t.includes('painkiller')) {
+        return {
+          text: `Paracetamol (like Dolo 650 or Crocin) is standard for mild fever, headaches, and general body aches${nameSuffix}. It is gentler on the stomach than heavy painkiller tablets.\n\nAlways take it with water after light food, and avoid exceeding the dosage recommended by your doctor.`,
+          actions: ['Joint Pain Advice', 'General Medicines', 'Speak to Doctor']
+        };
+      }
+      if (t.includes('pantoprazole') || t.includes('antacid') || t.includes('digene') || t.includes('gelusil') || t.includes('omeprazole')) {
+        return {
+          text: `Pantoprazole (Pan 40) or Omeprazole are commonly taken in the morning on an empty stomach to reduce acid reflux${nameSuffix}, while antacid syrups like Digene or Gelusil provide fast relief after meals.\n\nAlways follow your doctor's advice on duration and dosage.`,
+          actions: ['Acidity Remedies', 'Dietary Tips', 'Other Medicines']
+        };
+      }
+      if (t.includes('vitamin') || t.includes('calcium') || t.includes('d3') || t.includes('b-complex') || t.includes('becosules')) {
+        return {
+          text: `Daily supplements like Calcium with Vitamin D3 (for bone and joint strength) and B-Complex capsules (for nerve vitality and energy) are widely recommended for seniors${nameSuffix}.\n\nIt's best to take them after breakfast or lunch with plenty of water.`,
+          actions: ['Bone Health Tips', 'Daily Routine', 'Doctor Advice']
+        };
+      }
+      return {
+        text: `When managing regular daily medications${nameSuffix}:\n1. Use a labeled 7-day pill organizer box to never miss a dose.\n2. Take tablets with lukewarm water at fixed hours.\n3. Keep an updated medicine list with your family or doctor.\n\nAlways consult your doctor or pharmacist before starting or changing any medication dosage.`,
+        actions: ['Check Common Medicines', 'Talk About Symptoms', 'Wellness Page']
+      };
+    }
+
     // ── Health query ─────────────────────────────────────────────
     case 'health_query':
       return {
-        text: `I want to be straightforward with you${nameSuffix} — I'm not a doctor and I can't diagnose anything or advise on medication.\n\nFor anything health-related, especially persistent symptoms or ongoing conditions, please speak with your doctor. They're best placed to help.\n\nThat said, if you'd like to talk about general wellness habits — sleep, activity, nutrition — I'm happy to have that conversation.`,
-        actions: ['Talk About Wellness', 'Something Else', 'Okay, Thank You']
+        text: `I'm here to support your daily wellness journey${nameSuffix}! While I can provide guidance on daily healthy routines, home remedies, nutrition, and market prices, medical diagnoses should always be confirmed with your family doctor.\n\nWhat specific health topic, symptom, or wellness habit would you like to explore today?`,
+        actions: ['Illnesses & Remedies', 'Medicine Guidance', 'Daily Wellness']
       };
 
     // ── Sleep ────────────────────────────────────────────────────
@@ -1193,6 +1390,7 @@ function initCompanion() {
       companionName = opt.dataset.name;
       localStorage.setItem(LS.AVATAR, opt.dataset.name);
       showToast(`${companionName} is now your companion.`, 'success');
+      updateFloatingChatUI();
       initCompanionChatUI('companion-chat', 'companion-chat-body', 'companion-chat-input', 'companion-chat-send');
     });
   });
@@ -1238,6 +1436,93 @@ const DEMO_VOICE_RESPONSES = [
   { trigger: ['weather', 'today', 'news'], response: 'News and weather would come from connected services here. (Feature requires backend integration.)' },
 ];
 
+// ----------------------------------------------------------------
+// SPEECH SYNTHESIS ENGINE (Spoken Voice Output)
+// ----------------------------------------------------------------
+let currentSpeechUtterance = null;
+let currentAudioPlayer = null;
+
+function stopSpeaking() {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+  }
+  if (currentAudioPlayer) {
+    try { currentAudioPlayer.pause(); } catch(e) {}
+    currentAudioPlayer = null;
+  }
+  currentSpeechUtterance = null;
+}
+
+function speakText(text, onStartCallback, onEndCallback) {
+  stopSpeaking();
+  if (!text || !text.trim()) {
+    if (onEndCallback) onEndCallback();
+    return;
+  }
+
+  // Clean text formatting for natural speech delivery
+  const cleanText = text.replace(/[*_#~]/g, '').trim();
+
+  if ('speechSynthesis' in window) {
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 0.92;   // Elder-friendly steady speech rate
+    utterance.pitch = 1.0;
+    utterance.volume = 1.0;
+
+    const voices = window.speechSynthesis.getVoices();
+    const preferredVoice = voices.find(v => 
+      v.lang.startsWith('hi') || v.lang.includes('en-IN') || v.name.includes('India') || v.name.includes('Natural')
+    ) || voices.find(v => v.lang.startsWith('en'));
+    
+    if (preferredVoice) utterance.voice = preferredVoice;
+
+    utterance.onstart = () => {
+      currentSpeechUtterance = utterance;
+      if (onStartCallback) onStartCallback();
+    };
+
+    utterance.onend = () => {
+      currentSpeechUtterance = null;
+      if (onEndCallback) onEndCallback();
+    };
+
+    utterance.onerror = (e) => {
+      console.warn("Speech synthesis error:", e);
+      currentSpeechUtterance = null;
+      if (onEndCallback) onEndCallback();
+    };
+
+    if (voices.length === 0 && 'onvoiceschanged' in window.speechSynthesis) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        const v2 = window.speechSynthesis.getVoices();
+        const p2 = v2.find(v => v.lang.startsWith('hi') || v.lang.includes('en-IN')) || v2[0];
+        if (p2) utterance.voice = p2;
+      };
+    }
+
+    window.speechSynthesis.speak(utterance);
+  } else {
+    // Backend TTS voice stream fallback
+    fetch(`${API_BASE_URL}/audio/voice`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: cleanText })
+    }).then(res => res.blob()).then(blob => {
+      const url = URL.createObjectURL(blob);
+      currentAudioPlayer = new Audio(url);
+      if (onStartCallback) onStartCallback();
+      currentAudioPlayer.onended = () => {
+        currentAudioPlayer = null;
+        if (onEndCallback) onEndCallback();
+      };
+      currentAudioPlayer.play();
+    }).catch(err => {
+      console.error("Voice playback fallback error:", err);
+      if (onEndCallback) onEndCallback();
+    });
+  }
+}
+
 function initVoiceUI(orbId, statusId, transcriptId) {
   const orb = document.getElementById(orbId);
   const statusEl = document.getElementById(statusId);
@@ -1251,40 +1536,65 @@ function initVoiceUI(orbId, statusId, transcriptId) {
   let localRecognition = null;
   let localIsListening = false;
   let responseTimeout = null;
-  let resetTimeout = null;
 
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   function setStatus(text) { if (statusEl) statusEl.textContent = text; }
   function setTranscript(text) { if (transcriptEl) transcriptEl.textContent = text; }
 
-  function processVoiceCommand(text) {
-    const lower = text.toLowerCase();
-    const match = DEMO_VOICE_RESPONSES.find(r => r.trigger.some(t => lower.includes(t)));
-    const response = match ? match.response : 'I heard you. This would be processed by the LifeConnect assistant. (Demo mode — real actions require backend integration.)';
-    setStatus('Understood');
-    setTranscript(`"${text}"`);
-    clearTimeout(responseTimeout);
-    clearTimeout(resetTimeout);
-    responseTimeout = setTimeout(() => {
-      setStatus(response);
-      setTranscript('');
-    }, 1200);
-    resetTimeout = setTimeout(() => { 
-      setStatus('Tap the microphone to speak'); 
-    }, 6000);
+  async function processVoiceCommand(userText) {
+    setTranscript(`"${userText}"`);
+    setStatus('Thinking...');
+    orb.classList.remove('listening', 'speaking');
+    orb.classList.add('thinking');
 
-    // Navigation shortcuts
-    if (text.toLowerCase().includes('photo') || text.toLowerCase().includes('vault')) {
-      setTimeout(() => navigate('vault'), 1000);
+    // Navigation shortcuts check
+    const lower = userText.toLowerCase();
+    if (lower.includes('photo') || lower.includes('vault')) {
+      speakText("Opening your Photo Vault.", 
+        () => { orb.classList.remove('thinking'); orb.classList.add('speaking'); setStatus('Opening Vault...'); },
+        () => { orb.classList.remove('speaking'); setStatus('Tap the microphone to speak'); navigate('vault'); }
+      );
+      return;
     }
-    if (text.toLowerCase().includes('friend') || text.toLowerCase().includes('reconnect')) {
-      setTimeout(() => navigate('reconnect'), 1000);
+    if (lower.includes('friend') || lower.includes('reconnect')) {
+      speakText("Opening Old Friends reconnect section.", 
+        () => { orb.classList.remove('thinking'); orb.classList.add('speaking'); setStatus('Opening Friends...'); },
+        () => { orb.classList.remove('speaking'); setStatus('Tap the microphone to speak'); navigate('reconnect'); }
+      );
+      return;
+    }
+
+    // Process question via live AI and reply through spoken voice audio
+    try {
+      const aiResult = await fetchLLMResponse(userText);
+      const responseText = aiResult && aiResult.text ? aiResult.text : "I heard your question clearly. How else may I assist you today?";
+
+      speakText(responseText,
+        () => {
+          orb.classList.remove('thinking', 'listening');
+          orb.classList.add('speaking');
+          setStatus('Speaking response...');
+        },
+        () => {
+          orb.classList.remove('speaking', 'thinking');
+          setStatus('Tap the microphone to speak');
+        }
+      );
+    } catch (err) {
+      console.error("Voice assistant query error:", err);
+      orb.classList.remove('thinking', 'speaking');
+      setStatus('Tap the microphone to speak');
     }
   }
 
   function startSimulatedListening() {
-    const demos = ['Call my daughter', 'Play old songs', 'Find my school friends', 'Open my memories'];
+    const demos = [
+      'What are some healthy morning wellness habits?',
+      'Tell me a warm story from the 1970s',
+      'How can I find my school friends from Chandigarh?',
+      'What classic music songs can I listen to today?'
+    ];
     const demo = demos[Math.floor(Math.random() * demos.length)];
     setStatus('Listening...');
     setTranscript('');
@@ -1302,7 +1612,7 @@ function initVoiceUI(orbId, statusId, transcriptId) {
     try {
       localRecognition = new SpeechRecognition();
       localRecognition.continuous = false;
-      localRecognition.lang = 'hi-IN';
+      localRecognition.lang = 'en-IN';
       localRecognition.interimResults = true;
 
       localRecognition.onresult = (e) => {
@@ -1317,7 +1627,7 @@ function initVoiceUI(orbId, statusId, transcriptId) {
       localRecognition.onerror = () => {
         orb.classList.remove('listening');
         localIsListening = false;
-        setStatus('Could not hear you. Tap to try again.');
+        setStatus('Could not hear clearly. Tap the microphone to try again.');
       };
       localRecognition.onend = () => {
         orb.classList.remove('listening');
@@ -1329,6 +1639,15 @@ function initVoiceUI(orbId, statusId, transcriptId) {
   }
 
   orb.addEventListener('click', () => {
+    // If currently speaking or thinking, tap to stop speech!
+    if (orb.classList.contains('speaking') || orb.classList.contains('thinking')) {
+      stopSpeaking();
+      orb.classList.remove('speaking', 'thinking', 'listening');
+      localIsListening = false;
+      setStatus('Tap the microphone to speak');
+      return;
+    }
+
     if (localIsListening) {
       if (localRecognition) {
         try { localRecognition.stop(); } catch(e) {}
@@ -1338,10 +1657,14 @@ function initVoiceUI(orbId, statusId, transcriptId) {
       setStatus('Tap the microphone to speak');
       return;
     }
+
+    stopSpeaking();
     localIsListening = true;
+    orb.classList.remove('speaking', 'thinking');
     orb.classList.add('listening');
     setStatus('Listening...');
     setTranscript('');
+
     if (SpeechRecognition && localRecognition) {
       try { 
         localRecognition.start(); 
@@ -2149,6 +2472,8 @@ function initFloatingChat() {
   const badge  = document.getElementById('floating-chat-badge');
   if (!widget || !btn || !panel) return;
 
+  updateFloatingChatUI();
+
   let isOpen = false;
   let initialized = false;
 
@@ -2167,8 +2492,8 @@ function initFloatingChat() {
         const hour = new Date().getHours();
         const timeGreeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
         const greeting = firstName
-          ? `${timeGreeting}, ${firstName} Ji! I'm Mitra. How can I help you today?`
-          : `${timeGreeting}! I'm Mitra, your AI companion on LifeConnect. What would you like to explore?`;
+          ? `${timeGreeting}, ${firstName} Ji! I'm ${companionName}. How can I help you today?`
+          : `${timeGreeting}! I'm ${companionName}, your AI companion on LifeConnect. What would you like to explore?`;
           
         chatHistory.push({ role: 'assistant', content: greeting });
         saveChatHistory();

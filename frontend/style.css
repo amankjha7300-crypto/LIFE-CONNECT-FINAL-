@@ -50,6 +50,85 @@ body.easy-mode {
   --text-xl: 34px;
 }
 
+/* Dark Mode Theme */
+body[data-theme="dark"],
+body.dark-mode {
+  --cream: #121811;
+  --cream-dark: #1A2318;
+  --orange: #FF8F3D;
+  --orange-light: #3D2210;
+  --orange-dark: #FFA059;
+  --green-deep: #7BB067;
+  --green-mid: #93C47D;
+  --green-light: #283C22;
+  --green-pale: #1A2A17;
+  --text-dark: #F5F7F3;
+  --text-mid: #DEE4DB;
+  --text-sec: #AAB7A5;
+  --text-light: #7E8D7B;
+  --white: #1C241B;
+  --border: #2E3D2B;
+  --border-light: #243022;
+  --shadow-sm: 0 1px 4px rgba(0, 0, 0, .4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, .5);
+  --shadow-lg: 0 8px 32px rgba(0, 0, 0, .6);
+  --shadow-xl: 0 16px 48px rgba(0, 0, 0, .7);
+}
+
+body[data-theme="dark"] #navbar,
+body.dark-mode #navbar {
+  background: rgba(18, 24, 17, 0.92);
+}
+
+body[data-theme="dark"] .nav-logo__icon,
+body.dark-mode .nav-logo__icon {
+  background: var(--green-deep);
+  color: #121811;
+}
+
+body[data-theme="dark"] #mobile-menu,
+body.dark-mode #mobile-menu {
+  background: var(--cream);
+}
+
+body[data-theme="dark"] .form-input,
+body.dark-mode .form-input {
+  background: #182017;
+  color: var(--text-dark);
+}
+
+body[data-theme="dark"] .chat-ui,
+body.dark-mode .chat-ui,
+body[data-theme="dark"] .floating-chat-panel,
+body.dark-mode .floating-chat-panel {
+  background: var(--white);
+  border-color: var(--border);
+}
+
+body[data-theme="dark"] .modal-content,
+body.dark-mode .modal-content {
+  background: var(--white);
+  color: var(--text-dark);
+}
+
+body[data-theme="dark"] .memory-search-card,
+body.dark-mode .memory-search-card {
+  background: var(--white);
+}
+
+body[data-theme="dark"] .bottom-nav,
+body.dark-mode .bottom-nav {
+  background: rgba(28, 36, 27, 0.95);
+  border-top-color: var(--border);
+}
+
+body[data-theme="dark"] .toast,
+body.dark-mode .toast {
+  background: #253323;
+  color: #F5F7F3;
+  border: 1px solid var(--border);
+}
+
 *,
 *::before,
 *::after {

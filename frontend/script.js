@@ -71,6 +71,7 @@ const LS = {
   PREFS:       'lifeconnect_preferences',
   MEMORIES:    'lifeconnect_memories',
   EASY_MODE:   'lifeconnect_easy_mode',
+  DARK_MODE:   'lifeconnect_dark_mode',
   COMMUNITIES: 'lifeconnect_communities',
   AVATAR:      'lifeconnect_avatar',
 };
@@ -331,6 +332,11 @@ function getStoredUser()     { return JSON.parse(localStorage.getItem(LS.USER) |
 function getStoredSession()  { return localStorage.getItem(LS.SESSION); }
 function getStoredMemories() { return JSON.parse(localStorage.getItem(LS.MEMORIES) || 'null'); }
 function getEasyMode()       { return localStorage.getItem(LS.EASY_MODE) === 'true'; }
+function getDarkMode()       {
+  const saved = localStorage.getItem(LS.DARK_MODE);
+  if (saved !== null) return saved === 'true';
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
 function getJoinedComms()    { return JSON.parse(localStorage.getItem(LS.COMMUNITIES) || '[]'); }
 function getAvatar()         { return localStorage.getItem(LS.AVATAR) || null; }
 
@@ -460,9 +466,14 @@ function onViewChange(viewId) {
   if (viewId === 'vault')     initVault();
   if (viewId === 'nostalgia') initNostalgia();
   if (viewId === 'companion') initCompanion();
+  if (viewId === 'voice')     initVoicePage();
   if (viewId === 'family')    initFamily();
   if (viewId === 'profile')   initProfile();
   if (viewId === 'memories')  initMemories();
+}
+
+function initVoicePage() {
+  initVoiceUI('voice-page-orb', 'voice-page-status', 'voice-page-transcript');
 }
 
 // ----------------------------------------------------------------
@@ -498,16 +509,22 @@ function updateNavForAuth() {
   const navActions = document.getElementById('nav-actions');
   if (!navActions) return;
 
+  const isDark = document.body.getAttribute('data-theme') === 'dark' || document.body.classList.contains('dark-mode');
+  const darkIcon = isDark ? '☀️' : '🌙';
+  const darkTitle = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+
   if (loggedIn && user) {
     navActions.innerHTML = `
       <button class="nav-avatar" onclick="navigate('dashboard')" title="My Dashboard" aria-label="Go to dashboard">${user.avatar || user.name.charAt(0)}</button>
       <button class="btn btn-secondary btn-sm" onclick="navigate('profile')">Profile</button>
       <button class="btn btn-ghost btn-sm" onclick="logout()">Sign Out</button>
+      <button id="dark-mode-toggle" class="btn btn-ghost btn-sm dark-mode-toggle" title="${darkTitle}" aria-label="${darkTitle}">${darkIcon}</button>
     `;
   } else {
     navActions.innerHTML = `
       <button class="btn btn-secondary btn-sm" onclick="navigate('login')">Login</button>
       <button class="btn btn-primary btn-sm" onclick="navigate('signup')">Get Started</button>
+      <button id="dark-mode-toggle" class="btn btn-ghost btn-sm dark-mode-toggle" title="${darkTitle}" aria-label="${darkTitle}">${darkIcon}</button>
     `;
   }
 
@@ -620,6 +637,50 @@ function initEasyMode() {
       showToast(on ? 'Easy Mode ON — larger text and buttons.' : 'Easy Mode OFF.', 'info');
     });
   }
+}
+
+// ----------------------------------------------------------------
+// 10B. DARK MODE
+// ----------------------------------------------------------------
+function setDarkMode(enabled) {
+  document.body.setAttribute('data-theme', enabled ? 'dark' : 'light');
+  document.body.classList.toggle('dark-mode', enabled);
+  localStorage.setItem(LS.DARK_MODE, enabled);
+  updateDarkModeButtons(enabled);
+}
+
+function toggleDarkMode() {
+  const isDark = document.body.getAttribute('data-theme') === 'dark' || document.body.classList.contains('dark-mode');
+  setDarkMode(!isDark);
+  showToast(!isDark ? 'Dark mode enabled 🌙' : 'Light mode enabled ☀️', 'info');
+}
+
+function updateDarkModeButtons(isDark) {
+  document.querySelectorAll('.dark-mode-toggle, #dark-mode-toggle').forEach(btn => {
+    btn.innerHTML = isDark ? '☀️' : '🌙';
+    btn.title = isDark ? 'Switch to light mode' : 'Switch to dark mode';
+    btn.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+  });
+  const mobileToggle = document.getElementById('mobile-dark-mode-toggle');
+  if (mobileToggle) {
+    const icon = mobileToggle.querySelector('.dark-mode-icon');
+    const text = mobileToggle.querySelector('.dark-mode-text');
+    if (icon) icon.textContent = isDark ? '☀️' : '🌙';
+    if (text) text.textContent = isDark ? 'Light Mode' : 'Dark Mode';
+  }
+}
+
+function initDarkMode() {
+  const isDark = getDarkMode();
+  setDarkMode(isDark);
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('#dark-mode-toggle, .dark-mode-toggle, #mobile-dark-mode-toggle');
+    if (btn) {
+      e.preventDefault();
+      toggleDarkMode();
+    }
+  });
 }
 
 // ----------------------------------------------------------------
@@ -1187,6 +1248,11 @@ function initVoiceUI(orbId, statusId, transcriptId) {
   if (orb.dataset.voiceInit === 'true') return;
   orb.dataset.voiceInit = 'true';
 
+  let localRecognition = null;
+  let localIsListening = false;
+  let responseTimeout = null;
+  let resetTimeout = null;
+
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   function setStatus(text) { if (statusEl) statusEl.textContent = text; }
@@ -1198,15 +1264,23 @@ function initVoiceUI(orbId, statusId, transcriptId) {
     const response = match ? match.response : 'I heard you. This would be processed by the LifeConnect assistant. (Demo mode — real actions require backend integration.)';
     setStatus('Understood');
     setTranscript(`"${text}"`);
-    setTimeout(() => {
+    clearTimeout(responseTimeout);
+    clearTimeout(resetTimeout);
+    responseTimeout = setTimeout(() => {
       setStatus(response);
       setTranscript('');
-    }, 1500);
-    setTimeout(() => { setStatus('Tap the microphone to speak'); }, 5000);
+    }, 1200);
+    resetTimeout = setTimeout(() => { 
+      setStatus('Tap the microphone to speak'); 
+    }, 6000);
 
     // Navigation shortcuts
-    if (text.toLowerCase().includes('photo') || text.toLowerCase().includes('vault')) navigate('vault');
-    if (text.toLowerCase().includes('friend') || text.toLowerCase().includes('reconnect')) navigate('reconnect');
+    if (text.toLowerCase().includes('photo') || text.toLowerCase().includes('vault')) {
+      setTimeout(() => navigate('vault'), 1000);
+    }
+    if (text.toLowerCase().includes('friend') || text.toLowerCase().includes('reconnect')) {
+      setTimeout(() => navigate('reconnect'), 1000);
+    }
   }
 
   function startSimulatedListening() {
@@ -1216,46 +1290,64 @@ function initVoiceUI(orbId, statusId, transcriptId) {
     setTranscript('');
     setTimeout(() => {
       setTranscript(`"${demo}"`);
-      setTimeout(() => processVoiceCommand(demo), 1000);
+      setTimeout(() => {
+        orb.classList.remove('listening');
+        localIsListening = false;
+        processVoiceCommand(demo);
+      }, 1000);
     }, 1500);
   }
 
   if (SpeechRecognition) {
-    recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.lang = 'hi-IN';
-    recognition.interimResults = true;
+    try {
+      localRecognition = new SpeechRecognition();
+      localRecognition.continuous = false;
+      localRecognition.lang = 'hi-IN';
+      localRecognition.interimResults = true;
 
-    recognition.onresult = (e) => {
-      const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
-      setTranscript(`"${transcript}"`);
-      if (e.results[0].isFinal) processVoiceCommand(transcript);
-    };
-    recognition.onerror = () => {
-      orb.classList.remove('listening');
-      isListening = false;
-      setStatus('Could not hear you. Tap to try again.');
-    };
-    recognition.onend = () => {
-      orb.classList.remove('listening');
-      isListening = false;
-    };
+      localRecognition.onresult = (e) => {
+        const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
+        setTranscript(`"${transcript}"`);
+        if (e.results[0].isFinal) {
+          orb.classList.remove('listening');
+          localIsListening = false;
+          processVoiceCommand(transcript);
+        }
+      };
+      localRecognition.onerror = () => {
+        orb.classList.remove('listening');
+        localIsListening = false;
+        setStatus('Could not hear you. Tap to try again.');
+      };
+      localRecognition.onend = () => {
+        orb.classList.remove('listening');
+        localIsListening = false;
+      };
+    } catch(err) {
+      localRecognition = null;
+    }
   }
 
   orb.addEventListener('click', () => {
-    if (isListening) {
-      if (recognition) recognition.stop();
+    if (localIsListening) {
+      if (localRecognition) {
+        try { localRecognition.stop(); } catch(e) {}
+      }
       orb.classList.remove('listening');
-      isListening = false;
+      localIsListening = false;
       setStatus('Tap the microphone to speak');
       return;
     }
-    isListening = true;
+    localIsListening = true;
     orb.classList.add('listening');
     setStatus('Listening...');
     setTranscript('');
-    if (SpeechRecognition && recognition) {
-      try { recognition.start(); } catch(e) { startSimulatedListening(); }
+    if (SpeechRecognition && localRecognition) {
+      try { 
+        localRecognition.start(); 
+      } catch(e) { 
+        startSimulatedListening(); 
+      }
     } else {
       startSimulatedListening();
     }
@@ -1808,9 +1900,6 @@ function initDashboard() {
   if (greetEl) greetEl.textContent = greeting;
   if (subEl) subEl.textContent = 'Here\'s something special for you today.';
 
-  // Dashboard voice orb
-  initVoiceUI('dashboard-voice-orb', 'dashboard-voice-status', 'dashboard-voice-transcript');
-
   // Init companion chat preview
   initCompanionChatUI('dashboard-chat', 'dashboard-chat-body', 'dashboard-chat-input', 'dashboard-chat-send');
 
@@ -1984,8 +2073,9 @@ function clearErrors(formId) {
 // 26. APP INITIALIZATION
 // ----------------------------------------------------------------
 function initApp() {
-  // Apply easy mode
+  // Apply easy mode and dark mode
   initEasyMode();
+  initDarkMode();
 
   // Init navbar
   initNavbar();

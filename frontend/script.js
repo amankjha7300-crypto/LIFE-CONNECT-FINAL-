@@ -4,21 +4,12 @@
 // "Reconnect with your past. Live meaningfully today."
 // ================================================================
 
-const LS = {
-  USER:          'lifeconnect_user',
-  SESSION:       'lifeconnect_session',
-  TOKEN:         'lifeconnect_token',
-  PREFS:         'lifeconnect_preferences',
-  MEMORIES:      'lifeconnect_memories',
-  EASY_MODE:     'lifeconnect_easy_mode',
-  DARK_MODE:     'lifeconnect_dark_mode',
-  COMMUNITIES:   'lifeconnect_communities',
-  AVATAR:        'lifeconnect_avatar',
-  OFFLINE_QUEUE: 'lifeconnect_offline_queue',
-  FONT_SCALE:    'lifeconnect_font_scale',
-  HIGH_CONTRAST: 'lifeconnect_high_contrast'
+const LS_KEYS = {
+  SESSION: 'lc_session',
+  USER: 'lc_user',
+  TOKEN: 'lc_token',
+  OFFLINE_QUEUE: 'lc_offline_queue'
 };
-const LS_KEYS = LS;
 
 // ----------------------------------------------------------------
 // 1. API ARCHITECTURE & RESILIENCE
@@ -89,30 +80,6 @@ function showToast(message, type = 'info', duration = 3500) {
 
 // ----------------------------------------------------------------
 // 3. SENIOR ACCESSIBILITY CONTROLS
-// ----------------------------------------------------------------
-function setFontScale(scaleKey) {
-  document.body.classList.remove('font-sm', 'font-lg', 'font-xl');
-  if (scaleKey === 'sm') document.body.classList.add('font-sm');
-  if (scaleKey === 'lg') document.body.classList.add('font-lg');
-  if (scaleKey === 'xl') document.body.classList.add('font-xl');
-  localStorage.setItem(LS_KEYS.FONT_SCALE, scaleKey);
-  showToast(`Text size adjusted (${scaleKey.toUpperCase()})`, 'info', 2000);
-}
-
-function toggleHighContrast() {
-  const isHc = document.body.classList.toggle('high-contrast');
-  localStorage.setItem(LS_KEYS.HIGH_CONTRAST, isHc ? 'true' : 'false');
-  showToast(isHc ? 'High Contrast Mode Enabled' : 'High Contrast Mode Disabled', 'info', 2000);
-}
-
-// Restore saved accessibility preferences
-document.addEventListener('DOMContentLoaded', () => {
-  const savedScale = localStorage.getItem(LS_KEYS.FONT_SCALE);
-  if (savedScale) setFontScale(savedScale);
-  if (localStorage.getItem(LS_KEYS.HIGH_CONTRAST) === 'true') {
-    document.body.classList.add('high-contrast');
-  }
-});
 
 // ----------------------------------------------------------------
 // 4. FLOATING PERSISTENT MINI AUDIO PLAYER
@@ -267,10 +234,7 @@ async function getMemories() {
   const stored = getStoredUser();
   if (stored && stored.id) {
     const res = await apiRequest('/memories/' + stored.id);
-    if (res && res.memories) {
-      localStorage.setItem(LS.MEMORIES, JSON.stringify(res.memories));
-      return res.memories;
-    }
+    if (res && res.memories) return res.memories;
   }
   return getStoredMemories();
 }
@@ -637,7 +601,6 @@ function mockSignup(data) {
 function logout() {
   localStorage.removeItem(LS.SESSION);
   localStorage.removeItem(LS.USER);
-  localStorage.removeItem(LS.TOKEN);
   navigate('home');
   updateNavForAuth();
   showToast('You have been signed out. See you soon!', 'info');
@@ -2634,12 +2597,11 @@ function initLoginForm() {
     }
   }
 
-  form.onsubmit = null;
-  if (btn) btn.onclick = null;
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    handleLogin(e);
-  });
+  form.onsubmit = (e) => { handleLogin(e); return false; };
+  form.addEventListener('submit', handleLogin);
+  if (btn) {
+    btn.onclick = (e) => { handleLogin(e); return false; };
+  }
 }
 
 function initSignupForm() {
@@ -2669,8 +2631,7 @@ function initSignupForm() {
 
     const name    = document.getElementById('signup-name')?.value.trim() || '';
     const email   = document.getElementById('signup-email')?.value.trim() || '';
-    const rawMobile = document.getElementById('signup-mobile')?.value.trim() || '';
-    const mobile  = rawMobile.replace(/\D/g, '').slice(-10);
+    const mobile  = document.getElementById('signup-mobile')?.value.trim() || '';
     const age     = document.getElementById('signup-age')?.value || '';
     const pass    = document.getElementById('signup-pass')?.value || '';
     const confirm = document.getElementById('signup-confirm')?.value || '';
@@ -2681,7 +2642,7 @@ function initSignupForm() {
     if (!name)   { showError('signup-name-error',  'Full name is required'); valid = false; }
     if (!email)  { showError('signup-email-error', 'Email is required'); valid = false; }
     else if (!/\S+@\S+\.\S+/.test(email)) { showError('signup-email-error', 'Please enter a valid email'); valid = false; }
-    if (rawMobile && mobile.length !== 10) { showError('signup-mobile-error', 'Please enter a valid 10-digit Indian mobile number'); valid = false; }
+    if (mobile && !/^[6-9]\d{9}$/.test(mobile)) { showError('signup-mobile-error', 'Please enter a valid 10-digit Indian mobile number'); valid = false; }
     if (!pass)   { showError('signup-pass-error',    'Password is required'); valid = false; }
     else if (pass.length < 8) { showError('signup-pass-error', 'Password must be at least 8 characters'); valid = false; }
     if (pass !== confirm) { showError('signup-confirm-error', 'Passwords do not match'); valid = false; }
@@ -2716,12 +2677,11 @@ function initSignupForm() {
     }
   }
 
-  form.onsubmit = null;
-  if (btn) btn.onclick = null;
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    handleSignup(e);
-  });
+  form.onsubmit = (e) => { handleSignup(e); return false; };
+  form.addEventListener('submit', handleSignup);
+  if (btn) {
+    btn.onclick = (e) => { handleSignup(e); return false; };
+  }
 }
 
 function showError(id, msg) {
@@ -2752,6 +2712,14 @@ function clearErrors(formId) {
 // 26. APP INITIALIZATION
 // ----------------------------------------------------------------
 function initApp() {
+  try {
+    document.body.classList.remove('font-sm', 'font-lg', 'font-xl', 'high-contrast');
+    localStorage.removeItem('lc_font_scale');
+    localStorage.removeItem('lc_high_contrast');
+    localStorage.removeItem('lifeconnect_font_scale');
+    localStorage.removeItem('lifeconnect_high_contrast');
+  } catch (e) {}
+
   // Clean up accidental query parameters from previous browser GET submits
   if (window.location.search) {
     try {

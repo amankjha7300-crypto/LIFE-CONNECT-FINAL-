@@ -4,14 +4,21 @@
 // "Reconnect with your past. Live meaningfully today."
 // ================================================================
 
-const LS_KEYS = {
-  SESSION: 'lc_session',
-  USER: 'lc_user',
-  TOKEN: 'lc_token',
-  OFFLINE_QUEUE: 'lc_offline_queue',
-  FONT_SCALE: 'lc_font_scale',
-  HIGH_CONTRAST: 'lc_high_contrast'
+const LS = {
+  USER:          'lifeconnect_user',
+  SESSION:       'lifeconnect_session',
+  TOKEN:         'lifeconnect_token',
+  PREFS:         'lifeconnect_preferences',
+  MEMORIES:      'lifeconnect_memories',
+  EASY_MODE:     'lifeconnect_easy_mode',
+  DARK_MODE:     'lifeconnect_dark_mode',
+  COMMUNITIES:   'lifeconnect_communities',
+  AVATAR:        'lifeconnect_avatar',
+  OFFLINE_QUEUE: 'lifeconnect_offline_queue',
+  FONT_SCALE:    'lifeconnect_font_scale',
+  HIGH_CONTRAST: 'lifeconnect_high_contrast'
 };
+const LS_KEYS = LS;
 
 // ----------------------------------------------------------------
 // 1. API ARCHITECTURE & RESILIENCE
@@ -260,7 +267,10 @@ async function getMemories() {
   const stored = getStoredUser();
   if (stored && stored.id) {
     const res = await apiRequest('/memories/' + stored.id);
-    if (res && res.memories) return res.memories;
+    if (res && res.memories) {
+      localStorage.setItem(LS.MEMORIES, JSON.stringify(res.memories));
+      return res.memories;
+    }
   }
   return getStoredMemories();
 }
@@ -627,6 +637,7 @@ function mockSignup(data) {
 function logout() {
   localStorage.removeItem(LS.SESSION);
   localStorage.removeItem(LS.USER);
+  localStorage.removeItem(LS.TOKEN);
   navigate('home');
   updateNavForAuth();
   showToast('You have been signed out. See you soon!', 'info');
@@ -2623,11 +2634,12 @@ function initLoginForm() {
     }
   }
 
-  form.onsubmit = (e) => { handleLogin(e); return false; };
-  form.addEventListener('submit', handleLogin);
-  if (btn) {
-    btn.onclick = (e) => { handleLogin(e); return false; };
-  }
+  form.onsubmit = null;
+  if (btn) btn.onclick = null;
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    handleLogin(e);
+  });
 }
 
 function initSignupForm() {
@@ -2657,7 +2669,8 @@ function initSignupForm() {
 
     const name    = document.getElementById('signup-name')?.value.trim() || '';
     const email   = document.getElementById('signup-email')?.value.trim() || '';
-    const mobile  = document.getElementById('signup-mobile')?.value.trim() || '';
+    const rawMobile = document.getElementById('signup-mobile')?.value.trim() || '';
+    const mobile  = rawMobile.replace(/\D/g, '').slice(-10);
     const age     = document.getElementById('signup-age')?.value || '';
     const pass    = document.getElementById('signup-pass')?.value || '';
     const confirm = document.getElementById('signup-confirm')?.value || '';
@@ -2668,7 +2681,7 @@ function initSignupForm() {
     if (!name)   { showError('signup-name-error',  'Full name is required'); valid = false; }
     if (!email)  { showError('signup-email-error', 'Email is required'); valid = false; }
     else if (!/\S+@\S+\.\S+/.test(email)) { showError('signup-email-error', 'Please enter a valid email'); valid = false; }
-    if (mobile && !/^[6-9]\d{9}$/.test(mobile)) { showError('signup-mobile-error', 'Please enter a valid 10-digit Indian mobile number'); valid = false; }
+    if (rawMobile && mobile.length !== 10) { showError('signup-mobile-error', 'Please enter a valid 10-digit Indian mobile number'); valid = false; }
     if (!pass)   { showError('signup-pass-error',    'Password is required'); valid = false; }
     else if (pass.length < 8) { showError('signup-pass-error', 'Password must be at least 8 characters'); valid = false; }
     if (pass !== confirm) { showError('signup-confirm-error', 'Passwords do not match'); valid = false; }
@@ -2703,11 +2716,12 @@ function initSignupForm() {
     }
   }
 
-  form.onsubmit = (e) => { handleSignup(e); return false; };
-  form.addEventListener('submit', handleSignup);
-  if (btn) {
-    btn.onclick = (e) => { handleSignup(e); return false; };
-  }
+  form.onsubmit = null;
+  if (btn) btn.onclick = null;
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    handleSignup(e);
+  });
 }
 
 function showError(id, msg) {

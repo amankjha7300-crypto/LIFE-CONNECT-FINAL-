@@ -69,7 +69,7 @@ function showToast(message, type = 'info', duration = 3500) {
   const container = document.getElementById('toast-container');
   if (!container) return;
   const toast = document.createElement('div');
-  toast.className = `toast-msg ${type}`;
+  toast.className = `toast toast-msg ${type}`;
   const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : type === 'warning' ? '⚠️' : 'ℹ️';
   toast.innerHTML = `<span class="toast-icon">${icon}</span> <span>${message}</span>`;
   container.appendChild(toast);
@@ -176,13 +176,21 @@ window.addEventListener('offline', () => {
 async function loginUser(email, password) {
   try {
     const res = await apiRequest('/auth/login', 'POST', { email, password });
-    if (res.success && res.user) {
+    if (res && res.success && res.user) {
       if (res.token) localStorage.setItem(LS_KEYS.TOKEN, res.token);
-      localStorage.setItem(LS_KEYS.SESSION, 'api-session-' + Date.now());
-      localStorage.setItem(LS_KEYS.USER, JSON.stringify(res.user));
-      showToast(`Welcome back, ${res.user.full_name.split(' ')[0]}!`, 'success');
-      return res;
-    } else if (res.error && !res.offline) {
+      const userToStore = {
+        ...res.user,
+        name: res.user.full_name || res.user.name,
+        firstName: (res.user.full_name || res.user.name || '').split(' ')[0]
+      };
+      const sessionKey = 'api-session-' + Date.now();
+      localStorage.setItem(LS_KEYS.SESSION, sessionKey);
+      localStorage.setItem(LS.SESSION, sessionKey);
+      localStorage.setItem(LS_KEYS.USER, JSON.stringify(userToStore));
+      localStorage.setItem(LS.USER, JSON.stringify(userToStore));
+      showToast(`Welcome back, ${userToStore.firstName || 'Ji'}!`, 'success');
+      return { success: true, user: userToStore, token: res.token };
+    } else if (res && res.error && !res.offline) {
       showToast(res.error, 'error');
       return res;
     }
@@ -203,15 +211,28 @@ async function signupUser(data) {
       city: data.city || null,
       interests: data.interests || [],
       decade: data.decade || null,
+      language: data.language || null,
+      profession: data.profession || null,
+      college: data.college || null,
+      wellness_goal: data.wellness_goal || null,
     };
     const res = await apiRequest('/auth/signup', 'POST', payload);
-    if (res.success && res.user) {
+    if (res && res.success && res.user) {
       if (res.token) localStorage.setItem(LS_KEYS.TOKEN, res.token);
-      localStorage.setItem(LS_KEYS.SESSION, 'api-session-' + Date.now());
-      localStorage.setItem(LS_KEYS.USER, JSON.stringify(res.user));
+      const userToStore = {
+        ...res.user,
+        name: res.user.full_name || data.name,
+        firstName: (res.user.full_name || data.name || '').split(' ')[0],
+        culture_preferences: data.culture_preferences || []
+      };
+      const sessionKey = 'api-session-' + Date.now();
+      localStorage.setItem(LS_KEYS.SESSION, sessionKey);
+      localStorage.setItem(LS.SESSION, sessionKey);
+      localStorage.setItem(LS_KEYS.USER, JSON.stringify(userToStore));
+      localStorage.setItem(LS.USER, JSON.stringify(userToStore));
       showToast('Account created successfully!', 'success');
-      return res;
-    } else if (res.error && !res.offline) {
+      return { success: true, user: userToStore, token: res.token };
+    } else if (res && res.error && !res.offline) {
       showToast(res.error, 'error');
       return res;
     }
@@ -540,8 +561,26 @@ const MOCK_DATA = {
 // ----------------------------------------------------------------
 // 5. LOCAL STORAGE HELPERS
 // ----------------------------------------------------------------
-function getStoredUser()     { return JSON.parse(localStorage.getItem(LS.USER) || 'null'); }
-function getStoredSession()  { return localStorage.getItem(LS.SESSION); }
+function getStoredUser() {
+  let user = null;
+  try {
+    const raw = localStorage.getItem(LS.USER) || localStorage.getItem(LS_KEYS.USER);
+    if (raw) user = JSON.parse(raw);
+  } catch (e) {
+    user = null;
+  }
+  if (user) {
+    if (!user.name && user.full_name) user.name = user.full_name;
+    if (!user.full_name && user.name) user.full_name = user.name;
+    if (!user.firstName && user.name) user.firstName = user.name.split(' ')[0];
+  }
+  return user;
+}
+
+function getStoredSession() {
+  return localStorage.getItem(LS.SESSION) || localStorage.getItem(LS_KEYS.SESSION);
+}
+
 function getStoredMemories() { return JSON.parse(localStorage.getItem(LS.MEMORIES) || 'null'); }
 function getEasyMode()       { return localStorage.getItem(LS.EASY_MODE) === 'true'; }
 function getDarkMode()       {
@@ -565,19 +604,28 @@ function isLoggedIn() {
 }
 
 function mockLogin(email, password) {
-  if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
-    localStorage.setItem(LS.SESSION, 'demo-session-' + Date.now());
+  const normEmail = (email || '').trim().toLowerCase();
+  if (normEmail === DEMO_EMAIL.toLowerCase() && password === DEMO_PASSWORD) {
+    const sessionKey = 'demo-session-' + Date.now();
+    localStorage.setItem(LS.SESSION, sessionKey);
+    localStorage.setItem(LS_KEYS.SESSION, sessionKey);
     localStorage.setItem(LS.USER, JSON.stringify(DEMO_USER));
+    localStorage.setItem(LS_KEYS.USER, JSON.stringify(DEMO_USER));
     return { success: true, user: DEMO_USER };
   }
   // Check locally registered users
   const registered = JSON.parse(localStorage.getItem('lifeconnect_registered') || '[]');
-  const found = registered.find(u => u.email === email && u.password === password);
+  const found = registered.find(u => (u.email && u.email.toLowerCase() === normEmail || u.mobile === email) && u.password === password);
   if (found) {
     const user = { ...found };
     delete user.password;
-    localStorage.setItem(LS.SESSION, 'session-' + Date.now());
+    if (!user.name && user.full_name) user.name = user.full_name;
+    if (!user.firstName && user.name) user.firstName = user.name.split(' ')[0];
+    const sessionKey = 'session-' + Date.now();
+    localStorage.setItem(LS.SESSION, sessionKey);
+    localStorage.setItem(LS_KEYS.SESSION, sessionKey);
     localStorage.setItem(LS.USER, JSON.stringify(user));
+    localStorage.setItem(LS_KEYS.USER, JSON.stringify(user));
     return { success: true, user };
   }
   return { success: false, error: 'Invalid email or password. Try demo@lifeconnect.local / Demo123!' };
@@ -585,63 +633,144 @@ function mockLogin(email, password) {
 
 function mockSignup(data) {
   const registered = JSON.parse(localStorage.getItem('lifeconnect_registered') || '[]');
-  if (registered.find(u => u.email === data.email)) {
+  const normEmail = (data.email || '').trim().toLowerCase();
+  if (registered.find(u => u.email && u.email.toLowerCase() === normEmail)) {
     return { success: false, error: 'This email is already registered. Please login.' };
   }
-  const user = { ...data, avatar: data.name.charAt(0).toUpperCase() };
+  const fullName = data.name || data.full_name || 'Senior Member';
+  const user = {
+    ...data,
+    name: fullName,
+    full_name: fullName,
+    firstName: fullName.split(' ')[0],
+    avatar: fullName.charAt(0).toUpperCase()
+  };
   registered.push(user);
   localStorage.setItem('lifeconnect_registered', JSON.stringify(registered));
   const sessionUser = { ...user };
   delete sessionUser.password;
-  localStorage.setItem(LS.SESSION, 'session-' + Date.now());
+  const sessionKey = 'session-' + Date.now();
+  localStorage.setItem(LS.SESSION, sessionKey);
+  localStorage.setItem(LS_KEYS.SESSION, sessionKey);
   localStorage.setItem(LS.USER, JSON.stringify(sessionUser));
+  localStorage.setItem(LS_KEYS.USER, JSON.stringify(sessionUser));
   return { success: true, user: sessionUser };
 }
 
 function logout() {
   localStorage.removeItem(LS.SESSION);
+  localStorage.removeItem(LS_KEYS.SESSION);
   localStorage.removeItem(LS.USER);
+  localStorage.removeItem(LS_KEYS.USER);
+  localStorage.removeItem(LS_KEYS.TOKEN);
   navigate('home');
   updateNavForAuth();
   showToast('You have been signed out. See you soon!', 'info');
 }
 
-// ----------------------------------------------------------------
-// 6. TOAST NOTIFICATIONS
-// ----------------------------------------------------------------
-function showToast(msg, type = 'info') {
-  const container = document.getElementById('toast-container');
-  const toast = document.createElement('div');
-  toast.className = `toast ${type}`;
-  const icons = { success: '✓', error: '✗', info: 'ℹ' };
-  toast.innerHTML = `<span>${icons[type] || 'ℹ'}</span> ${msg}`;
-  container.appendChild(toast);
-  setTimeout(() => toast.remove(), 3600);
-}
 
 // ----------------------------------------------------------------
-// 7. NAVIGATION / ROUTER
+// 7. NAVIGATION / ROUTER & STRICT AUTH GUARD
 // ----------------------------------------------------------------
 const VIEWS = ['home', 'news', 'dashboard', 'login', 'signup', 'reconnect', 'memories',
                'wellness', 'community', 'companion', 'voice', 'legal', 'vault',
-               'family', 'profile', 'nostalgia'];
+               'family', 'profile', 'nostalgia', 'content'];
+
+// ONLY landing page, login, signup, and legal are accessible without an account
+const PUBLIC_VIEWS = ['home', 'login', 'signup', 'legal'];
+
+let pendingAuthRedirectView = null;
+
+function showAuthRequiredPrompt(viewId) {
+  pendingAuthRedirectView = viewId;
+  const friendlyNames = {
+    news: '24-Hour Local & Senior Welfare News',
+    reconnect: 'Old Friends & Classmates Reconnect',
+    memories: 'Time Machine & Golden Era Memories',
+    wellness: 'Daily Senior Wellness & Gentle Yoga',
+    community: 'Local Senior Clubs & Communities',
+    companion: 'Sneh AI Personal Senior Companion',
+    voice: 'Voice Assistant',
+    dashboard: 'Your Personal Senior Dashboard',
+    vault: 'Golden Era Nostalgia Vault',
+    nostalgia: 'Nostalgia Vault',
+    family: 'Family Tree & Heritage Archive',
+    profile: 'Profile & Settings'
+  };
+  const sectionTitle = friendlyNames[viewId] || 'this section';
+
+  const titleEl = document.getElementById('auth-modal-title');
+  const descEl = document.getElementById('auth-modal-desc');
+  if (titleEl) {
+    titleEl.textContent = `Sign In to Access ${sectionTitle}`;
+  }
+  if (descEl) {
+    descEl.textContent = `Welcome to LifeConnect! Please log in or create your free account to access ${sectionTitle}. LifeConnect personalizes all news, batchmate recommendations, nostalgic memories, and health activities specifically for your city, era, and personal preferences.`;
+  }
+
+  const modal = document.getElementById('auth-required-modal');
+  if (modal) {
+    modal.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+  showToast(`Please sign in or create an account to view ${sectionTitle}.`, 'warning', 4500);
+}
+
+function closeAuthRequiredModal() {
+  const modal = document.getElementById('auth-required-modal');
+  if (modal) modal.classList.remove('open');
+  document.body.style.overflow = '';
+  // Ensure we are viewing home
+  if (!isLoggedIn()) {
+    const currentActive = document.querySelector('.view.active')?.id?.replace('view-', '') || 'home';
+    if (!PUBLIC_VIEWS.includes(currentActive)) {
+      navigate('home');
+    }
+  }
+}
+
+function authModalGoLogin() {
+  closeAuthRequiredModal();
+  navigate('login');
+}
+
+function authModalGoSignup() {
+  closeAuthRequiredModal();
+  navigate('signup');
+}
+
+function handleAuthModalBackdrop(event) {
+  if (event.target && event.target.id === 'auth-required-modal') {
+    closeAuthRequiredModal();
+  }
+}
 
 function navigate(viewId) {
   if (typeof stopSpeaking === 'function') stopSpeaking();
-  // Auth guard
-  const protectedViews = ['dashboard', 'vault', 'family', 'profile', 'companion'];
-  if (protectedViews.includes(viewId) && !isLoggedIn()) {
-    navigate('login');
+
+  // STRICT AUTH GUARD:
+  // Without login or signup, no page of website should be visible except the landing page (and login/signup)
+  if (!PUBLIC_VIEWS.includes(viewId) && !isLoggedIn()) {
+    showAuthRequiredPrompt(viewId);
+    // Keep visible view on home
+    const currentActive = document.querySelector('.view.active')?.id?.replace('view-', '');
+    if (!currentActive || !PUBLIC_VIEWS.includes(currentActive)) {
+      activateView('home');
+    }
     return;
   }
 
+  activateView(viewId);
+}
+
+function activateView(viewId) {
   VIEWS.forEach(id => {
     const el = document.getElementById('view-' + id);
     if (el) el.classList.remove('active');
   });
 
   const target = document.getElementById('view-' + viewId);
-  if (!target) { navigate('home'); return; }
+  if (!target) { activateView('home'); return; }
   target.classList.add('active');
 
   window.location.hash = viewId;
@@ -686,6 +815,7 @@ function onViewChange(viewId) {
   if (viewId === 'family')    initFamily();
   if (viewId === 'profile')   initProfile();
   if (viewId === 'memories')  initMemories();
+  if (viewId === 'content')   initContentPage();
 }
 
 function initVoicePage() {
@@ -1982,7 +2112,19 @@ function initTimeMachine() {
     selectorLanding.innerHTML = buttonsHtml;
     selectorLanding.querySelectorAll('.year-btn').forEach(btn => btn.addEventListener('click', () => loadYear(btn.dataset.year)));
   }
-  loadYear(years[3]); // Default to 1980
+
+  // Personalization: Default to year matching user's favorite decade
+  const user = getStoredUser();
+  const decadeYearMap = {
+    '1950s': '1950',
+    '1960s': '1965',
+    '1970s': '1975',
+    '1980s': '1980',
+    '1990s': '1990',
+    '2000s': '2000'
+  };
+  const preferredYear = (user && user.decade && decadeYearMap[user.decade]) ? decadeYearMap[user.decade] : years[3];
+  loadYear(years.includes(preferredYear) ? preferredYear : years[3]);
 }
 
 // ----------------------------------------------------------------
@@ -2009,7 +2151,70 @@ function renderFriends() {
   const batch  = document.getElementById('batch-filter')?.value || '';
   const city   = document.getElementById('city-filter')?.value || '';
 
-  let friends = MOCK_DATA.friends;
+  const user = getStoredUser();
+  let friends = [...MOCK_DATA.friends];
+
+  if (user) {
+    const personalMatches = [];
+    if (user.college) {
+      const batchYear = user.decade ? (parseInt(user.decade) || 1970) + 4 : '1978';
+      personalMatches.push({
+        id: 901,
+        name: 'Dr. Ashok Singhal',
+        initials: 'A',
+        school: user.college,
+        batch: String(batchYear),
+        city: user.city || 'New Delhi',
+        profession: user.profession || 'Retired Professor',
+        common: `⭐ 98% Match: Attended ${user.college} around ${user.decade || 'the same era'}`,
+        status: 'none',
+        isPersonalizedMatch: true
+      });
+    }
+    if (user.city && user.city !== 'Other') {
+      personalMatches.push({
+        id: 902,
+        name: 'Smt. Sudha Murthy Verma',
+        initials: 'S',
+        school: `${user.city} Model Higher Secondary`,
+        batch: user.decade ? String((parseInt(user.decade) || 1970) + 2) : '1976',
+        city: user.city,
+        profession: user.profession || 'Retired Educator',
+        common: `⭐ 95% Match: Same Hometown (${user.city}) · ${user.decade || 'Golden Era'}`,
+        status: 'none',
+        isPersonalizedMatch: true
+      });
+    }
+
+    personalMatches.forEach(pm => {
+      if (!friends.find(f => f.id === pm.id)) {
+        friends.unshift(pm);
+      }
+    });
+
+    const reconnectContainer = document.querySelector('#view-reconnect .container.py-12') || document.querySelector('#view-reconnect .container');
+    if (reconnectContainer) {
+      let banner = document.getElementById('reconnect-personal-banner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'reconnect-personal-banner';
+        banner.className = 'personalized-content-banner';
+        reconnectContainer.insertBefore(banner, reconnectContainer.firstChild);
+      }
+      banner.innerHTML = `
+        <div style="font-size:28px;line-height:1;">🤝</div>
+        <div style="flex:1;">
+          <div style="font-weight:800;font-size:16px;color:var(--text-dark);margin-bottom:3px;">
+            Alumni & Peers Suggested for ${user.name}
+          </div>
+          <div style="font-size:13px;color:var(--text-sec);line-height:1.5;">
+            Matching people from <strong>${user.college || 'your college'}</strong>, your hometown <strong>${user.city || 'your area'}</strong>, and your golden era (<strong>${user.decade || '1970s'}</strong>).
+          </div>
+        </div>
+      `;
+    }
+  }
+
   if (search) friends = friends.filter(f =>
     f.name.toLowerCase().includes(search) ||
     f.school.toLowerCase().includes(search) ||
@@ -2032,7 +2237,8 @@ function renderFriends() {
     const sent = sentRequests.has(f.id);
     const connected = f.status === 'connected';
     return `
-      <div class="profile-card" id="friend-${f.id}">
+      <div class="profile-card ${f.isPersonalizedMatch ? 'highlighted-match' : ''}" id="friend-${f.id}" ${f.isPersonalizedMatch ? 'style="border:2px solid var(--cosmic-orange);background:linear-gradient(to bottom, #FFFDF8, #FFF);"' : ''}>
+        ${f.isPersonalizedMatch ? '<div style="display:inline-block;background:var(--cosmic-orange);color:white;font-size:11px;font-weight:800;padding:2px 8px;border-radius:12px;margin-bottom:8px;">🎯 Top Match for You</div>' : ''}
         <div class="profile-card__avatar">${f.initials}</div>
         <div class="profile-card__name">${f.name}</div>
         <div class="profile-card__meta">${f.school}</div>
@@ -2071,12 +2277,33 @@ function initCommunity() {
   const grid = document.getElementById('community-grid');
   if (!grid) return;
 
-  grid.innerHTML = MOCK_DATA.communities.map(c => {
+  const user = getStoredUser();
+  let communities = [...MOCK_DATA.communities];
+
+  if (user && user.city && user.city !== 'Other') {
+    const hometownComm = {
+      id: 888,
+      name: `${user.city} Senior Citizens Circle`,
+      emoji: '🏛️',
+      members: 384,
+      active: '16 nearby today',
+      desc: `Exclusive community for retired elders and seniors residing in and around ${user.city}. Sunday morning chai, gentle park walks, and cultural heritage gatherings.`,
+      meetup: 'Sundays · 8:00 AM at City Park / Promenade',
+      joined: false,
+      isHometown: true
+    };
+    if (!communities.find(c => c.id === 888)) {
+      communities.unshift(hometownComm);
+    }
+  }
+
+  grid.innerHTML = communities.map(c => {
     const isJoined = joined.includes(c.id) || c.joined;
     return `
-      <div class="community-card" id="comm-${c.id}">
+      <div class="community-card ${c.isHometown ? 'hometown-club' : ''}" id="comm-${c.id}" ${c.isHometown ? 'style="border:2px solid var(--forest-green);background:linear-gradient(to bottom, #F7FCF7, #FFF);"' : ''}>
         <div class="community-card__banner">${c.emoji}</div>
         <div class="community-card__body">
+          ${c.isHometown ? '<div style="display:inline-block;background:var(--forest-green);color:white;font-size:11px;font-weight:800;padding:2px 8px;border-radius:12px;margin-bottom:8px;">📍 Your Hometown Club</div>' : ''}
           <div class="community-card__name">${c.name}</div>
           <div class="community-card__stats">
             <span class="community-card__stat">
@@ -2149,18 +2376,46 @@ function renderWellness() {
   const dashBar = document.getElementById('wellness-bar');
   if (dashBar) dashBar.style.width = `${(completed / total) * 100}%`;
 
-  grid.innerHTML = wellnessState.map(a => `
-    <div class="activity-card ${a.completed ? 'completed' : ''}" onclick="toggleActivity(${a.id})" role="listitem" tabindex="0" aria-label="${a.title} — ${a.completed ? 'completed' : 'tap to complete'}">
-      <div class="activity-card__check">${a.completed ? '✓' : ''}</div>
-      <span class="activity-card__icon">${a.icon}</span>
-      <div class="activity-card__title">${a.title}</div>
-      <div class="activity-card__duration">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        ${a.duration}
+  const user = getStoredUser();
+  const userGoal = (user?.wellness_goal || '').toLowerCase();
+
+  // If user selected a goal, prioritize matching activities
+  const sortedActivities = [...wellnessState].sort((a, b) => {
+    const aMatch = userGoal && (a.title.toLowerCase().includes('walk') && userGoal.includes('walk') ||
+                                a.title.toLowerCase().includes('yoga') && userGoal.includes('yoga') ||
+                                a.title.toLowerCase().includes('breath') && (userGoal.includes('pranayama') || userGoal.includes('breath')) ||
+                                a.title.toLowerCase().includes('meditat') && userGoal.includes('meditat') ||
+                                a.title.toLowerCase().includes('laugh') && userGoal.includes('laugh'));
+    const bMatch = userGoal && (b.title.toLowerCase().includes('walk') && userGoal.includes('walk') ||
+                                b.title.toLowerCase().includes('yoga') && userGoal.includes('yoga') ||
+                                b.title.toLowerCase().includes('breath') && (userGoal.includes('pranayama') || userGoal.includes('breath')) ||
+                                b.title.toLowerCase().includes('meditat') && userGoal.includes('meditat') ||
+                                b.title.toLowerCase().includes('laugh') && userGoal.includes('laugh'));
+    if (aMatch && !bMatch) return -1;
+    if (!aMatch && bMatch) return 1;
+    return 0;
+  });
+
+  grid.innerHTML = sortedActivities.map(a => {
+    const isGoalMatch = userGoal && (a.title.toLowerCase().includes('walk') && userGoal.includes('walk') ||
+                                     a.title.toLowerCase().includes('yoga') && userGoal.includes('yoga') ||
+                                     a.title.toLowerCase().includes('breath') && (userGoal.includes('pranayama') || userGoal.includes('breath')) ||
+                                     a.title.toLowerCase().includes('meditat') && userGoal.includes('meditat') ||
+                                     a.title.toLowerCase().includes('laugh') && userGoal.includes('laugh'));
+    return `
+      <div class="activity-card ${a.completed ? 'completed' : ''} ${isGoalMatch ? 'goal-focused' : ''}" onclick="toggleActivity(${a.id})" role="listitem" tabindex="0" aria-label="${a.title} — ${a.completed ? 'completed' : 'tap to complete'}" ${isGoalMatch ? 'style="border:2px solid var(--forest-green);background:linear-gradient(to bottom, #F7FCF7, #FFF);"' : ''}>
+        ${isGoalMatch ? '<div style="background:var(--forest-green);color:white;font-size:11px;font-weight:800;padding:2px 8px;border-radius:12px;margin-bottom:6px;display:inline-block;">🌟 Your Daily Chosen Goal</div>' : ''}
+        <div class="activity-card__check">${a.completed ? '✓' : ''}</div>
+        <span class="activity-card__icon">${a.icon}</span>
+        <div class="activity-card__title">${a.title}</div>
+        <div class="activity-card__duration">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          ${a.duration}
+        </div>
+        <p style="font-size:var(--text-sm);color:var(--text-sec);">${a.desc}</p>
       </div>
-      <p style="font-size:var(--text-sm);color:var(--text-sec);">${a.desc}</p>
-    </div>
-  `).join('');
+    `;
+  }).join('');
 }
 
 function toggleActivity(id) {
@@ -2479,7 +2734,14 @@ function initDashboard() {
   const greetEl = document.getElementById('dashboard-greeting');
   const subEl = document.getElementById('dashboard-sub');
   if (greetEl) greetEl.textContent = greeting;
-  if (subEl) subEl.textContent = 'Here\'s something special for you today.';
+  if (subEl) {
+    const metaParts = [];
+    if (user.city) metaParts.push(`📍 ${user.city}`);
+    if (user.decade) metaParts.push(`🕰️ ${user.decade} Era`);
+    if (user.language) metaParts.push(`🗣️ ${user.language}`);
+    if (user.profession) metaParts.push(`💼 ${user.profession}`);
+    subEl.textContent = metaParts.length ? metaParts.join(' • ') : "Here's something special for you today.";
+  }
 
   // Init companion chat preview
   initCompanionChatUI('dashboard-chat', 'dashboard-chat-body', 'dashboard-chat-input', 'dashboard-chat-send');
@@ -2609,16 +2871,22 @@ function initSignupForm() {
   const btn  = document.getElementById('signup-submit') || form?.querySelector('button[type=submit]');
   if (!form) return;
 
-  // Interest chips
-  document.querySelectorAll('#signup-form .interest-chip').forEach(chip => {
+  // Reconnect chips
+  document.querySelectorAll('#signup-form .interest-chip:not(.decade-btn):not(.culture-chip)').forEach(chip => {
+    chip.addEventListener('click', () => chip.classList.toggle('selected'));
+  });
+
+  // Culture preferences chips
+  document.querySelectorAll('#signup-form .culture-chip').forEach(chip => {
     chip.addEventListener('click', () => chip.classList.toggle('selected'));
   });
 
   // Decade selection
-  document.querySelectorAll('#signup-form .decade-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
+  document.querySelectorAll('#signup-form .decade-btn').forEach(dBtn => {
+    dBtn.addEventListener('click', (e) => {
+      e.preventDefault();
       document.querySelectorAll('#signup-form .decade-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+      dBtn.classList.add('active');
     });
   });
 
@@ -2629,14 +2897,21 @@ function initSignupForm() {
     }
     clearErrors('signup-form');
 
-    const name    = document.getElementById('signup-name')?.value.trim() || '';
-    const email   = document.getElementById('signup-email')?.value.trim() || '';
-    const mobile  = document.getElementById('signup-mobile')?.value.trim() || '';
-    const age     = document.getElementById('signup-age')?.value || '';
-    const pass    = document.getElementById('signup-pass')?.value || '';
-    const confirm = document.getElementById('signup-confirm')?.value || '';
-    const interests = [...document.querySelectorAll('#signup-form .interest-chip.selected')].map(c => c.dataset.value);
-    const decade  = document.querySelector('#signup-form .decade-btn.active')?.dataset.decade || '';
+    const name       = document.getElementById('signup-name')?.value.trim() || '';
+    const email      = document.getElementById('signup-email')?.value.trim() || '';
+    const mobile     = document.getElementById('signup-mobile')?.value.trim() || '';
+    const age        = document.getElementById('signup-age')?.value || '';
+    const city       = document.getElementById('signup-city')?.value || 'New Delhi';
+    const language   = document.getElementById('signup-language')?.value || 'Hindi';
+    const pass       = document.getElementById('signup-pass')?.value || '';
+    const confirm    = document.getElementById('signup-confirm')?.value || '';
+    const college    = document.getElementById('signup-college')?.value.trim() || '';
+    const profession = document.getElementById('signup-profession')?.value || 'Homemaker & Family Guardian';
+    const wellness_goal = document.getElementById('signup-wellness-goal')?.value || 'Morning Walking & Fresh Air';
+    
+    const interests  = [...document.querySelectorAll('#signup-form .interest-chip:not(.decade-btn):not(.culture-chip).selected')].map(c => c.dataset.value);
+    const culture_preferences = [...document.querySelectorAll('#signup-form .culture-chip.selected')].map(c => c.dataset.value);
+    const decade     = document.querySelector('#signup-form .decade-btn.active')?.dataset.decade || '1970s';
 
     let valid = true;
     if (!name)   { showError('signup-name-error',  'Full name is required'); valid = false; }
@@ -2649,28 +2924,45 @@ function initSignupForm() {
     if (!valid) return;
 
     if (btn) {
-      btn.textContent = 'Creating account...';
+      btn.textContent = 'Personalizing your experience...';
       btn.disabled = true;
     }
 
     try {
-      const result = await signupUser({ name, email, mobile, age, password: pass, interests, decade, avatar: name.charAt(0).toUpperCase() });
+      const result = await signupUser({
+        name,
+        email,
+        mobile,
+        age,
+        city,
+        language,
+        password: pass,
+        college,
+        profession,
+        wellness_goal,
+        interests,
+        culture_preferences,
+        decade,
+        avatar: name.charAt(0).toUpperCase()
+      });
       if (btn) {
-        btn.textContent = 'Create Account';
+        btn.textContent = '✨ Create Account & Personalize LifeConnect';
         btn.disabled = false;
       }
 
       if (result.success && result.user) {
         updateNavForAuth();
         const firstName = name.split(' ')[0];
-        showToast(`Welcome to LifeConnect, ${firstName} Ji!`, 'success');
-        navigate('dashboard');
+        showToast(`Welcome to LifeConnect, ${firstName} Ji! Your customized portal is ready.`, 'success', 4000);
+        const nextView = (pendingAuthRedirectView && !PUBLIC_VIEWS.includes(pendingAuthRedirectView)) ? pendingAuthRedirectView : 'dashboard';
+        pendingAuthRedirectView = null;
+        navigate(nextView);
       } else {
         showError('signup-general-error', result.error || 'Failed to create account.');
       }
     } catch (err) {
       if (btn) {
-        btn.textContent = 'Create Account';
+        btn.textContent = '✨ Create Account & Personalize LifeConnect';
         btn.disabled = false;
       }
       showError('signup-general-error', 'Signup error: ' + err.message);
@@ -2753,7 +3045,10 @@ function initApp() {
   // Handle hash routing
   const hash = window.location.hash.replace('#', '') || 'home';
   try {
-    if (hash === 'dashboard' || hash === 'home') {
+    if (!PUBLIC_VIEWS.includes(hash) && !isLoggedIn()) {
+      activateView('home');
+      setTimeout(() => showAuthRequiredPrompt(hash), 300);
+    } else if (hash === 'dashboard' || hash === 'home') {
       navigate(isLoggedIn() ? 'dashboard' : 'home');
     } else {
       navigate(hash);
@@ -2787,10 +3082,16 @@ function initApp() {
   // Floating chat widget
   try { initFloatingChat(); } catch(e) {}
 
-  // Hash change listener
+  // Hash change listener with auth protection
   window.addEventListener('hashchange', () => {
-    const v = window.location.hash.replace('#', '');
-    if (VIEWS.includes(v)) navigate(v);
+    const v = window.location.hash.replace('#', '') || 'home';
+    if (!VIEWS.includes(v)) return;
+    if (!PUBLIC_VIEWS.includes(v) && !isLoggedIn()) {
+      showAuthRequiredPrompt(v);
+      activateView('home');
+      return;
+    }
+    navigate(v);
   });
 
   // Wellbeing check-in demo
@@ -3004,36 +3305,176 @@ async function loadNewsPage() {
     currentNewsData = FALLBACK_NEWS_DATA;
   }
 
+  // Personalization based on logged-in user credentials
+  const user = getStoredUser();
+  if (user) {
+    // If user's city is among known cities, automatically switch city filter to their hometown!
+    if (user.city && user.city !== 'Other' && currentNewsData.cities && currentNewsData.cities[user.city]) {
+      currentCityFilter = user.city;
+      document.querySelectorAll('.city-tab').forEach(btn => {
+        btn.classList.toggle('active', btn.getAttribute('data-city') === user.city);
+      });
+    }
+
+    // Render personal welcome banner
+    const bannerContainer = document.querySelector('#view-news .container.py-12');
+    if (bannerContainer) {
+      let banner = document.getElementById('news-personal-banner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'news-personal-banner';
+        banner.className = 'personalized-content-banner';
+        bannerContainer.insertBefore(banner, bannerContainer.firstChild);
+      }
+      banner.innerHTML = `
+        <div style="font-size:28px;line-height:1;">🎯</div>
+        <div style="flex:1;">
+          <div style="font-weight:800;font-size:16px;color:var(--text-dark);margin-bottom:3px;">
+            Personalized Feed for ${user.name}
+          </div>
+          <div style="font-size:13px;color:var(--text-sec);line-height:1.5;">
+            Prioritizing <strong>${user.city || 'local'}</strong> civic & welfare bulletins, healthcare updates for seniors, and cultural events tailored to your ${user.decade || '1970s'} era preferences.
+          </div>
+        </div>
+        <div style="font-size:12px;background:white;padding:4px 10px;border-radius:12px;border:1px solid #CBD5E1;font-weight:700;color:var(--cosmic-orange);white-space:nowrap;">
+          📍 ${user.city || 'India'}
+        </div>
+      `;
+    }
+  }
+
   renderNationalNews();
   renderCityNews();
 }
+
+let currentModalStory = null;
+let newsReaderFontSize = 18;
+
+function openNationalStory(index) {
+  if (!currentNewsData || !currentNewsData.national_24h) return;
+  const story = currentNewsData.national_24h[index];
+  if (!story) return;
+  openNewsStoryModal(story);
+}
+
+function openCityStory(cityName, index) {
+  if (!currentNewsData || !currentNewsData.cities) return;
+  const list = currentNewsData.cities[cityName];
+  if (!list) return;
+  const story = list[index];
+  if (!story) return;
+  openNewsStoryModal({ ...story, cityName });
+}
+
+function openNewsStoryModal(story) {
+  currentModalStory = story;
+  const modal = document.getElementById('news-reader-modal');
+  if (!modal) return;
+
+  const catEl = document.getElementById('news-modal-category');
+  const timeEl = document.getElementById('news-modal-time');
+  const titleEl = document.getElementById('news-reader-title');
+  const sourceEl = document.getElementById('news-modal-source');
+  const bodyEl = document.getElementById('news-modal-content');
+  const extLinkEl = document.getElementById('news-modal-ext-link');
+
+  if (catEl) catEl.textContent = story.category || 'News';
+  if (timeEl) timeEl.textContent = '⏱️ ' + (story.time_ago || 'Recent');
+  if (titleEl) titleEl.textContent = story.title || '';
+  if (sourceEl) {
+    sourceEl.textContent = (story.cityName ? `📍 ${story.cityName} • ` : '🇮🇳 National Update • ') +
+      (story.tag || story.source || 'Verified Source');
+  }
+  if (bodyEl) {
+    newsReaderFontSize = 18;
+    bodyEl.style.fontSize = newsReaderFontSize + 'px';
+    const textToShow = story.full_content || story.summary || story.title;
+    bodyEl.innerText = textToShow;
+  }
+
+  if (extLinkEl) {
+    if (story.link && story.link !== '#') {
+      extLinkEl.href = story.link;
+      extLinkEl.style.display = 'inline-flex';
+      extLinkEl.textContent = 'Read Full Article on ' + (story.source || story.tag || 'Source') + ' ↗';
+    } else {
+      extLinkEl.style.display = 'none';
+    }
+  }
+
+  modal.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeNewsReaderModal() {
+  const modal = document.getElementById('news-reader-modal');
+  if (modal) modal.classList.remove('open');
+  document.body.style.overflow = '';
+  if (window.speechSynthesis && window.speechSynthesis.speaking) {
+    window.speechSynthesis.cancel();
+  }
+}
+
+function handleNewsModalBackdrop(event) {
+  if (event.target && event.target.id === 'news-reader-modal') {
+    closeNewsReaderModal();
+  }
+}
+
+function adjustNewsFontSize(delta) {
+  newsReaderFontSize = Math.min(28, Math.max(15, newsReaderFontSize + (delta * 2)));
+  const bodyEl = document.getElementById('news-modal-content');
+  if (bodyEl) bodyEl.style.fontSize = newsReaderFontSize + 'px';
+}
+
+function readCurrentModalNews() {
+  if (!currentModalStory) return;
+  readSingleNews((currentModalStory.title || '') + '. ' + (currentModalStory.summary || ''));
+}
+
+window.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') closeNewsReaderModal();
+});
 
 function renderNationalNews() {
   const container = document.getElementById('national-news-grid');
   if (!container || !currentNewsData || !currentNewsData.national_24h) return;
 
-  let items = currentNewsData.national_24h;
+  let items = currentNewsData.national_24h.map((item, originalIndex) => ({ ...item, originalIndex }));
   if (currentNewsSearch) {
     const q = currentNewsSearch.toLowerCase();
-    items = items.filter(n => n.title.toLowerCase().includes(q) || n.summary.toLowerCase().includes(q) || n.category.toLowerCase().includes(q));
+    items = items.filter(n => (n.title && n.title.toLowerCase().includes(q)) || (n.summary && n.summary.toLowerCase().includes(q)) || (n.category && n.category.toLowerCase().includes(q)));
   }
 
-  container.innerHTML = items.map(n => `
-    <article class="news-card">
+  container.innerHTML = items.map(n => {
+    const hasLink = n.link && n.link !== '#' && n.link.startsWith('http');
+    const linkUrl = hasLink ? n.link : 'javascript:void(0)';
+    const safeTitle = (n.title || '').replace(/'/g, "\\'");
+    return `
+    <article class="news-card" onclick="openNationalStory(${n.originalIndex})" role="button" tabindex="0" title="Click to view story details">
       <div>
         <div class="news-card__top">
           <span class="news-badge-category">${n.category}</span>
           <span class="news-badge-time">⏱️ ${n.time_ago}</span>
         </div>
-        <h3 class="news-card__title">${n.title}</h3>
+        <h3 class="news-card__title">
+          <a href="${linkUrl}" ${hasLink ? 'target="_blank" rel="noopener noreferrer"' : ''} class="news-title-link" onclick="event.stopPropagation(); ${!hasLink ? `openNationalStory(${n.originalIndex})` : ''}" title="${hasLink ? 'Read full article on original website' : 'View story'}">
+            ${n.title}
+          </a>
+        </h3>
         <p class="news-card__summary">${n.summary}</p>
       </div>
-      <div class="news-card__footer">
-        <span class="news-card__tag">🏷️ ${n.tag || 'India News'}</span>
-        <span>📖 ${n.read_time || '2 min'}</span>
+      <div class="news-card__footer" style="flex-wrap:wrap; gap:10px;">
+        <span class="news-card__tag">🏷️ ${n.tag || n.source || 'India News'}</span>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          ${hasLink ? `<a href="${n.link}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" onclick="event.stopPropagation();" style="padding:6px 14px; font-weight:700; text-decoration:none;" title="Read full article on publisher website">📖 Read Full Article ↗</a>` : ''}
+          <button type="button" onclick="event.stopPropagation(); openNationalStory(${n.originalIndex})" class="btn btn-secondary btn-sm" style="padding:6px 12px; font-weight:700;" title="Quick preview in LifeConnect">👁️ View</button>
+          <button type="button" onclick="event.stopPropagation(); readSingleNews('${safeTitle}')" class="btn btn-ghost btn-sm" style="color:var(--cosmic-orange); font-weight:700; padding:6px 10px;" title="Listen to story">🔊 Listen</button>
+        </div>
       </div>
     </article>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function selectNewsCity(city) {
@@ -3053,19 +3494,19 @@ function renderCityNews() {
 
   if (currentCityFilter === 'All') {
     Object.keys(citiesObj).forEach(cName => {
-      citiesObj[cName].forEach(item => {
-        cityStories.push({ ...item, cityName: cName });
+      (citiesObj[cName] || []).forEach((item, originalIndex) => {
+        cityStories.push({ ...item, cityName: cName, originalIndex });
       });
     });
   } else if (citiesObj[currentCityFilter]) {
-    citiesObj[currentCityFilter].forEach(item => {
-      cityStories.push({ ...item, cityName: currentCityFilter });
+    (citiesObj[currentCityFilter] || []).forEach((item, originalIndex) => {
+      cityStories.push({ ...item, cityName: currentCityFilter, originalIndex });
     });
   }
 
   if (currentNewsSearch) {
     const q = currentNewsSearch.toLowerCase();
-    cityStories = cityStories.filter(s => s.title.toLowerCase().includes(q) || s.summary.toLowerCase().includes(q) || s.cityName.toLowerCase().includes(q));
+    cityStories = cityStories.filter(s => (s.title && s.title.toLowerCase().includes(q)) || (s.summary && s.summary.toLowerCase().includes(q)) || (s.cityName && s.cityName.toLowerCase().includes(q)));
   }
 
   if (cityStories.length === 0) {
@@ -3073,22 +3514,36 @@ function renderCityNews() {
     return;
   }
 
-  container.innerHTML = cityStories.map(s => `
-    <article class="news-card">
+  container.innerHTML = cityStories.map(s => {
+    const hasLink = s.link && s.link !== '#' && s.link.startsWith('http');
+    const linkUrl = hasLink ? s.link : 'javascript:void(0)';
+    const safeTitle = (s.title || '').replace(/'/g, "\\'");
+    const safeCity = (s.cityName || '').replace(/'/g, "\\'");
+    return `
+    <article class="news-card" onclick="openCityStory('${safeCity}', ${s.originalIndex})" role="button" tabindex="0" title="Click to view story details">
       <div>
         <div class="news-card__top">
           <span class="news-badge-category">${s.category}</span>
           <span class="news-badge-time">📍 ${s.cityName} • ${s.time_ago}</span>
         </div>
-        <h3 class="news-card__title">${s.title}</h3>
+        <h3 class="news-card__title">
+          <a href="${linkUrl}" ${hasLink ? 'target="_blank" rel="noopener noreferrer"' : ''} class="news-title-link" onclick="event.stopPropagation(); ${!hasLink ? `openCityStory('${safeCity}', ${s.originalIndex})` : ''}" title="${hasLink ? 'Read full article on original website' : 'View story'}">
+            ${s.title}
+          </a>
+        </h3>
         <p class="news-card__summary">${s.summary}</p>
       </div>
-      <div class="news-card__footer">
-        <span class="news-card__tag">🏙️ ${s.cityName} City Bulletin</span>
-        <button onclick="readSingleNews('${s.title.replace(/'/g, "\\'")}')" class="btn btn-ghost btn-sm" style="color:var(--cosmic-orange); font-weight:700;" title="Listen to story">🔊 Listen</button>
+      <div class="news-card__footer" style="flex-wrap:wrap; gap:10px;">
+        <span class="news-card__tag">🏙️ ${s.cityName} Bulletin</span>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          ${hasLink ? `<a href="${s.link}" target="_blank" rel="noopener noreferrer" class="btn btn-primary btn-sm" onclick="event.stopPropagation();" style="padding:6px 14px; font-weight:700; text-decoration:none;" title="Read full article on publisher website">📖 Read Full Article ↗</a>` : ''}
+          <button type="button" onclick="event.stopPropagation(); openCityStory('${safeCity}', ${s.originalIndex})" class="btn btn-secondary btn-sm" style="padding:6px 12px; font-weight:700;" title="Quick preview in LifeConnect">👁️ View</button>
+          <button type="button" onclick="event.stopPropagation(); readSingleNews('${safeTitle}')" class="btn btn-ghost btn-sm" style="color:var(--cosmic-orange); font-weight:700; padding:6px 10px;" title="Listen to story">🔊 Listen</button>
+        </div>
       </div>
     </article>
-  `).join('');
+  `;
+  }).join('');
 }
 
 function filterNewsSearch(val) {
@@ -3156,4 +3611,1416 @@ if (document.readyState === 'loading') {
   initApp();
 }
 
+// ================================================================
+// PERSONALIZED CONTENT RECOMMENDATION ENGINE (VERIFIED & INTERACTIVE)
+// ================================================================
 
+let _contentCatalog = null;
+let _contentCurrentCategory = 'all';
+let _contentCurrentSearch = '';
+let _contentCurrentDecade = '';
+let _contentPage = 0;
+let _activePlayingVideo = null;
+const CONTENT_PAGE_SIZE = 12;
+
+const CONTENT_INTERACTIONS_KEY = 'lc_content_interactions';
+
+function getContentInteractions() {
+  try {
+    return JSON.parse(localStorage.getItem(CONTENT_INTERACTIONS_KEY) || '{}');
+  } catch(e) { return {}; }
+}
+
+function saveContentInteraction(videoId, action) {
+  const interactions = getContentInteractions();
+  interactions[videoId] = action; // 'watched' or 'ignored'
+  localStorage.setItem(CONTENT_INTERACTIONS_KEY, JSON.stringify(interactions));
+}
+
+function getConsumedVideoIds() {
+  const interactions = getContentInteractions();
+  return new Set(Object.keys(interactions));
+}
+
+// Fetch the content catalog from backend, with local fallback
+async function fetchContentCatalog() {
+  const user = getStoredUser();
+  const userId = user ? (user.id || '') : '';
+  const decade = _contentCurrentDecade || (user ? (user.decade || '') : '');
+  try {
+    const res = await apiRequest(`/content/recommendations?user_id=${userId}&decade=${encodeURIComponent(decade)}`);
+    if (res && res.success && res.videos && res.videos.length > 0) {
+      _contentCatalog = res.videos;
+      return _contentCatalog;
+    }
+  } catch(e) {
+    console.warn('[Content] Backend fetch failed, using embedded catalog:', e);
+  }
+  _contentCatalog = getEmbeddedCatalog();
+  return _contentCatalog;
+}
+
+// Score and filter videos based on user preferences
+function scoreVideosForUser(videos, user) {
+  const consumed = getConsumedVideoIds();
+  const userDecade = _contentCurrentDecade || user?.decade || '';
+  const userWellness = (user?.wellness_goal || '').toLowerCase();
+  const userLanguage = user?.language || 'Hindi';
+  const userCity = (user?.city || '').toLowerCase();
+
+  // Combine interests & culture preferences
+  const rawInterests = (user?.culture_preferences || []).concat(user?.interests || []);
+  const userInterests = rawInterests.map(x => String(x).toLowerCase());
+
+  return videos
+    .filter(v => !consumed.has(v.id))
+    .map(v => {
+      let score = 10;
+      let reasons = [];
+      const titleLower = (v.title || '').toLowerCase();
+      const vCats = v.categories || [];
+      const vDecades = v.decades || [];
+      const vTags = (v.culture_tags || []).map(t => String(t).toLowerCase());
+
+      // 1. Decade matching
+      if (userDecade && vDecades.includes(userDecade)) {
+        score += 35;
+        reasons.push(`🕰️ From your ${userDecade} era`);
+      }
+
+      // 2. Wellness Goal matching
+      if (vCats.includes('wellness')) {
+        if (userWellness) {
+          if ((userWellness.includes('yoga') || userWellness.includes('chair') || userWellness.includes('stretch')) && (titleLower.includes('yoga') || titleLower.includes('chair'))) {
+            score += 45;
+            reasons.push('🧘 Matches your Daily Yoga & Mobility Goal');
+          } else if ((userWellness.includes('joint') || userWellness.includes('pain') || userWellness.includes('arthritis')) && (titleLower.includes('joint') || titleLower.includes('pain'))) {
+            score += 45;
+            reasons.push('🩺 Joint Relief for Your Wellness');
+          } else if ((userWellness.includes('walk') || userWellness.includes('mobility')) && (titleLower.includes('walk') || titleLower.includes('mobility'))) {
+            score += 45;
+            reasons.push('🚶 For Your Morning Walking Goal');
+          } else if ((userWellness.includes('pranayama') || userWellness.includes('breath')) && (titleLower.includes('pranayama') || titleLower.includes('breath'))) {
+            score += 45;
+            reasons.push('🌬️ Pranayama & Breath Vitality');
+          } else if ((userWellness.includes('meditat') || userWellness.includes('sleep') || userWellness.includes('peace')) && (titleLower.includes('meditat') || titleLower.includes('sleep') || titleLower.includes('peace'))) {
+            score += 45;
+            reasons.push('🕊️ Calming Meditation for Good Sleep');
+          } else {
+            score += 20;
+            reasons.push('🌿 Senior Wellness Routine');
+          }
+        } else {
+          score += 15;
+          reasons.push('🌿 Recommended for Senior Health');
+        }
+      }
+
+      // 3. Cultural and personal interest matching
+      const cultureMatch = vTags.find(t => userInterests.some(ui => ui.includes(t) || t.includes(ui)));
+      if (cultureMatch) {
+        score += 30;
+        reasons.push(`🎯 Matches your interest in ${v.culture_tags[0]}`);
+      } else if (userInterests.some(ui => ui.includes('music') || ui.includes('song')) && vCats.includes('nostalgia_music')) {
+        score += 25;
+        reasons.push('🎵 Golden Era Melody');
+      } else if (userInterests.some(ui => ui.includes('devotional') || ui.includes('bhajan')) && vCats.includes('devotional')) {
+        score += 30;
+        reasons.push('🙏 Devotional Peace for Your Soul');
+      } else if (userInterests.some(ui => ui.includes('movie') || ui.includes('cinema')) && vCats.includes('classic_cinema')) {
+        score += 25;
+        reasons.push('🎬 Classic Indian Cinema');
+      }
+
+      // 4. Language preference
+      if (v.languages && v.languages.includes(userLanguage)) {
+        score += 15;
+      }
+
+      // 5. City & Travel interest
+      if (userCity && (titleLower.includes(userCity) || vTags.some(t => t.includes(userCity)))) {
+        score += 25;
+        reasons.push(`📍 Connected to ${userCity.charAt(0).toUpperCase() + userCity.slice(1)}`);
+      }
+
+      return {
+        ...v,
+        score,
+        matchReason: reasons[0] || v.matchReason || '✨ Handpicked for You'
+      };
+    })
+    .sort((a, b) => b.score - a.score);
+}
+
+function filterCatalog(videos, category, search) {
+  let filtered = videos;
+  if (category && category !== 'all') {
+    filtered = filtered.filter(v => v.categories && v.categories.includes(category));
+  }
+  if (search) {
+    const q = search.toLowerCase();
+    filtered = filtered.filter(v =>
+      (v.title && v.title.toLowerCase().includes(q)) ||
+      (v.channel && v.channel.toLowerCase().includes(q)) ||
+      (v.description && v.description.toLowerCase().includes(q))
+    );
+  }
+  return filtered;
+}
+
+function getPlatformLabel(platform) {
+  const map = {
+    youtube: '▶ YouTube',
+    facebook: 'f Facebook',
+    x: '𝕏 Twitter/X',
+    archive: '🏛 Archive.org'
+  };
+  return map[platform] || platform;
+}
+
+function getPlatformClass(platform) {
+  const map = { youtube: 'platform-youtube', facebook: 'platform-facebook', x: 'platform-x', archive: 'platform-archive' };
+  return map[platform] || 'platform-youtube';
+}
+
+function renderVideoCard(video, index) {
+  const platformLabel = getPlatformLabel(video.platform);
+  const platformClass = getPlatformClass(video.platform);
+  const thumbUrl = `https://img.youtube.com/vi/${video.id}/hqdefault.jpg`;
+  const safeTitle = (video.title || '').replace(/'/g, "\'");
+
+  return `
+    <div class="video-card entering" id="vcard-${video.id}" data-video-id="${video.id}">
+      <div class="video-card__thumb-wrap" onclick="playVideoModal('${video.id}')">
+        <img class="video-card__thumb" src="${thumbUrl}" alt="${safeTitle}" loading="lazy" onerror="this.onerror=null;this.src='https://img.youtube.com/vi/${video.id}/mqdefault.jpg';">
+        <span class="video-card__platform-badge ${platformClass}">${platformLabel}</span>
+        <div class="video-card__play-overlay">▶</div>
+        ${video.duration ? `<span class="video-card__duration-badge">${video.duration}</span>` : ''}
+      </div>
+      <div class="video-card__body">
+        <span class="video-card__match-reason" title="${video.matchReason || ''}">${video.matchReason || '✨ Handpicked for You'}</span>
+        <div class="video-card__title" title="${safeTitle}">${video.title}</div>
+        <div class="video-card__channel">📡 ${video.channel}</div>
+        <div class="video-card__actions" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="video-card__watch-btn" onclick="playVideoModal('${video.id}')" style="flex:1;min-width:130px;">
+            ▶ Play Video
+          </button>
+          <a href="${video.url}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" onclick="onDirectExternalWatch('${video.id}')" title="Watch directly on YouTube in new tab" style="font-size:12px;padding:6px 10px;text-decoration:none;">
+            YouTube ↗
+          </a>
+          <button class="video-card__ignore-btn" onclick="ignoreContent('${video.id}')" title="Not interested — show me a new recommendation">
+            🚫 Skip
+          </button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function updateContentStats() {
+  const interactions = getContentInteractions();
+  const watchedCount = Object.values(interactions).filter(a => a === 'watched').length;
+  const ignoredCount = Object.values(interactions).filter(a => a === 'ignored').length;
+  const totalCatalogCount = _contentCatalog ? _contentCatalog.length : 40;
+  const remaining = Math.max(0, totalCatalogCount - watchedCount - ignoredCount);
+  const label = document.getElementById('content-stats-label');
+  if (label) {
+    label.textContent = `✅ Watched: ${watchedCount} · 🚫 Skipped: ${ignoredCount} · 🎬 ${remaining} more tailored for you`;
+  }
+}
+
+async function initContentPage() {
+  const grid = document.getElementById('content-video-grid');
+  if (!grid) return;
+
+  const user = getStoredUser();
+  if (user && user.decade && !_contentCurrentDecade) {
+    _contentCurrentDecade = user.decade;
+  }
+
+  // Render personalization banner with interactive badges
+  const banner = document.getElementById('content-personalization-banner');
+  if (banner) {
+    if (user) {
+      const tags = [];
+      if (_contentCurrentDecade || user.decade) tags.push(`🕰️ ${_contentCurrentDecade || user.decade}`);
+      if (user.city) tags.push(`📍 ${user.city}`);
+      if (user.language) tags.push(`🗣️ ${user.language}`);
+      if (user.wellness_goal) tags.push(`🧘 ${user.wellness_goal.split(' ').slice(0,3).join(' ')}`);
+
+      banner.innerHTML = `
+        <div class="content-pers-banner" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div>
+            🎯 Personalized for <strong style="color:white;font-size:16px;">&nbsp;${user.name}&nbsp;</strong>
+            <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:6px;">
+              ${tags.map(t => `<span class="content-pers-tag" style="background:rgba(255,255,255,0.2);color:white;padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;">${t}</span>`).join('')}
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <label style="color:white;font-size:13px;font-weight:600;">Era:</label>
+            <select id="content-quick-decade-select" onchange="switchContentDecade(this.value)" style="background:white;color:var(--text-dark);border-radius:8px;padding:6px 10px;font-size:13px;font-weight:700;border:none;cursor:pointer;">
+              <option value="">All Eras</option>
+              <option value="1960s" ${_contentCurrentDecade === '1960s' ? 'selected' : ''}>1960s Golden Era</option>
+              <option value="1970s" ${_contentCurrentDecade === '1970s' ? 'selected' : ''}>1970s Melody</option>
+              <option value="1980s" ${_contentCurrentDecade === '1980s' ? 'selected' : ''}>1980s Retro</option>
+              <option value="1990s" ${_contentCurrentDecade === '1990s' ? 'selected' : ''}>1990s Hits</option>
+              <option value="2000s" ${_contentCurrentDecade === '2000s' ? 'selected' : ''}>2000s+ Modern</option>
+            </select>
+          </div>
+        </div>`;
+    } else {
+      banner.innerHTML = `<div class="content-pers-banner">🎯 Curated Senior Content — Log in to customize your recommendations</div>`;
+    }
+  }
+
+  grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text-sec);"><div style="font-size:48px;">⏳</div><p style="font-size:18px;font-weight:700;">Loading your personalized recommendations...</p></div>`;
+
+  _contentCurrentCategory = 'all';
+  _contentCurrentSearch = '';
+  _contentPage = 0;
+
+  const catalog = await fetchContentCatalog();
+  renderContentGrid(catalog, user);
+}
+
+function switchContentDecade(dec) {
+  _contentCurrentDecade = dec;
+  _contentPage = 0;
+  const user = getStoredUser();
+  renderContentGrid(_contentCatalog, user);
+  showToast(`Switched era to ${dec || 'All Eras'}. Your feed has been updated! 🎬`, 'info', 2500);
+}
+
+function renderContentGrid(catalog, user) {
+  if (!catalog) return;
+  const scored = scoreVideosForUser(catalog, user || getStoredUser());
+  const filtered = filterCatalog(scored, _contentCurrentCategory, _contentCurrentSearch);
+  const pageVideos = filtered.slice(0, CONTENT_PAGE_SIZE + _contentPage * CONTENT_PAGE_SIZE);
+  const grid = document.getElementById('content-video-grid');
+  if (!grid) return;
+
+  if (pageVideos.length === 0) {
+    grid.innerHTML = `
+      <div class="content-empty-state" style="grid-column:1/-1;text-align:center;padding:50px 20px;background:var(--cream);border-radius:16px;">
+        <div style="font-size:56px;margin-bottom:16px;">🎉</div>
+        <p style="font-size:22px;font-weight:800;color:var(--text-dark);margin-bottom:8px;">You've seen all suggestions in this category!</p>
+        <p style="color:var(--text-sec);margin-bottom:24px;font-size:16px;">You can reset your history to re-watch any video, or explore other categories.</p>
+        <button onclick="resetContentHistory()" class="btn btn-primary btn-lg" style="font-weight:700;">🔄 Reset Watch History</button>
+      </div>`;
+  } else {
+    grid.innerHTML = pageVideos.map((v, i) => renderVideoCard(v, i)).join('');
+  }
+
+  const loadMoreWrap = document.getElementById('content-load-more-wrap');
+  if (loadMoreWrap) {
+    loadMoreWrap.style.display = filtered.length > pageVideos.length ? 'block' : 'none';
+  }
+  updateContentStats();
+}
+
+function loadMoreContent() {
+  _contentPage++;
+  renderContentGrid(_contentCatalog, getStoredUser());
+  window.scrollBy({ top: 400, behavior: 'smooth' });
+}
+
+function filterContentCategory(cat) {
+  _contentCurrentCategory = cat;
+  _contentPage = 0;
+  document.querySelectorAll('.content-cat-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.cat === cat);
+  });
+  renderContentGrid(_contentCatalog, getStoredUser());
+}
+
+function filterContentSearch(val) {
+  _contentCurrentSearch = val;
+  _contentPage = 0;
+  renderContentGrid(_contentCatalog, getStoredUser());
+}
+
+// Senior In-Page Video Player Modal
+function playVideoModal(videoId) {
+  const video = (_contentCatalog || getEmbeddedCatalog()).find(v => v.id === videoId);
+  if (!video) return;
+
+  _activePlayingVideo = video;
+
+  // Mark watched locally & sync to backend
+  saveContentInteraction(videoId, 'watched');
+  const user = getStoredUser();
+  if (user && user.id) {
+    apiRequest('/content/interaction', 'POST', {
+      user_id: user.id,
+      video_id: videoId,
+      action: 'watched',
+      platform: video.platform || 'youtube'
+    }).catch(() => {});
+  }
+
+  // Populate modal elements
+  const modal = document.getElementById('video-player-modal');
+  const iframe = document.getElementById('vplayer-iframe');
+  const titleEl = document.getElementById('vplayer-title');
+  const channelEl = document.getElementById('vplayer-channel');
+  const badgeEl = document.getElementById('vplayer-match-badge');
+  const ytLink = document.getElementById('vplayer-yt-link');
+
+  if (titleEl) titleEl.textContent = video.title;
+  if (channelEl) channelEl.textContent = `📡 ${video.channel} · ⏱️ ${video.duration || ''}`;
+  if (badgeEl) badgeEl.textContent = video.matchReason || '✨ Suggested For You';
+  if (ytLink) ytLink.href = video.url;
+
+  if (iframe) {
+    const embedSrc = `https://www.youtube-nocookie.com/embed/${video.id}?autoplay=1&rel=0`;
+    iframe.src = embedSrc;
+  }
+
+  if (modal) {
+    modal.classList.add('open');
+    modal.style.display = 'flex';
+  }
+
+  // Animate watched card and replace it with next recommendation
+  replaceCardInGrid(videoId);
+  updateContentStats();
+}
+
+function closeVideoPlayerModal() {
+  const modal = document.getElementById('video-player-modal');
+  const iframe = document.getElementById('vplayer-iframe');
+  if (iframe) iframe.src = '';
+  if (modal) {
+    modal.classList.remove('open');
+    modal.style.display = 'none';
+  }
+  _activePlayingVideo = null;
+}
+
+function handleVideoModalBackdrop(event) {
+  if (event.target.id === 'video-player-modal') {
+    closeVideoPlayerModal();
+  }
+}
+
+function skipCurrentModalVideo() {
+  if (_activePlayingVideo) {
+    ignoreContent(_activePlayingVideo.id);
+  }
+  closeVideoPlayerModal();
+}
+
+function onDirectExternalWatch(videoId) {
+  saveContentInteraction(videoId, 'watched');
+  const user = getStoredUser();
+  if (user && user.id) {
+    apiRequest('/content/interaction', 'POST', {
+      user_id: user.id,
+      video_id: videoId,
+      action: 'watched',
+      platform: 'youtube'
+    }).catch(() => {});
+  }
+  replaceCardInGrid(videoId);
+  updateContentStats();
+  showToast('Opening video in new tab... Your feed has recommended something fresh! 🎬', 'success', 3000);
+}
+
+// Replace card in grid with exit animation and seamless entry of next recommended card
+function replaceCardInGrid(videoId) {
+  const card = document.getElementById('vcard-' + videoId);
+  if (card) {
+    card.classList.add('exiting');
+    setTimeout(() => {
+      renderContentGrid(_contentCatalog, getStoredUser());
+    }, 280);
+  } else {
+    renderContentGrid(_contentCatalog, getStoredUser());
+  }
+}
+
+async function ignoreContent(videoId) {
+  saveContentInteraction(videoId, 'ignored');
+
+  const user = getStoredUser();
+  if (user && user.id) {
+    apiRequest('/content/interaction', 'POST', {
+      user_id: user.id,
+      video_id: videoId,
+      action: 'ignored',
+      platform: 'youtube'
+    }).catch(() => {});
+  }
+
+  replaceCardInGrid(videoId);
+  updateContentStats();
+  showToast("Video skipped. Here's a fresh recommendation! ✨", "info", 2500);
+}
+
+async function resetContentHistory() {
+  localStorage.removeItem(CONTENT_INTERACTIONS_KEY);
+  _contentPage = 0;
+
+  const user = getStoredUser();
+  if (user && user.id) {
+    apiRequest('/content/reset', 'POST', { user_id: user.id }).catch(() => {});
+  }
+
+  renderContentGrid(_contentCatalog, user);
+  showToast('Watch history reset! All 40 videos are back in your feed. 🔄', 'success', 3000);
+}
+
+// Full 40-item Embedded Catalog (100% verified, playable YouTube IDs)
+function getEmbeddedCatalog() {
+  return [
+  {
+    "id": "3wAnXhoCBXQ",
+    "platform": "youtube",
+    "title": "Lag Jaa Gale Ki Phir Ye Haseen Raat Ho Na Ho | Lata Mangeshkar | Woh Kaun Thi | Manoj Kumar, Sadhana",
+    "channel": "Saregama Music",
+    "thumbnail": "https://img.youtube.com/vi/3wAnXhoCBXQ/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=3wAnXhoCBXQ",
+    "embed_url": "https://www.youtube-nocookie.com/embed/3wAnXhoCBXQ?autoplay=1&rel=0",
+    "duration": "4:15",
+    "categories": [
+      "nostalgia_music",
+      "classic_cinema"
+    ],
+    "decades": [
+      "1960s",
+      "1970s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Classic Bollywood"
+    ],
+    "description": "Lata Mangeshkar's evergreen masterpiece from Woh Kaun Thi (1964)."
+  },
+  {
+    "id": "b8tm0k08XDo",
+    "platform": "youtube",
+    "title": "Mere Sapno Ki Rani 4K Song  मेरे सपनो की रानी  आराधना  राजेश खन्ना - शर्मिला टैगोर - किशोर कुमार",
+    "channel": "Saregama Music",
+    "thumbnail": "https://img.youtube.com/vi/b8tm0k08XDo/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=b8tm0k08XDo",
+    "embed_url": "https://www.youtube-nocookie.com/embed/b8tm0k08XDo?autoplay=1&rel=0",
+    "duration": "3:52",
+    "categories": [
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1960s",
+      "1970s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Classic Bollywood"
+    ],
+    "description": "Kishore Kumar's iconic train song featuring Rajesh Khanna from Aradhana (1969)."
+  },
+  {
+    "id": "5ZaKMzJrzXQ",
+    "platform": "youtube",
+    "title": "Yeh Shaam Mastani | Kishore Kumar | Remastered",
+    "channel": "Saregama Music",
+    "thumbnail": "https://img.youtube.com/vi/5ZaKMzJrzXQ/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=5ZaKMzJrzXQ",
+    "embed_url": "https://www.youtube-nocookie.com/embed/5ZaKMzJrzXQ?autoplay=1&rel=0",
+    "duration": "4:40",
+    "categories": [
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1980s",
+      "1970s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Classic Bollywood"
+    ],
+    "description": "Kishore Kumar's evergreen romantic melody from Kati Patang (1970)."
+  },
+  {
+    "id": "seFeZOgyFsc",
+    "platform": "youtube",
+    "title": "Chura Liya Hai Tumne Jo Dil Ko -  Yaadon Ki Baaraat | Zeenat Aman, Vijay Arora",
+    "channel": "Tips Official",
+    "thumbnail": "https://img.youtube.com/vi/seFeZOgyFsc/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=seFeZOgyFsc",
+    "embed_url": "https://www.youtube-nocookie.com/embed/seFeZOgyFsc?autoplay=1&rel=0",
+    "duration": "4:48",
+    "categories": [
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1980s",
+      "1970s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Classic Bollywood"
+    ],
+    "description": "Mohammed Rafi & Asha Bhosle's iconic duet from Yaadon Ki Baaraat (1973)."
+  },
+  {
+    "id": "ltIvlvgEmkA",
+    "platform": "youtube",
+    "title": "Ek Pyar Ka Naghma Hai - Lyrical Video | Shor | Lata Mangeshkar | Manoj Kumar | Jaya Bhaduri",
+    "channel": "Saregama Music",
+    "thumbnail": "https://img.youtube.com/vi/ltIvlvgEmkA/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=ltIvlvgEmkA",
+    "embed_url": "https://www.youtube-nocookie.com/embed/ltIvlvgEmkA?autoplay=1&rel=0",
+    "duration": "5:05",
+    "categories": [
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1980s",
+      "1970s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Classic Bollywood"
+    ],
+    "description": "Soul-stirring song by Lata Mangeshkar & Mukesh from Shor (1972)."
+  },
+  {
+    "id": "g_O5lttb5ww",
+    "platform": "youtube",
+    "title": "Kabhi Kabhie Mere Dil Mein - Mukesh - Kabhi Kabhie [1976]",
+    "channel": "Yash Raj Films",
+    "thumbnail": "https://img.youtube.com/vi/g_O5lttb5ww/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=g_O5lttb5ww",
+    "embed_url": "https://www.youtube-nocookie.com/embed/g_O5lttb5ww?autoplay=1&rel=0",
+    "duration": "5:12",
+    "categories": [
+      "nostalgia_music",
+      "classic_cinema"
+    ],
+    "decades": [
+      "1980s",
+      "1970s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Classic Bollywood"
+    ],
+    "description": "Mukesh's timeless classic with Sahir Ludhianvi's poetry from Kabhi Kabhie (1976)."
+  },
+  {
+    "id": "cP44iDZZ_wY",
+    "platform": "youtube",
+    "title": "Zindagi Kaisi Hai Paheli | Manna Dey | Anand | Rajesh Khanna | Classic Hindi Song",
+    "channel": "Saregama Music",
+    "thumbnail": "https://img.youtube.com/vi/cP44iDZZ_wY/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=cP44iDZZ_wY",
+    "embed_url": "https://www.youtube-nocookie.com/embed/cP44iDZZ_wY?autoplay=1&rel=0",
+    "duration": "3:38",
+    "categories": [
+      "nostalgia_music",
+      "classic_cinema"
+    ],
+    "decades": [
+      "1980s",
+      "1970s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Classic Bollywood"
+    ],
+    "description": "Manna Dey's philosophical masterpiece from Anand (1971)."
+  },
+  {
+    "id": "Zm4V6ty4K6k",
+    "platform": "youtube",
+    "title": "Tere Bina Zindagi Se Lyrical | तेरे बिना ज़िन्दगी से | Aandhi | Suchitra Sen | Sanjeev Kumar | Gulzar",
+    "channel": "Saregama Music",
+    "thumbnail": "https://img.youtube.com/vi/Zm4V6ty4K6k/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=Zm4V6ty4K6k",
+    "embed_url": "https://www.youtube-nocookie.com/embed/Zm4V6ty4K6k?autoplay=1&rel=0",
+    "duration": "5:14",
+    "categories": [
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1980s",
+      "1970s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Classic Bollywood"
+    ],
+    "description": "Kishore Kumar & Lata Mangeshkar duet composed by R.D. Burman in Aandhi (1975)."
+  },
+  {
+    "id": "X0gB9jcgXxg",
+    "platform": "youtube",
+    "title": "HOTHON SE CHHU LO TUM - Jagjit Singh | Prem Geet",
+    "channel": "Saregama Music",
+    "thumbnail": "https://img.youtube.com/vi/X0gB9jcgXxg/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=X0gB9jcgXxg",
+    "embed_url": "https://www.youtube-nocookie.com/embed/X0gB9jcgXxg?autoplay=1&rel=0",
+    "duration": "5:20",
+    "categories": [
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1990s",
+      "1980s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Ghazals & Classical Ragas"
+    ],
+    "description": "Jagjit Singh's immortal ghazal that touched millions of hearts."
+  },
+  {
+    "id": "WtPbNKk9XpU",
+    "platform": "youtube",
+    "title": "Tum Ko Dekha To Yeh Khayal Aaya - Lyrical Video | Jagjit Singh Ghazals | Chitra Singh | Love Song",
+    "channel": "Saregama Music",
+    "thumbnail": "https://img.youtube.com/vi/WtPbNKk9XpU/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=WtPbNKk9XpU",
+    "embed_url": "https://www.youtube-nocookie.com/embed/WtPbNKk9XpU?autoplay=1&rel=0",
+    "duration": "5:18",
+    "categories": [
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1990s",
+      "1980s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Ghazals & Classical Ragas"
+    ],
+    "description": "Soulful ghazal by Jagjit Singh & Chitra Singh from Saath Saath."
+  },
+  {
+    "id": "v0_IRIFYC0k",
+    "platform": "youtube",
+    "title": "Chitthi Aayi Hai | Pankaj Udhas | Naam 1986 Songs | Sanjay Dutt, Nutan, Amrita Singh",
+    "channel": "Tips Official",
+    "thumbnail": "https://img.youtube.com/vi/v0_IRIFYC0k/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=v0_IRIFYC0k",
+    "embed_url": "https://www.youtube-nocookie.com/embed/v0_IRIFYC0k?autoplay=1&rel=0",
+    "duration": "7:12",
+    "categories": [
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1990s",
+      "1980s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Ghazals & Classical Ragas"
+    ],
+    "description": "Pankaj Udhas's nostalgic classic that connects every Indian to home."
+  },
+  {
+    "id": "Jf92MOkrbEw",
+    "platform": "youtube",
+    "title": "Rang Barse Song | Holi Song | Silsila | Amitabh Bachchan, Rekha, Sanjeev, Jaya | रंग बरसे | होली गीत",
+    "channel": "Yash Raj Films",
+    "thumbnail": "https://img.youtube.com/vi/Jf92MOkrbEw/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=Jf92MOkrbEw",
+    "embed_url": "https://www.youtube-nocookie.com/embed/Jf92MOkrbEw?autoplay=1&rel=0",
+    "duration": "5:30",
+    "categories": [
+      "nostalgia_music",
+      "classic_cinema"
+    ],
+    "decades": [
+      "1990s",
+      "1980s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Classic Bollywood"
+    ],
+    "description": "Amitabh Bachchan's energetic festive classic from Silsila (1981)."
+  },
+  {
+    "id": "cNV5hLSa9H8",
+    "platform": "youtube",
+    "title": "Tujhe Dekha Toh Song | Dilwale Dulhania Le Jayenge | Shah Rukh Khan, Kajol | Lata, Kumar Sanu | DDLJ",
+    "channel": "Yash Raj Films",
+    "thumbnail": "https://img.youtube.com/vi/cNV5hLSa9H8/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=cNV5hLSa9H8",
+    "embed_url": "https://www.youtube-nocookie.com/embed/cNV5hLSa9H8?autoplay=1&rel=0",
+    "duration": "5:02",
+    "categories": [
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1990s",
+      "2000s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Classic Bollywood"
+    ],
+    "description": "Kumar Sanu & Lata Mangeshkar's golden 90s anthem from DDLJ."
+  },
+  {
+    "id": "SBfPs-PMGTA",
+    "platform": "youtube",
+    "title": "Pehla Nasha Pehla khumar Full HD l Udit Narayan,Sadhana sargaml Jo jeeta wohi sikandar",
+    "channel": "Sony Music India",
+    "thumbnail": "https://img.youtube.com/vi/SBfPs-PMGTA/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=SBfPs-PMGTA",
+    "embed_url": "https://www.youtube-nocookie.com/embed/SBfPs-PMGTA?autoplay=1&rel=0",
+    "duration": "4:28",
+    "categories": [
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1990s",
+      "2000s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Classic Bollywood"
+    ],
+    "description": "Udit Narayan & Sadhana Sargam in the youth anthem of the 90s."
+  },
+  {
+    "id": "sWqjZpBtcxc",
+    "platform": "youtube",
+    "title": "Aye Mere Humsafar Full Song | Qayamat Se Qayamat Tak | Udit N | Alka Y| Aamir Khan, Juhi Chawla",
+    "channel": "T-Series",
+    "thumbnail": "https://img.youtube.com/vi/sWqjZpBtcxc/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=sWqjZpBtcxc",
+    "embed_url": "https://www.youtube-nocookie.com/embed/sWqjZpBtcxc?autoplay=1&rel=0",
+    "duration": "4:45",
+    "categories": [
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1990s",
+      "1980s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Classic Bollywood"
+    ],
+    "description": "Udit Narayan & Alka Yagnik's romantic superhit from QSRT (1988)."
+  },
+  {
+    "id": "Mcs2xEZ6K8o",
+    "platform": "youtube",
+    "title": "Dheere Dhheere Se Meri Zindagi Mein Aana Full Song (Audio) | Aashiqui | Anuradha Paudwal, Kumar Sanu",
+    "channel": "T-Series",
+    "thumbnail": "https://img.youtube.com/vi/Mcs2xEZ6K8o/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=Mcs2xEZ6K8o",
+    "embed_url": "https://www.youtube-nocookie.com/embed/Mcs2xEZ6K8o?autoplay=1&rel=0",
+    "duration": "5:25",
+    "categories": [
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1990s",
+      "2000s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Classic Bollywood"
+    ],
+    "description": "Kumar Sanu & Anuradha Paudwal in the iconic romantic song of the 90s."
+  },
+  {
+    "id": "LUx8wlA_dk8",
+    "platform": "youtube",
+    "title": "श्री हनुमान चालीसा I Shree Hanuman Chalisa I GULSHAN KUMAR, HARIHARAN I Hanuman Chalisa Ashtak",
+    "channel": "T-Series Bhakti Sagar",
+    "thumbnail": "https://img.youtube.com/vi/LUx8wlA_dk8/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=LUx8wlA_dk8",
+    "embed_url": "https://www.youtube-nocookie.com/embed/LUx8wlA_dk8?autoplay=1&rel=0",
+    "duration": "9:42",
+    "categories": [
+      "devotional"
+    ],
+    "decades": [
+      "2000s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Devotional & Bhajans"
+    ],
+    "description": "The most revered devotional chant of India sung by Hariharan & Gulshan Kumar."
+  },
+  {
+    "id": "nwRoHC83wx0",
+    "platform": "youtube",
+    "title": "Gayatri Mantra 108 times Anuradha Paudwal I Full Audio Song I T-Series Bhakti Sagar",
+    "channel": "T-Series Bhakti Sagar",
+    "thumbnail": "https://img.youtube.com/vi/nwRoHC83wx0/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=nwRoHC83wx0",
+    "embed_url": "https://www.youtube-nocookie.com/embed/nwRoHC83wx0?autoplay=1&rel=0",
+    "duration": "35:10",
+    "categories": [
+      "devotional"
+    ],
+    "decades": [
+      "2000s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Devotional & Bhajans"
+    ],
+    "description": "Anuradha Paudwal's sacred and calming 108 chants of Gayatri Mantra."
+  },
+  {
+    "id": "drszYwxBvpE",
+    "platform": "youtube",
+    "title": "ऐसी लागी लगन मीरा हो गई मगन | Anup Jalota Bhajan | Krishna Bhakti Song | Meera Bhajan | Krishna",
+    "channel": "Saregama Bhakti",
+    "thumbnail": "https://img.youtube.com/vi/drszYwxBvpE/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=drszYwxBvpE",
+    "embed_url": "https://www.youtube-nocookie.com/embed/drszYwxBvpE?autoplay=1&rel=0",
+    "duration": "7:22",
+    "categories": [
+      "devotional"
+    ],
+    "decades": [
+      "1990s",
+      "1980s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Devotional & Bhajans"
+    ],
+    "description": "Anup Jalota's timeless Meera bhajan that touches the soul."
+  },
+  {
+    "id": "ATflA6WOy0I",
+    "platform": "youtube",
+    "title": "Vishnu Sahasranamam - M.S.Subbulakshmi",
+    "channel": "Sangeetham Classical",
+    "thumbnail": "https://img.youtube.com/vi/ATflA6WOy0I/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=ATflA6WOy0I",
+    "embed_url": "https://www.youtube-nocookie.com/embed/ATflA6WOy0I?autoplay=1&rel=0",
+    "duration": "29:15",
+    "categories": [
+      "devotional"
+    ],
+    "decades": [
+      "1980s",
+      "1970s"
+    ],
+    "languages": [
+      "Sanskrit",
+      "Tamil",
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Devotional & Bhajans"
+    ],
+    "description": "Bharat Ratna M.S. Subbulakshmi's divine chanting of Sri Vishnu Sahasranamam."
+  },
+  {
+    "id": "WkYz1g47Hj0",
+    "platform": "youtube",
+    "title": "Senior & Beginner Workout - 15 minute Gentle Chair Yoga",
+    "channel": "Senior Fitness With Meredith",
+    "thumbnail": "https://img.youtube.com/vi/WkYz1g47Hj0/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=WkYz1g47Hj0",
+    "embed_url": "https://www.youtube-nocookie.com/embed/WkYz1g47Hj0?autoplay=1&rel=0",
+    "duration": "15:20",
+    "categories": [
+      "wellness"
+    ],
+    "decades": [
+      "2000s"
+    ],
+    "languages": [
+      "English",
+      "Hindi"
+    ],
+    "culture_tags": [],
+    "description": "Gentle 15-minute chair yoga for seniors to build mobility and ease joint stiffness."
+  },
+  {
+    "id": "uoP5Pr3vkPM",
+    "platform": "youtube",
+    "title": "Chair Yoga for Balance - Improve your Strength & Mobility",
+    "channel": "SilverSneakers",
+    "thumbnail": "https://img.youtube.com/vi/uoP5Pr3vkPM/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=uoP5Pr3vkPM",
+    "embed_url": "https://www.youtube-nocookie.com/embed/uoP5Pr3vkPM?autoplay=1&rel=0",
+    "duration": "18:40",
+    "categories": [
+      "wellness"
+    ],
+    "decades": [
+      "2000s"
+    ],
+    "languages": [
+      "English",
+      "Hindi"
+    ],
+    "culture_tags": [],
+    "description": "Targeted chair exercises to improve balance and prevent falls safely at home."
+  },
+  {
+    "id": "3p4r_ad2Y7g",
+    "platform": "youtube",
+    "title": "Complete Package of Pranayama for Beginner's",
+    "channel": "Patanjali Yogpeeth",
+    "thumbnail": "https://img.youtube.com/vi/3p4r_ad2Y7g/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=3p4r_ad2Y7g",
+    "embed_url": "https://www.youtube-nocookie.com/embed/3p4r_ad2Y7g?autoplay=1&rel=0",
+    "duration": "25:30",
+    "categories": [
+      "wellness"
+    ],
+    "decades": [
+      "2000s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [],
+    "description": "Swami Ramdev guides Pranayama (Anulom Vilom, Kapalbhati, Bhastrika) for daily vitality."
+  },
+  {
+    "id": "90DKrNwwnzA",
+    "platform": "youtube",
+    "title": "Daily Exercise Routine for JOINT PAIN RELIEF | Full Body Workout | Saurabh Bothra Yoga",
+    "channel": "Senior Health & Wellness",
+    "thumbnail": "https://img.youtube.com/vi/90DKrNwwnzA/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=90DKrNwwnzA",
+    "embed_url": "https://www.youtube-nocookie.com/embed/90DKrNwwnzA?autoplay=1&rel=0",
+    "duration": "14:15",
+    "categories": [
+      "wellness"
+    ],
+    "decades": [
+      "2000s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [],
+    "description": "Physiotherapist-guided slow joint-relief routine for arthritis and knee comfort."
+  },
+  {
+    "id": "LYJ3U0Fs4dg",
+    "platform": "youtube",
+    "title": "15 minute Walking Workout for Seniors, Beginners",
+    "channel": "Walk At Home",
+    "thumbnail": "https://img.youtube.com/vi/LYJ3U0Fs4dg/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=LYJ3U0Fs4dg",
+    "embed_url": "https://www.youtube-nocookie.com/embed/LYJ3U0Fs4dg?autoplay=1&rel=0",
+    "duration": "15:00",
+    "categories": [
+      "wellness"
+    ],
+    "decades": [
+      "2000s"
+    ],
+    "languages": [
+      "English",
+      "Hindi"
+    ],
+    "culture_tags": [],
+    "description": "Gentle low-impact indoor walking workout designed specifically for seniors."
+  },
+  {
+    "id": "ZgPHetPG4MY",
+    "platform": "youtube",
+    "title": "10 Minute Meditation for Before You Sleep",
+    "channel": "Mindful Peace",
+    "thumbnail": "https://img.youtube.com/vi/ZgPHetPG4MY/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=ZgPHetPG4MY",
+    "embed_url": "https://www.youtube-nocookie.com/embed/ZgPHetPG4MY?autoplay=1&rel=0",
+    "duration": "10:00",
+    "categories": [
+      "wellness"
+    ],
+    "decades": [
+      "2000s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [],
+    "description": "Calming guided meditation to release stress and promote deep, restful sleep."
+  },
+  {
+    "id": "qYLgpj9i4Fw",
+    "platform": "youtube",
+    "title": "Malgudi days Episode-1 | Swamy and Friends",
+    "channel": "Doordarshan National",
+    "thumbnail": "https://img.youtube.com/vi/qYLgpj9i4Fw/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=qYLgpj9i4Fw",
+    "embed_url": "https://www.youtube-nocookie.com/embed/qYLgpj9i4Fw?autoplay=1&rel=0",
+    "duration": "24:30",
+    "categories": [
+      "classic_cinema",
+      "heritage_sports"
+    ],
+    "decades": [
+      "1990s",
+      "1980s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Literature & Poetry"
+    ],
+    "description": "R.K. Narayan's timeless classic television series from the golden age of Doordarshan."
+  },
+  {
+    "id": "RG3Hqth0Eus",
+    "platform": "youtube",
+    "title": "Ramayan EP 1 - श्री राम भगवान्‌ का जन्म और बाललीला का आनंद | HQ WIDE SCREEN | English Subtitles",
+    "channel": "Sagar World",
+    "thumbnail": "https://img.youtube.com/vi/RG3Hqth0Eus/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=RG3Hqth0Eus",
+    "embed_url": "https://www.youtube-nocookie.com/embed/RG3Hqth0Eus?autoplay=1&rel=0",
+    "duration": "42:10",
+    "categories": [
+      "devotional",
+      "classic_cinema"
+    ],
+    "decades": [
+      "1990s",
+      "1980s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Devotional & Bhajans"
+    ],
+    "description": "Ramanand Sagar's historic epic Ramayan that united India every Sunday morning."
+  },
+  {
+    "id": "TltC-AllzGY",
+    "platform": "youtube",
+    "title": "Mahabharat (महाभारत) | B.R. Chopra | Pen Bhakti | Episodes 01, 02, 03",
+    "channel": "Pen Bhakti",
+    "thumbnail": "https://img.youtube.com/vi/TltC-AllzGY/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=TltC-AllzGY",
+    "embed_url": "https://www.youtube-nocookie.com/embed/TltC-AllzGY?autoplay=1&rel=0",
+    "duration": "45:00",
+    "categories": [
+      "devotional",
+      "classic_cinema"
+    ],
+    "decades": [
+      "1990s",
+      "1980s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Devotional & Bhajans"
+    ],
+    "description": "B.R. Chopra's legendary television epic Mahabharat - episode 1."
+  },
+  {
+    "id": "SsSZWH9aloc",
+    "platform": "youtube",
+    "title": "Kitne Aadmi The? -  Most Famous Dialogue From Sholay | Gabbar Singh | Amazon Prime Video",
+    "channel": "Sippy Films",
+    "thumbnail": "https://img.youtube.com/vi/SsSZWH9aloc/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=SsSZWH9aloc",
+    "embed_url": "https://www.youtube-nocookie.com/embed/SsSZWH9aloc?autoplay=1&rel=0",
+    "duration": "4:15",
+    "categories": [
+      "classic_cinema"
+    ],
+    "decades": [
+      "1980s",
+      "1970s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Classic Bollywood"
+    ],
+    "description": "Gabbar Singh's legendary 'Kitne Aadmi The' dialogue from the 1975 blockbuster Sholay."
+  },
+  {
+    "id": "8O7uQ4XHgNg",
+    "platform": "youtube",
+    "title": "राजेश खन्ना का यह डायलॉग सुनकर आप रो देंगे | Anand का सबसे इमोशनल सीन | Amitabh Bachchan",
+    "channel": "Shemaroo Movies",
+    "thumbnail": "https://img.youtube.com/vi/8O7uQ4XHgNg/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=8O7uQ4XHgNg",
+    "embed_url": "https://www.youtube-nocookie.com/embed/8O7uQ4XHgNg?autoplay=1&rel=0",
+    "duration": "6:20",
+    "categories": [
+      "classic_cinema"
+    ],
+    "decades": [
+      "1980s",
+      "1970s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Classic Bollywood"
+    ],
+    "description": "Rajesh Khanna & Amitabh Bachchan's unforgettable emotional climax from Anand."
+  },
+  {
+    "id": "k8DtPqXjptM",
+    "platform": "youtube",
+    "title": "MIle Sur Mera Tumhara - 720P High Quality - Doordarshan",
+    "channel": "Doordarshan National",
+    "thumbnail": "https://img.youtube.com/vi/k8DtPqXjptM/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=k8DtPqXjptM",
+    "embed_url": "https://www.youtube-nocookie.com/embed/k8DtPqXjptM?autoplay=1&rel=0",
+    "duration": "6:10",
+    "categories": [
+      "heritage_sports",
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1990s",
+      "1980s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Literature & Poetry"
+    ],
+    "description": "The iconic national integration song from 1988 featuring India's greatest legends."
+  },
+  {
+    "id": "WmKQ7W-Miso",
+    "platform": "youtube",
+    "title": "HIGHLIGHTS: Prudential  World Cup Final 1983 Watch India Win World Cup 83 Final | #83TheFilm Trailor",
+    "channel": "ICC Vintage Cricket",
+    "thumbnail": "https://img.youtube.com/vi/WmKQ7W-Miso/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=WmKQ7W-Miso",
+    "embed_url": "https://www.youtube-nocookie.com/embed/WmKQ7W-Miso?autoplay=1&rel=0",
+    "duration": "12:45",
+    "categories": [
+      "heritage_sports"
+    ],
+    "decades": [
+      "1990s",
+      "1980s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [],
+    "description": "Relive Kapil Dev & India lifting the 1983 World Cup at Lord's Cricket Ground."
+  },
+  {
+    "id": "vXoEKeR4uz8",
+    "platform": "youtube",
+    "title": "Ganga Aarti  Varanasi || FULL VIDEO || Dashaswamegh Ghat || संपूर्ण गंगा आरती, वाराणसी",
+    "channel": "Incredible India Heritage",
+    "thumbnail": "https://img.youtube.com/vi/vXoEKeR4uz8/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=vXoEKeR4uz8",
+    "embed_url": "https://www.youtube-nocookie.com/embed/vXoEKeR4uz8?autoplay=1&rel=0",
+    "duration": "18:20",
+    "categories": [
+      "nature_travel",
+      "devotional"
+    ],
+    "decades": [
+      "2000s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Devotional & Bhajans"
+    ],
+    "description": "Experience the spiritual grandeur of the evening Maha Aarti at Dashashwamedh Ghat, Kashi."
+  },
+  {
+    "id": "vP6wxPBfg6k",
+    "platform": "youtube",
+    "title": "Kerala Backwaters Houseboat Journey 🛶 Relaxing Scenic Cruise Through Alappuzha | 4K Nature Sounds",
+    "channel": "Kerala Tourism",
+    "thumbnail": "https://img.youtube.com/vi/vP6wxPBfg6k/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=vP6wxPBfg6k",
+    "embed_url": "https://www.youtube-nocookie.com/embed/vP6wxPBfg6k?autoplay=1&rel=0",
+    "duration": "15:40",
+    "categories": [
+      "nature_travel",
+      "wellness"
+    ],
+    "decades": [
+      "2000s"
+    ],
+    "languages": [
+      "Malayalam",
+      "English",
+      "Hindi"
+    ],
+    "culture_tags": [],
+    "description": "Serene houseboat cruise through tranquil Kerala backwaters and lush palm groves."
+  },
+  {
+    "id": "3XfQ041s_Fc",
+    "platform": "youtube",
+    "title": "Jaipur - The Pink City in 4K",
+    "channel": "Heritage Walks India",
+    "thumbnail": "https://img.youtube.com/vi/3XfQ041s_Fc/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=3XfQ041s_Fc",
+    "embed_url": "https://www.youtube-nocookie.com/embed/3XfQ041s_Fc?autoplay=1&rel=0",
+    "duration": "14:50",
+    "categories": [
+      "nature_travel",
+      "heritage_sports"
+    ],
+    "decades": [
+      "2000s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [],
+    "description": "A cinematic walk through the palaces, havelis and bazaars of the Pink City Jaipur."
+  },
+  {
+    "id": "r1yXbHldZms",
+    "platform": "youtube",
+    "title": "Pandit Ravi Shankar || Raag Bhairavi",
+    "channel": "Classical Heritage",
+    "thumbnail": "https://img.youtube.com/vi/r1yXbHldZms/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=r1yXbHldZms",
+    "embed_url": "https://www.youtube-nocookie.com/embed/r1yXbHldZms?autoplay=1&rel=0",
+    "duration": "24:10",
+    "categories": [
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1980s",
+      "1970s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Ghazals & Classical Ragas"
+    ],
+    "description": "Pandit Ravi Shankar's sitar mastery performing the morning Raga Bhairavi live."
+  },
+  {
+    "id": "2u9gevMQE8E",
+    "platform": "youtube",
+    "title": "Ustad Bismillah Khan Live in Russia",
+    "channel": "Classical Heritage",
+    "thumbnail": "https://img.youtube.com/vi/2u9gevMQE8E/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=2u9gevMQE8E",
+    "embed_url": "https://www.youtube-nocookie.com/embed/2u9gevMQE8E?autoplay=1&rel=0",
+    "duration": "16:45",
+    "categories": [
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1980s",
+      "1970s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Ghazals & Classical Ragas"
+    ],
+    "description": "Bharat Ratna Ustad Bismillah Khan's magical shehnai concert recital."
+  },
+  {
+    "id": "H_jI_gMmI5Q",
+    "platform": "youtube",
+    "title": "Beautiful poem by Amit Ji's Father🥹 || #shorts",
+    "channel": "Sahitya Live",
+    "thumbnail": "https://img.youtube.com/vi/H_jI_gMmI5Q/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=H_jI_gMmI5Q",
+    "embed_url": "https://www.youtube-nocookie.com/embed/H_jI_gMmI5Q?autoplay=1&rel=0",
+    "duration": "4:10",
+    "categories": [
+      "classic_cinema"
+    ],
+    "decades": [
+      "1990s",
+      "1980s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Literature & Poetry"
+    ],
+    "description": "Dr. Harivansh Rai Bachchan's immortal verses from Madhushala."
+  },
+  {
+    "id": "v1qCxCz43PU",
+    "platform": "youtube",
+    "title": "Piyush Mishra recites Faiz Ahmad Faiz's Poetry Kuch Ishq Kiya Kuch Kaam Kiya | Jashn-e-Adab",
+    "channel": "Jashn-e-Adab",
+    "thumbnail": "https://img.youtube.com/vi/v1qCxCz43PU/hqdefault.jpg",
+    "url": "https://www.youtube.com/watch?v=v1qCxCz43PU",
+    "embed_url": "https://www.youtube-nocookie.com/embed/v1qCxCz43PU?autoplay=1&rel=0",
+    "duration": "8:30",
+    "categories": [
+      "nostalgia_music"
+    ],
+    "decades": [
+      "1990s",
+      "2000s"
+    ],
+    "languages": [
+      "Hindi"
+    ],
+    "culture_tags": [
+      "Literature & Poetry"
+    ],
+    "description": "Soulful poetry recitation of Faiz Ahmad Faiz that touches nostalgic hearts."
+  }
+];
+}

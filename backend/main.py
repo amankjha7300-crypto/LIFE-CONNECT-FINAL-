@@ -144,13 +144,19 @@ def health_check():
 # ── Serve frontend static files ────────────────────────────────────────────────
 FRONTEND_DIR = Path(__file__).parent.parent / "frontend"
 
+NO_CACHE_HEADERS = {
+    "Cache-Control": "no-cache, no-store, must-revalidate",
+    "Pragma": "no-cache",
+    "Expires": "0"
+}
+
 if FRONTEND_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
 
     @app.get("/", include_in_schema=False)
     def serve_index():
-        """Serve the SPA index.html at the root."""
-        return FileResponse(str(FRONTEND_DIR / "index.html"))
+        """Serve the SPA index.html at the root with cache-busting headers."""
+        return FileResponse(str(FRONTEND_DIR / "index.html"), headers=NO_CACHE_HEADERS)
 
     @app.get("/{full_path:path}", include_in_schema=False)
     def serve_spa(full_path: str):
@@ -159,8 +165,8 @@ if FRONTEND_DIR.exists():
             return JSONResponse(status_code=404, content={"detail": f"API route '/{full_path}' not found."})
         requested = FRONTEND_DIR / full_path
         if requested.exists() and requested.is_file():
-            return FileResponse(str(requested))
-        return FileResponse(str(FRONTEND_DIR / "index.html"))
+            return FileResponse(str(requested), headers=NO_CACHE_HEADERS)
+        return FileResponse(str(FRONTEND_DIR / "index.html"), headers=NO_CACHE_HEADERS)
 
 
 # ── Dev entry point ────────────────────────────────────────────────────────────

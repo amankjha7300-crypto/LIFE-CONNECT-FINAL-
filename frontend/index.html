@@ -8,7 +8,7 @@
     content="LifeConnect — Your AI-powered Life Companion for people 50+. Reconnect with old friends, rediscover memories, stay active and live meaningfully.">
   <meta name="theme-color" content="#405C32">
   <title>LifeConnect — Reconnect with your past. Live meaningfully today.</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=3.6">
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
@@ -37,6 +37,7 @@
         <button class="nav-link" data-nav="memories" onclick="navigate('memories')" role="listitem">Memories</button>
         <button class="nav-link" data-nav="wellness" onclick="navigate('wellness')" role="listitem">Wellness</button>
         <button class="nav-link" data-nav="community" onclick="navigate('community')" role="listitem">Community</button>
+        <button class="nav-link" data-nav="content" onclick="navigate('content')" role="listitem">📺 For You</button>
         <button class="nav-link" data-nav="companion" onclick="navigate('companion')" role="listitem">AI Companion</button>
         <button id="nav-dashboard-link" class="nav-link" data-nav="dashboard" onclick="navigate('dashboard')"
           style="display:none;" role="listitem">My Home</button>
@@ -97,6 +98,9 @@
         <path d="M23 21v-2a4 4 0 00-3-3.87" />
       </svg>
       Community
+    </button>
+    <button class="mobile-menu__link" data-nav="content" onclick="navigate('content')">
+      📺 For You
     </button>
     <button class="mobile-menu__link" data-nav="companion" onclick="navigate('companion')">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -834,71 +838,179 @@
             </div>
 
             <form id="signup-form" novalidate onsubmit="return false;">
+              <div style="background:var(--cream);padding:14px 18px;border-radius:var(--radius-md);margin-bottom:20px;border-left:4px solid var(--cosmic-orange);">
+                <div style="font-weight:700;color:var(--text-dark);font-size:15px;margin-bottom:4px;">✨ Tailor-Made For You</div>
+                <div style="font-size:13px;color:var(--text-sec);line-height:1.5;">We use your details to recommend your city's news, connect you with batchmates from your era, and suggest wellness routines suited to you.</div>
+              </div>
+
+              <!-- Section 1: Account & Location -->
+              <h3 style="font-size:16px;font-weight:800;color:var(--text-dark);margin:16px 0 12px;border-bottom:1px solid #E2E8F0;padding-bottom:6px;">1. Basic Details & Hometown</h3>
+              
               <div class="form-group">
-                <label class="form-label" for="signup-name">Full Name</label>
-                <input class="form-input" type="text" id="signup-name" name="name" placeholder="Your full name"
+                <label class="form-label" for="signup-name">Full Name *</label>
+                <input class="form-input" type="text" id="signup-name" name="name" placeholder="e.g. Ramesh Chandra Sharma"
                   autocomplete="name" required aria-required="true">
                 <div id="signup-name-error" class="form-error" style="display:none;"></div>
               </div>
+
               <div class="grid-2" style="gap:16px;">
                 <div class="form-group">
-                  <label class="form-label" for="signup-age">Age</label>
-                  <input class="form-input" type="number" id="signup-age" name="age" placeholder="Your age" min="40"
-                    max="120" autocomplete="off">
+                  <label class="form-label" for="signup-age">Age (Years) *</label>
+                  <input class="form-input" type="number" id="signup-age" name="age" placeholder="e.g. 62" min="40"
+                    max="120" autocomplete="off" required>
+                  <div id="signup-age-error" class="form-error" style="display:none;"></div>
                 </div>
                 <div class="form-group">
-                  <label class="form-label" for="signup-mobile">Mobile Number</label>
-                  <input class="form-input" type="tel" id="signup-mobile" name="mobile" placeholder="10-digit mobile"
+                  <label class="form-label" for="signup-mobile">Mobile Number *</label>
+                  <input class="form-input" type="tel" id="signup-mobile" name="mobile" placeholder="10-digit mobile number"
                     autocomplete="tel">
                   <div id="signup-mobile-error" class="form-error" style="display:none;"></div>
                 </div>
               </div>
+
+              <div class="grid-2" style="gap:16px;">
+                <div class="form-group">
+                  <label class="form-label" for="signup-city">Your City / Hometown *</label>
+                  <select class="form-input" id="signup-city" name="city">
+                    <option value="New Delhi">🏛️ New Delhi</option>
+                    <option value="Mumbai">🌊 Mumbai</option>
+                    <option value="Bengaluru">💻 Bengaluru</option>
+                    <option value="Kolkata">📜 Kolkata</option>
+                    <option value="Chennai">🛕 Chennai</option>
+                    <option value="Hyderabad">🕌 Hyderabad</option>
+                    <option value="Ahmedabad">🏙️ Ahmedabad</option>
+                    <option value="Pune" selected>🌄 Pune</option>
+                    <option value="Jaipur">🏰 Jaipur</option>
+                    <option value="Lucknow">👑 Lucknow</option>
+                    <option value="Chandigarh">🌾 Chandigarh</option>
+                    <option value="Kochi">🌴 Kochi</option>
+                    <option value="Other">📍 Other City</option>
+                  </select>
+                  <div style="font-size:11px;color:var(--text-light);margin-top:3px;">Auto-selects your local news & senior groups</div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="signup-language">Primary Language / Mother Tongue</label>
+                  <select class="form-input" id="signup-language" name="language">
+                    <option value="Hindi" selected>Hindi (हिंदी)</option>
+                    <option value="English">English</option>
+                    <option value="Bengali">Bengali (বাংলা)</option>
+                    <option value="Marathi">Marathi (मराठी)</option>
+                    <option value="Tamil">Tamil (தமிழ்)</option>
+                    <option value="Telugu">Telugu (తెలుగు)</option>
+                    <option value="Gujarati">Gujarati (ગુજરાતી)</option>
+                    <option value="Punjabi">Punjabi (ਪੰਜਾਬੀ)</option>
+                    <option value="Malayalam">Malayalam (മലയാളം)</option>
+                    <option value="Kannada">Kannada (ಕನ್ನಡ)</option>
+                    <option value="Urdu">Urdu (اردو)</option>
+                  </select>
+                </div>
+              </div>
+
               <div class="form-group">
-                <label class="form-label" for="signup-email">Email Address</label>
+                <label class="form-label" for="signup-email">Email Address *</label>
                 <input class="form-input" type="email" id="signup-email" name="email" placeholder="your@email.com"
                   autocomplete="email" required aria-required="true">
                 <div id="signup-email-error" class="form-error" style="display:none;"></div>
               </div>
-              <div class="form-group">
-                <label class="form-label" for="signup-pass">Password</label>
-                <input class="form-input" type="password" id="signup-pass" name="password"
-                  placeholder="Minimum 8 characters" autocomplete="new-password" required aria-required="true">
-                <div id="signup-pass-error" class="form-error" style="display:none;"></div>
+
+              <div class="grid-2" style="gap:16px;">
+                <div class="form-group">
+                  <label class="form-label" for="signup-pass">Password *</label>
+                  <input class="form-input" type="password" id="signup-pass" name="password"
+                    placeholder="Minimum 8 characters" autocomplete="new-password" required aria-required="true">
+                  <div id="signup-pass-error" class="form-error" style="display:none;"></div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="signup-confirm">Confirm Password *</label>
+                  <input class="form-input" type="password" id="signup-confirm" name="confirm"
+                    placeholder="Repeat your password" autocomplete="new-password" required aria-required="true">
+                  <div id="signup-confirm-error" class="form-error" style="display:none;"></div>
+                </div>
               </div>
+
+              <!-- Section 2: Reconnect Background -->
+              <h3 style="font-size:16px;font-weight:800;color:var(--text-dark);margin:24px 0 12px;border-bottom:1px solid #E2E8F0;padding-bottom:6px;">2. Your Roots (To Find Old Friends & Peers)</h3>
+
+              <div class="grid-2" style="gap:16px;">
+                <div class="form-group">
+                  <label class="form-label" for="signup-college">College / School Attended</label>
+                  <input class="form-input" type="text" id="signup-college" placeholder="e.g. Delhi University / DAV / St. Xavier's / KV">
+                  <div style="font-size:11px;color:var(--text-light);margin-top:3px;">Helps batchmates & school alumni find you</div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="signup-profession">Former Profession / Sector</label>
+                  <select class="form-input" id="signup-profession">
+                    <option value="Education & Teaching">Education & Teaching</option>
+                    <option value="Banking & Finance">Banking & Finance</option>
+                    <option value="Indian Railways & Transport">Indian Railways & Transport</option>
+                    <option value="Defence & Armed Forces">Defence & Armed Forces</option>
+                    <option value="Central & State Govt / PSU">Central & State Govt / PSU</option>
+                    <option value="Healthcare & Medicine">Healthcare & Medicine</option>
+                    <option value="Engineering & Technology">Engineering & Technology</option>
+                    <option value="Business & Entrepreneurship">Business & Entrepreneurship</option>
+                    <option value="Homemaker & Family Guardian" selected>Homemaker & Family Guardian</option>
+                    <option value="Arts, Culture & Media">Arts, Culture & Media</option>
+                    <option value="Other">Other Profession</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Section 3: Nostalgia & Content Preferences -->
+              <h3 style="font-size:16px;font-weight:800;color:var(--text-dark);margin:24px 0 12px;border-bottom:1px solid #E2E8F0;padding-bottom:6px;">3. Nostalgia & Content Preferences</h3>
+
               <div class="form-group">
-                <label class="form-label" for="signup-confirm">Confirm Password</label>
-                <input class="form-input" type="password" id="signup-confirm" name="confirm"
-                  placeholder="Repeat your password" autocomplete="new-password" required aria-required="true">
-                <div id="signup-confirm-error" class="form-error" style="display:none;"></div>
+                <label class="form-label">Which decade means the most to you? *</label>
+                <div class="interest-grid">
+                  <button type="button" class="interest-chip decade-btn" data-decade="1950s">1950s</button>
+                  <button type="button" class="interest-chip decade-btn" data-decade="1960s">1960s</button>
+                  <button type="button" class="interest-chip decade-btn active" data-decade="1970s">1970s</button>
+                  <button type="button" class="interest-chip decade-btn" data-decade="1980s">1980s</button>
+                  <button type="button" class="interest-chip decade-btn" data-decade="1990s">1990s</button>
+                  <button type="button" class="interest-chip decade-btn" data-decade="2000s">2000s</button>
+                </div>
+                <div style="font-size:11px;color:var(--text-light);margin-top:4px;">Powers your Nostalgia Vault and Time Machine songs/movies</div>
               </div>
 
               <div class="form-group">
                 <label class="form-label">What would you most like to reconnect with?</label>
                 <div class="interest-grid">
-                  <div class="interest-chip" data-value="Old Friends">👥 Old Friends</div>
-                  <div class="interest-chip" data-value="Music">🎵 Music</div>
+                  <div class="interest-chip selected" data-value="Old Friends">👥 Old Friends</div>
+                  <div class="interest-chip selected" data-value="Music">🎵 Music</div>
                   <div class="interest-chip" data-value="Movies">🎬 Movies</div>
                   <div class="interest-chip" data-value="Books">📚 Books</div>
                   <div class="interest-chip" data-value="Family">👨‍👩‍👧 Family</div>
                   <div class="interest-chip" data-value="Hobbies">🎨 Hobbies</div>
-                  <div class="interest-chip" data-value="Wellness">🧘 Wellness</div>
+                  <div class="interest-chip selected" data-value="Wellness">🧘 Wellness</div>
                   <div class="interest-chip" data-value="Community">🤝 Community</div>
-                  <div class="interest-chip" data-value="Memories">💭 Memories</div>
+                  <div class="interest-chip selected" data-value="Memories">💭 Memories</div>
                 </div>
               </div>
 
               <div class="form-group">
-                <label class="form-label">Which decade means the most to you?</label>
-                <div class="interest-grid">
-                  <button type="button" class="interest-chip decade-btn" data-decade="1960s">1960s</button>
-                  <button type="button" class="interest-chip decade-btn" data-decade="1970s">1970s</button>
-                  <button type="button" class="interest-chip decade-btn" data-decade="1980s">1980s</button>
-                  <button type="button" class="interest-chip decade-btn" data-decade="1990s">1990s</button>
-                  <button type="button" class="interest-chip decade-btn" data-decade="2000s">2000s</button>
+                <label class="form-label">Favorite Culture & Entertainment (Select Any)</label>
+                <div class="interest-grid" id="culture-preference-grid">
+                  <div class="interest-chip culture-chip selected" data-value="Classic Bollywood">🎬 Classic Bollywood</div>
+                  <div class="interest-chip culture-chip selected" data-value="Vividh Bharati Radio">📻 Vividh Bharati & Radio</div>
+                  <div class="interest-chip culture-chip" data-value="Ghazals & Classical Ragas">🎶 Ghazals & Classical Ragas</div>
+                  <div class="interest-chip culture-chip" data-value="Devotional & Bhajans">🕉️ Devotional & Bhajans</div>
+                  <div class="interest-chip culture-chip" data-value="Vintage Cricket & Sports">🏏 Vintage Cricket & Sports</div>
+                  <div class="interest-chip culture-chip" data-value="Literature & Poetry">📖 Literature & Poetry</div>
                 </div>
               </div>
 
-              <button type="submit" class="btn btn-primary btn-block btn-lg" id="signup-submit">Create Account</button>
+              <div class="form-group">
+                <label class="form-label" for="signup-wellness-goal">Daily Senior Wellness Focus</label>
+                <select class="form-input" id="signup-wellness-goal">
+                  <option value="Morning Walking & Fresh Air" selected>🚶 Morning Walking & Fresh Air</option>
+                  <option value="Gentle Yoga & Joint Mobility">🧘 Gentle Yoga & Joint Mobility</option>
+                  <option value="Pranayama & Breathing Exercises">🌬️ Pranayama & Breathing Exercises</option>
+                  <option value="Meditation & Mental Peace">🕊️ Meditation & Mental Peace</option>
+                  <option value="Laughter Club & Socializing">😄 Laughter Club & Socializing</option>
+                </select>
+                <div style="font-size:11px;color:var(--text-light);margin-top:4px;">We customize your daily health & wellness checklist around this</div>
+              </div>
+
+              <button type="submit" class="btn btn-primary btn-block btn-lg" id="signup-submit" style="margin-top:28px;">✨ Create Account & Personalize LifeConnect</button>
             </form>
             <div class="auth-alt">Already have an account? <a onclick="navigate('login')">Login</a></div>
             <p style="font-size:12px;color:var(--text-light);text-align:center;margin-top:16px;">This is a demo
@@ -1703,6 +1815,87 @@
 
   <!-- ================================================================ MODALS -->
 
+  <!-- Auth Required Interceptor Modal -->
+  <div class="modal-overlay" id="auth-required-modal" role="dialog" aria-modal="true" aria-labelledby="auth-modal-title" onclick="handleAuthModalBackdrop(event)">
+    <div class="modal auth-required-modal-box">
+      <button class="modal-close" onclick="closeAuthRequiredModal()" aria-label="Close">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+
+      <div class="auth-modal__icon-wrap">
+        <span class="auth-modal__lock-icon">🔒</span>
+      </div>
+
+      <h2 class="auth-modal__title" id="auth-modal-title">Account Required to Access</h2>
+      <p class="auth-modal__sub" id="auth-modal-desc">
+        Welcome to LifeConnect! Please sign in or create your free account to access this feature and enjoy personalized senior welfare news, nostalgic memories, wellness activities, and friend reconnections.
+      </p>
+
+      <div class="auth-modal__feature-list">
+        <div class="auth-modal__feature-pill">📰 24h News Tailored to Your City</div>
+        <div class="auth-modal__feature-pill">🤝 Find Former Classmates & Colleagues</div>
+        <div class="auth-modal__feature-pill">📻 Nostalgia Vault for Your Era</div>
+        <div class="auth-modal__feature-pill">🧘 Daily Gentle Wellness & Yoga</div>
+      </div>
+
+      <div class="auth-modal__actions">
+        <button class="btn btn-primary btn-block btn-lg" onclick="authModalGoSignup()">
+          ✨ Create Free Account & Personalize
+        </button>
+        <button class="btn btn-secondary btn-block btn-lg" onclick="authModalGoLogin()">
+          🔑 Log In to Existing Account
+        </button>
+        <button class="btn btn-ghost btn-block" onclick="closeAuthRequiredModal()" style="margin-top:4px;">
+          ← Return to Home Page
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Full News Reader Modal -->
+  <div class="modal-overlay" id="news-reader-modal" role="dialog" aria-modal="true" aria-labelledby="news-reader-title" onclick="handleNewsModalBackdrop(event)">
+    <div class="modal news-reader-modal-box">
+      <button class="modal-close" onclick="closeNewsReaderModal()" aria-label="Close News Reader">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+
+      <div class="news-modal__top">
+        <span class="news-badge-category" id="news-modal-category">CATEGORY</span>
+        <span class="news-badge-time" id="news-modal-time">⏱️ Time</span>
+      </div>
+
+      <h2 class="news-modal__title" id="news-reader-title">News Headline</h2>
+
+      <div class="news-modal__meta">
+        <span class="news-modal__source" id="news-modal-source">📍 National Bulletin</span>
+        <div class="news-modal__font-controls" title="Adjust text size">
+          <span style="font-size:12px; font-weight:700; color:var(--text-sec); margin-right:4px;">Size:</span>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="adjustNewsFontSize(-1)" title="Smaller text">A-</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick="adjustNewsFontSize(1)" title="Larger text">A+</button>
+        </div>
+      </div>
+
+      <div class="news-modal__body" id="news-modal-content">
+        <!-- Full story content -->
+      </div>
+
+      <div class="news-modal__actions">
+        <button id="news-modal-listen-btn" class="btn btn-cosmic-voice" onclick="readCurrentModalNews()">
+          <span id="news-modal-listen-icon">🔊</span> Listen Aloud
+        </button>
+        <a id="news-modal-ext-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-primary" style="text-decoration:none;">
+          Read Full Story on Website ↗
+        </a>
+      </div>
+    </div>
+  </div>
+
   <!-- Add Memory Modal -->
   <div class="modal-overlay" id="add-memory-modal" role="dialog" aria-modal="true" aria-labelledby="add-memory-title">
     <div class="modal">
@@ -1786,7 +1979,8 @@
   </div>
 
   <!-- Floating Mini Audio Player -->
-  <div id="mini-audio-player" class="mini-audio-player" style="display:none;" role="region" aria-label="Audio Player">
+  <div id="
+  mini-audio-player" class="mini-audio-player" style="display:none;" role="region" aria-label="Audio Player">
     <div class="player-content">
       <div class="player-info">
         <span class="player-icon" id="player-icon">🎵</span>
@@ -1808,11 +2002,112 @@
     <audio id="global-audio-element" style="display:none;"></audio>
   </div>
 
+  <!-- ============================================================ PERSONALIZED CONTENT VIEW -->
+  <div id="view-content" class="view">
+    <!-- Hero Header -->
+    <header class="news-hero" style="background: linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);">
+      <div class="container news-hero__inner">
+        <div class="news-hero__badge" style="background:rgba(255,255,255,0.15);color:white;">
+          <span class="live-pulse"></span> Personalized Just For You
+        </div>
+        <h1 class="news-hero__title" style="color:white;">
+          📺 Your <span style="color:#f97316;">Curated Content</span> Feed
+        </h1>
+        <p class="news-hero__subtitle" style="color:rgba(255,255,255,0.8);">
+          Videos handpicked from YouTube, Facebook, and more — based on your decade, culture, language, and interests. Watch or skip — your feed learns from you.
+        </p>
+        <div id="content-personalization-banner" style="margin-top:16px;background:rgba(255,255,255,0.1);border-radius:12px;padding:12px 18px;display:inline-block;"></div>
+      </div>
+    </header>
+
+    <div class="container py-12">
+      <!-- Category Filter Chips -->
+      <div style="margin-bottom:28px;">
+        <h2 class="section-title" style="margin-bottom:16px;">Browse by Category</h2>
+        <div id="content-category-chips" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
+          <button onclick="filterContentCategory('all')" class="content-cat-chip active" data-cat="all">✨ All For You</button>
+          <button onclick="filterContentCategory('nostalgia_music')" class="content-cat-chip" data-cat="nostalgia_music">🎵 Golden Music</button>
+          <button onclick="filterContentCategory('classic_cinema')" class="content-cat-chip" data-cat="classic_cinema">🎬 Vintage Cinema</button>
+          <button onclick="filterContentCategory('wellness')" class="content-cat-chip" data-cat="wellness">🧘 Senior Wellness</button>
+          <button onclick="filterContentCategory('devotional')" class="content-cat-chip" data-cat="devotional">🕉️ Devotional</button>
+          <button onclick="filterContentCategory('heritage_sports')" class="content-cat-chip" data-cat="heritage_sports">🏏 Heritage &amp; Sports</button>
+          <button onclick="filterContentCategory('nature_travel')" class="content-cat-chip" data-cat="nature_travel">🌿 Nature &amp; Travel</button>
+        </div>
+
+        <!-- Stats + Reset bar -->
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;padding:14px 18px;background:var(--cream);border-radius:var(--radius-md);">
+          <div id="content-stats-label" style="font-size:14px;color:var(--text-sec);font-weight:600;">Loading your recommendations...</div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <div class="news-search-box" style="min-width:200px;">
+              <span class="search-icon">🔍</span>
+              <input type="text" id="content-search-input" onkeyup="filterContentSearch(this.value)" placeholder="Search videos..." aria-label="Search content">
+            </div>
+            <button onclick="resetContentHistory()" class="btn btn-ghost btn-sm" title="Reset watched history to see all videos again" style="white-space:nowrap;">🔄 Reset History</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Video Grid -->
+      <div id="content-video-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:24px;">
+        <!-- Dynamically populated video cards -->
+        <div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--text-sec);">
+          <div style="font-size:48px;margin-bottom:16px;">📺</div>
+          <p style="font-size:18px;font-weight:700;">Loading your personalized feed...</p>
+          <p>Just a moment while we curate videos based on your preferences.</p>
+        </div>
+      </div>
+
+      <!-- Load More -->
+      <div id="content-load-more-wrap" style="text-align:center;margin-top:36px;display:none;">
+        <button onclick="loadMoreContent()" class="btn btn-secondary btn-lg">
+          🔄 Load More Videos
+        </button>
+      </div>
+    </div>
+  </div>
+  <!-- END PERSONALIZED CONTENT VIEW -->
+
+  <!-- Senior Video Player Modal -->
+  <div class="modal-overlay" id="video-player-modal" role="dialog" aria-modal="true" aria-labelledby="vplayer-title" onclick="handleVideoModalBackdrop(event)" style="display:none;align-items:center;justify-content:center;">
+    <div class="modal video-player-modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeVideoPlayerModal()" aria-label="Close">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+
+      <div style="margin-bottom:12px;text-align:left;">
+        <span id="vplayer-match-badge" class="content-pers-tag" style="background:var(--cosmic-orange);color:white;font-weight:700;margin-bottom:8px;display:inline-block;">✨ Curated for You</span>
+        <h3 id="vplayer-title" style="font-family:var(--font-serif);font-size:20px;font-weight:800;color:var(--text-dark);line-height:1.3;margin-bottom:4px;">Video Title</h3>
+        <div id="vplayer-channel" style="font-size:14px;color:var(--text-sec);font-weight:600;">Channel Name</div>
+      </div>
+
+      <div class="video-player-iframe-wrap">
+        <iframe id="vplayer-iframe" src="" title="LifeConnect Senior Video Player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+      </div>
+
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-top:16px;">
+        <a id="vplayer-yt-link" href="#" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm" style="display:inline-flex;align-items:center;gap:6px;">
+          <span>▶ Watch on YouTube</span> ↗
+        </a>
+        <div style="display:flex;gap:10px;">
+          <button onclick="skipCurrentModalVideo()" class="btn btn-ghost btn-sm" style="color:#E74C3C;" title="Skip and remove from recommendations">
+            🚫 Skip &amp; Replace
+          </button>
+          <button onclick="closeVideoPlayerModal()" class="btn btn-primary btn-sm">
+            ✓ Done Watching
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div id="toast-container" class="toast-container" role="alert" aria-live="polite"></div>
 
   <!-- Scripts -->
-  <script src="script.js"></script>
+  <script src="script.js?v=3.6"></script>
   <script>
     // Initialize Lucide icons after DOM is ready
     document.addEventListener('DOMContentLoaded', () => {

@@ -14,6 +14,15 @@ from typing import Optional, List, Dict, Any
 
 from database import get_db
 from models import get_llm_chat_response, get_voice_search_response
+try:
+    from news_service import get_news
+except ImportError:
+    from .news_service import get_news
+
+try:
+    from content_catalog import get_content_catalog
+except ImportError:
+    from .content_catalog import get_content_catalog
 
 router = APIRouter(prefix="/api")
 
@@ -127,10 +136,13 @@ def sanitize_user_dict(u: dict) -> dict:
         return {}
     res = dict(u)
     res.pop("password_hash", None)
-    if "interests" in res and isinstance(res["interests"], str):
-        try:
-            res["interests"] = json.loads(res["interests"] or "[]")
-        except Exception:
+    if "interests" in res:
+        if isinstance(res["interests"], str):
+            try:
+                res["interests"] = json.loads(res["interests"] or "[]")
+            except Exception:
+                res["interests"] = [x.strip() for x in res["interests"].split(",") if x.strip()]
+        elif not isinstance(res["interests"], list):
             res["interests"] = []
     elif "interests" not in res:
         res["interests"] = []
@@ -150,6 +162,10 @@ class SignupRequest(BaseModel):
     city: Optional[str] = Field(None, max_length=100)
     interests: Optional[List[str]] = Field(default_factory=list)
     decade: Optional[str] = Field(None, max_length=20)
+    language: Optional[str] = Field(None, max_length=50)
+    profession: Optional[str] = Field(None, max_length=100)
+    college: Optional[str] = Field(None, max_length=150)
+    wellness_goal: Optional[str] = Field(None, max_length=100)
     avatar: Optional[str] = Field(None, max_length=10)
     bio: Optional[str] = Field(None, max_length=500)
 
@@ -166,6 +182,10 @@ class ProfileUpdateRequest(BaseModel):
     city: Optional[str] = Field(None, max_length=100)
     interests: Optional[List[str]] = None
     decade: Optional[str] = Field(None, max_length=20)
+    language: Optional[str] = Field(None, max_length=50)
+    profession: Optional[str] = Field(None, max_length=100)
+    college: Optional[str] = Field(None, max_length=150)
+    wellness_goal: Optional[str] = Field(None, max_length=100)
     avatar: Optional[str] = Field(None, max_length=10)
     bio: Optional[str] = Field(None, max_length=500)
 
@@ -234,10 +254,11 @@ def signup(data: SignupRequest):
 
         cursor = conn.execute(
             """INSERT INTO users (full_name, email, mobile, password_hash, age, city,
-                                  interests, decade, avatar, bio)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                  interests, decade, language, profession, college, wellness_goal, avatar, bio)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (data.full_name.strip(), normalized_email, data.mobile, pw_hash,
-             data.age, data.city, interests_str, data.decade, avatar, data.bio)
+             data.age, data.city, interests_str, data.decade, data.language,
+             data.profession, data.college, data.wellness_goal, avatar, data.bio)
         )
         user_id = cursor.lastrowid
         user_row = conn.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
@@ -343,6 +364,18 @@ def update_profile(user_id: int, data: ProfileUpdateRequest):
         if data.decade is not None:
             updates.append("decade = ?")
             params.append(data.decade)
+        if data.language is not None:
+            updates.append("language = ?")
+            params.append(data.language)
+        if data.profession is not None:
+            updates.append("profession = ?")
+            params.append(data.profession)
+        if data.college is not None:
+            updates.append("college = ?")
+            params.append(data.college)
+        if data.wellness_goal is not None:
+            updates.append("wellness_goal = ?")
+            params.append(data.wellness_goal)
         if data.avatar is not None:
             updates.append("avatar = ?")
             params.append(data.avatar)
@@ -1019,10 +1052,199 @@ NEWS_DATA = {
 @router.get("/news", tags=["News Bulletin"])
 def get_news_bulletin():
     """Retrieve 24-hour National India news highlights and city updates across 12 major Indian cities."""
-    return {
-        "success": True,
-        "updated_at": "Last 24 Hours (Live Feed)",
-        "cities_count": 12,
-        "data": NEWS_DATA
-    }
+    return get_news()
+
+
+# ══════════════════════════════════════════════════════════════
+# 4. PERSONALIZED CONTENT RECOMMENDATION SYSTEM
+# ══════════════════════════════════════════════════════════════
+
+class ContentInteractionRequest(BaseModel):
+    user_id: int
+    video_id: str = Field(..., min_length=1, max_length=50)
+    action: str = Field(..., pattern="^(watched|liked|ignored|saved)$")
+    platform: str = Field(..., min_length=1, max_length=30)
+
+
+class ContentResetRequest(BaseModel):
+    user_id: int
+
+
+@router.get("/content/recommendations", tags=["Content"])
+def get_content_recommendations(
+    user_id: Optional[int] = Query(None),
+    category: str = Query("all"),
+    decade: Optional[str] = Query(None),
+    culture: Optional[str] = Query(None),
+):
+    """
+    Return personalized video recommendations from the curated catalog.
+    Scores and ranks every video based on the user's stored preferences (decade, wellness goal, culture, interests).
+    Excludes videos the user has already watched or ignored.
+    """
+    catalog = get_content_catalog()
+
+    # User profile fields
+    user_decade = (decade or "").strip()
+    user_culture_set = set()
+    user_wellness = ""
+    user_lang = "Hindi"
+    user_city = ""
+
+    # Exclude already watched/ignored videos for this user
+    if user_id:
+        try:
+            with get_db() as conn:
+                user_row = conn.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+                if user_row:
+                    u_dict = sanitize_user_dict(row_to_dict(user_row))
+                    if not user_decade and u_dict.get("decade"):
+                        user_decade = u_dict.get("decade", "")
+                    user_wellness = (u_dict.get("wellness_goal") or "").lower()
+                    user_lang = u_dict.get("language") or "Hindi"
+                    user_city = (u_dict.get("city") or "").lower()
+                    
+                    # Gather interests
+                    interests = u_dict.get("interests", [])
+                    if isinstance(interests, list):
+                        for it in interests:
+                            user_culture_set.add(str(it).lower())
+
+                rows = conn.execute(
+                    """SELECT video_id FROM user_content_interactions
+                       WHERE user_id = ? AND action IN ('watched', 'ignored')""",
+                    (user_id,)
+                ).fetchall()
+                excluded = {r["video_id"] for r in rows}
+                catalog = [v for v in catalog if v["id"] not in excluded]
+        except Exception:
+            pass  # gracefully degrade if DB query fails
+
+    if culture:
+        user_culture_set.add(culture.strip().lower())
+
+    # Filter by category if requested
+    if category and category != "all":
+        catalog = [v for v in catalog if category in v.get("categories", [])]
+
+    # Explicit decade filter if requested
+    if decade and decade != "all":
+        catalog = [v for v in catalog if decade in v.get("decades", [])]
+
+    # Smart Scoring Algorithm
+    scored_catalog = []
+    for v in catalog:
+        score = 10  # base score
+        reasons = []
+
+        v_decades = v.get("decades", [])
+        v_cats = v.get("categories", [])
+        v_tags = [str(t).lower() for t in v.get("culture_tags", [])]
+        v_langs = v.get("languages", [])
+        v_title = v.get("title", "").lower()
+
+        # 1. Decade matching
+        if user_decade and user_decade in v_decades:
+            score += 35
+            reasons.append(f"🕰️ From your {user_decade} era")
+
+        # 2. Wellness Goal matching
+        if "wellness" in v_cats:
+            if user_wellness:
+                if any(w in user_wellness for w in ["yoga", "chair", "stretch", "balance"]) and ("yoga" in v_title or "chair" in v_title):
+                    score += 45
+                    reasons.append("🧘 Matches your Daily Yoga & Mobility Goal")
+                elif any(w in user_wellness for w in ["joint", "pain", "arthritis"]) and ("joint" in v_title or "pain" in v_title):
+                    score += 45
+                    reasons.append("🩺 Joint Relief for Your Wellness")
+                elif any(w in user_wellness for w in ["walk", "mobility"]) and ("walk" in v_title or "mobility" in v_title):
+                    score += 45
+                    reasons.append("🚶 For Your Morning Walking Goal")
+                elif any(w in user_wellness for w in ["pranayama", "breath"]) and ("pranayama" in v_title or "breath" in v_title):
+                    score += 45
+                    reasons.append("🌬️ Pranayama & Breath Vitality")
+                elif any(w in user_wellness for w in ["meditat", "sleep", "relax", "peace"]) and ("meditat" in v_title or "sleep" in v_title or "peace" in v_title):
+                    score += 45
+                    reasons.append("🕊️ Calming Meditation for Good Sleep")
+                else:
+                    score += 20
+                    reasons.append("🌿 Senior Wellness Routine")
+            else:
+                score += 15
+                reasons.append("🌿 Recommended for Senior Health")
+
+        # 3. Cultural and personal interest matching
+        culture_matches = [t for t in v_tags if any(t in uc or uc in t for uc in user_culture_set)]
+        if culture_matches:
+            score += 30 * len(culture_matches)
+            reasons.append(f"🎯 Matches your interest in {v.get('culture_tags', [''])[0]}")
+        elif any("music" in uc or "bollywood" in uc for uc in user_culture_set) and "nostalgia_music" in v_cats:
+            score += 25
+            reasons.append("🎵 Golden Era Melody")
+        elif any("devotional" in uc or "bhajan" in uc for uc in user_culture_set) and "devotional" in v_cats:
+            score += 30
+            reasons.append("🙏 Devotional Peace for Your Soul")
+        elif any("movie" in uc or "cinema" in uc for uc in user_culture_set) and "classic_cinema" in v_cats:
+            score += 25
+            reasons.append("🎬 Classic Indian Cinema")
+
+        # 4. Language preference
+        if user_lang in v_langs:
+            score += 15
+
+        # 5. City & Travel interest
+        if user_city and (user_city in v_title or any(user_city in t for t in v_tags)):
+            score += 25
+            reasons.append(f"📍 Connected to {user_city.title()}")
+
+        v_copy = dict(v)
+        v_copy["score"] = score
+        v_copy["matchReason"] = reasons[0] if reasons else "✨ Handpicked for You"
+        scored_catalog.append(v_copy)
+
+    # Sort descending by score
+    scored_catalog.sort(key=lambda x: x["score"], reverse=True)
+
+    return {"success": True, "videos": scored_catalog, "total": len(scored_catalog)}
+
+
+@router.post("/content/interaction", tags=["Content"])
+def save_content_interaction(data: ContentInteractionRequest):
+    """
+    Save or update a user's interaction with a video (watched, liked, ignored, saved).
+    Uses INSERT OR REPLACE to upsert on (user_id, video_id).
+    """
+    with get_db() as conn:
+        user = conn.execute("SELECT id FROM users WHERE id=?", (data.user_id,)).fetchone()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found.")
+
+        conn.execute(
+            """INSERT INTO user_content_interactions (user_id, video_id, platform, action)
+               VALUES (?, ?, ?, ?)
+               ON CONFLICT(user_id, video_id) DO UPDATE SET action=excluded.action,
+               platform=excluded.platform, created_at=CURRENT_TIMESTAMP""",
+            (data.user_id, data.video_id, data.platform, data.action)
+        )
+
+    return {"success": True, "message": f"Interaction '{data.action}' recorded for video {data.video_id}."}
+
+
+@router.post("/content/reset", tags=["Content"])
+def reset_content_history(data: ContentResetRequest):
+    """
+    Clear all content interaction history for a user so they see fresh recommendations.
+    """
+    with get_db() as conn:
+        user = conn.execute("SELECT id FROM users WHERE id=?", (data.user_id,)).fetchone()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found.")
+
+        result = conn.execute(
+            "DELETE FROM user_content_interactions WHERE user_id=?",
+            (data.user_id,)
+        )
+        cleared = result.rowcount
+
+    return {"success": True, "cleared": cleared, "message": f"Cleared {cleared} interaction(s) for user {data.user_id}."}
 

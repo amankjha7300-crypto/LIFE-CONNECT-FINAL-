@@ -8,7 +8,10 @@ import os
 from contextlib import contextmanager
 from typing import Generator
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "lifeconnect.db")
+if os.getenv("VERCEL"):
+    DB_PATH = "/tmp/lifeconnect.db"
+else:
+    DB_PATH = os.getenv("DATABASE_PATH", os.path.join(os.path.dirname(__file__), "lifeconnect.db"))
 
 
 def get_connection() -> sqlite3.Connection:
@@ -57,11 +60,22 @@ def init_db():
                 city          TEXT,
                 interests     TEXT,
                 decade        TEXT,
+                language      TEXT,
+                profession    TEXT,
+                college       TEXT,
+                wellness_goal TEXT,
                 avatar        TEXT,
                 bio           TEXT,
                 created_at    DATETIME DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+        # Add columns dynamically for existing databases
+        for col, col_type in [("language", "TEXT"), ("profession", "TEXT"), ("college", "TEXT"), ("wellness_goal", "TEXT")]:
+            try:
+                cursor.execute(f"ALTER TABLE users ADD COLUMN {col} {col_type}")
+            except Exception:
+                pass
 
         # ── Memories Table ─────────────────────────────────────────────
         cursor.execute("""
@@ -175,6 +189,21 @@ def init_db():
                 "INSERT INTO communities (name, description, category, emoji, member_count) VALUES (?, ?, ?, ?, ?)",
                 default_communities
             )
+
+        # ── User Content Interactions Table ───────────────────────────
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS user_content_interactions (
+                id         INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id    INTEGER NOT NULL,
+                video_id   TEXT    NOT NULL,
+                platform   TEXT    NOT NULL,
+                action     TEXT    NOT NULL,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+                UNIQUE(user_id, video_id)
+            )
+        """)
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_content_user ON user_content_interactions(user_id, action)")
 
     print("[LifeConnect] Database initialized with performance indexes and demo user.")
 

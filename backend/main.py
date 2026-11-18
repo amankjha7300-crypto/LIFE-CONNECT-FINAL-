@@ -114,6 +114,7 @@ app.include_router(audio_router)
 
 # ── Enhanced System Health Check ───────────────────────────────────────────────
 @app.get("/api/health", tags=["System"])
+@app.get("/health", tags=["System"])
 def health_check():
     """System health and database latency diagnostics."""
     db_status = "unknown"

@@ -108,7 +108,8 @@ app.add_middleware(
 
 
 # ── Register API routes ────────────────────────────────────────────────────────
-app.include_router(router)
+app.include_router(router, prefix="/api")
+app.include_router(router, prefix="")
 app.include_router(audio_router)
 
 

@@ -24,7 +24,7 @@ try:
 except ImportError:
     from .content_catalog import get_content_catalog
 
-router = APIRouter(prefix="/api")
+router = APIRouter()
 
 
 import os

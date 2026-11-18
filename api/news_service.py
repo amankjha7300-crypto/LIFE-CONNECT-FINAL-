@@ -396,8 +396,8 @@ def trigger_background_refresh():
         t = threading.Thread(target=_async_refresh_worker, daemon=True)
         t.start()
 
-# Pre-warm live news in background
-trigger_background_refresh()
+# Pre-warm news on demand (do not start threads during cold import)
+# trigger_background_refresh()
 
 
 def get_news() -> dict:

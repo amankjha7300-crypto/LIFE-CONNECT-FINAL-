@@ -2023,8 +2023,8 @@
     <div class="container py-12">
       <!-- Category Filter Chips -->
       <div style="margin-bottom:28px;">
-        <h2 class="section-title" style="margin-bottom:16px;">Browse by Category</h2>
-        <div id="content-category-chips" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
+        <h2 class="section-title" style="margin-bottom:12px;">Browse by Category</h2>
+        <div id="content-category-chips" style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
           <button onclick="filterContentCategory('all')" class="content-cat-chip active" data-cat="all">✨ All For You</button>
           <button onclick="filterContentCategory('nostalgia_music')" class="content-cat-chip" data-cat="nostalgia_music">🎵 Golden Music</button>
           <button onclick="filterContentCategory('classic_cinema')" class="content-cat-chip" data-cat="classic_cinema">🎬 Vintage Cinema</button>
@@ -2032,6 +2032,17 @@
           <button onclick="filterContentCategory('devotional')" class="content-cat-chip" data-cat="devotional">🕉️ Devotional</button>
           <button onclick="filterContentCategory('heritage_sports')" class="content-cat-chip" data-cat="heritage_sports">🏏 Heritage &amp; Sports</button>
           <button onclick="filterContentCategory('nature_travel')" class="content-cat-chip" data-cat="nature_travel">🌿 Nature &amp; Travel</button>
+        </div>
+
+        <!-- Multi-Platform Selector -->
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;">
+          <span style="font-size:14px;font-weight:700;color:var(--text-sec);display:inline-flex;align-items:center;gap:4px;">🌐 Platform:</span>
+          <div id="content-platform-chips" style="display:inline-flex;flex-wrap:wrap;gap:8px;">
+            <button onclick="filterContentPlatform('all')" class="content-plat-chip active" data-plat="all">✨ All Platforms</button>
+            <button onclick="filterContentPlatform('youtube')" class="content-plat-chip" data-plat="youtube">▶ YouTube</button>
+            <button onclick="filterContentPlatform('facebook')" class="content-plat-chip" data-plat="facebook">f Facebook Watch</button>
+            <button onclick="filterContentPlatform('x')" class="content-plat-chip" data-plat="x">𝕏 Twitter/X</button>
+          </div>
         </div>
 
         <!-- Stats + Reset bar -->
@@ -2057,11 +2068,12 @@
         </div>
       </div>
 
-      <!-- Load More -->
+      <!-- Infinite Load Sentinel & Button -->
       <div id="content-load-more-wrap" style="text-align:center;margin-top:36px;display:none;">
-        <button onclick="loadMoreContent()" class="btn btn-secondary btn-lg">
-          🔄 Load More Videos
+        <button onclick="loadMoreContent()" id="content-load-more-btn" class="btn btn-secondary btn-lg" style="font-size:17px;font-weight:700;padding:14px 32px;box-shadow:var(--shadow-md);">
+          ✨ Load More Recommendations
         </button>
+        <div id="content-infinite-sentinel" style="height:20px;margin-top:20px;"></div>
       </div>
     </div>
   </div>

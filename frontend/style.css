@@ -4205,8 +4205,9 @@ body[data-theme="dark"] .news-title-link:hover {
    PERSONALIZED CONTENT SECTION
    ================================================================ */
 
-/* Category filter chips */
-.content-cat-chip {
+/* Category & Platform filter chips */
+.content-cat-chip,
+.content-plat-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -4221,12 +4222,14 @@ body[data-theme="dark"] .news-title-link:hover {
   transition: all 0.2s ease;
   font-family: var(--font-body);
 }
-.content-cat-chip:hover {
+.content-cat-chip:hover,
+.content-plat-chip:hover {
   border-color: var(--cosmic-orange);
   color: var(--cosmic-orange);
   background: #FFF5EE;
 }
-.content-cat-chip.active {
+.content-cat-chip.active,
+.content-plat-chip.active {
   background: var(--cosmic-orange);
   border-color: var(--cosmic-orange);
   color: white;

@@ -4,10 +4,16 @@ Production-grade backend with request logging, global error handling, static fil
 """
 
 import os
+import sys
 import time
 import logging
 from contextlib import asynccontextmanager
 from pathlib import Path
+
+# Ensure backend directory is in sys.path for direct imports
+CURRENT_DIR = Path(__file__).parent.resolve()
+if str(CURRENT_DIR) not in sys.path:
+    sys.path.insert(0, str(CURRENT_DIR))
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware

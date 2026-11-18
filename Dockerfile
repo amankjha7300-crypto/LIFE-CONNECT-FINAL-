@@ -18,5 +18,5 @@ EXPOSE 8000
 
 ENV PORT=8000
 
-CMD ["sh", "-c", "uvicorn main:app --app-dir backend --host 0.0.0.0 --port ${PORT}"]
+CMD ["sh", "-c", "python -m uvicorn main:app --host 0.0.0.0 --port ${PORT}"]
 

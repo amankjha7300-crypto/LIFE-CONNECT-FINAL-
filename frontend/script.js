@@ -3617,6 +3617,7 @@ if (document.readyState === 'loading') {
 
 let _contentCatalog = null;
 let _contentCurrentCategory = 'all';
+let _contentCurrentPlatform = 'all';
 let _contentCurrentSearch = '';
 let _contentCurrentDecade = '';
 let _contentPage = 0;
@@ -3642,13 +3643,13 @@ function getConsumedVideoIds() {
   return new Set(Object.keys(interactions));
 }
 
-// Fetch the content catalog from backend, with local fallback
+// Fetch the multi-platform content catalog from backend, with local fallback
 async function fetchContentCatalog() {
   const user = getStoredUser();
-  const userId = user ? (user.id || '') : '';
+  const userParam = user && user.id ? `user_id=${encodeURIComponent(user.id)}&` : '';
   const decade = _contentCurrentDecade || (user ? (user.decade || '') : '');
   try {
-    const res = await apiRequest(`/content/recommendations?user_id=${userId}&decade=${encodeURIComponent(decade)}`);
+    const res = await apiRequest(`/content/recommendations?${userParam}decade=${encodeURIComponent(decade)}&category=${encodeURIComponent(_contentCurrentCategory)}&platform=${encodeURIComponent(_contentCurrentPlatform)}&page=1&limit=24`);
     if (res && res.success && res.videos && res.videos.length > 0) {
       _contentCatalog = res.videos;
       return _contentCatalog;
@@ -3752,8 +3753,11 @@ function scoreVideosForUser(videos, user) {
     .sort((a, b) => b.score - a.score);
 }
 
-function filterCatalog(videos, category, search) {
-  let filtered = videos;
+function filterCatalog(videos, category, search, platform) {
+  let filtered = videos || [];
+  if (platform && platform !== 'all') {
+    filtered = filtered.filter(v => (v.platform || 'youtube') === platform);
+  }
   if (category && category !== 'all') {
     filtered = filtered.filter(v => v.categories && v.categories.includes(category));
   }
@@ -3762,7 +3766,8 @@ function filterCatalog(videos, category, search) {
     filtered = filtered.filter(v =>
       (v.title && v.title.toLowerCase().includes(q)) ||
       (v.channel && v.channel.toLowerCase().includes(q)) ||
-      (v.description && v.description.toLowerCase().includes(q))
+      (v.description && v.description.toLowerCase().includes(q)) ||
+      (v.culture_tags && v.culture_tags.some(t => String(t).toLowerCase().includes(q)))
     );
   }
   return filtered;
@@ -3771,11 +3776,11 @@ function filterCatalog(videos, category, search) {
 function getPlatformLabel(platform) {
   const map = {
     youtube: '▶ YouTube',
-    facebook: 'f Facebook',
+    facebook: 'f Facebook Watch',
     x: '𝕏 Twitter/X',
     archive: '🏛 Archive.org'
   };
-  return map[platform] || platform;
+  return map[platform] || platform || '▶ YouTube';
 }
 
 function getPlatformClass(platform) {
@@ -3784,15 +3789,76 @@ function getPlatformClass(platform) {
 }
 
 function renderVideoCard(video, index) {
-  const platformLabel = getPlatformLabel(video.platform);
-  const platformClass = getPlatformClass(video.platform);
-  const thumbUrl = `https://img.youtube.com/vi/${video.id}/hqdefault.jpg`;
-  const safeTitle = (video.title || '').replace(/'/g, "\'");
+  const platform = video.platform || 'youtube';
+  const platformLabel = getPlatformLabel(platform);
+  const platformClass = getPlatformClass(platform);
+  
+  let thumbUrl = video.thumbnail;
+  if (!thumbUrl) {
+    if (platform === 'youtube') {
+      thumbUrl = `https://img.youtube.com/vi/${video.id}/hqdefault.jpg`;
+    } else if (platform === 'facebook') {
+      thumbUrl = 'https://images.unsplash.com/photo-1594909122845-11baa439b7bf?w=600&auto=format&fit=crop&q=80';
+    } else if (platform === 'x') {
+      thumbUrl = 'https://images.unsplash.com/photo-1540747913346-19e32dc3e97e?w=600&auto=format&fit=crop&q=80';
+    } else {
+      thumbUrl = 'https://images.unsplash.com/photo-1461360370896-922624d12aa1?w=600&auto=format&fit=crop&q=80';
+    }
+  }
+
+  const safeTitle = (video.title || '').replace(/'/g, "\\'");
+  const safeId = String(video.id).replace(/'/g, "");
+
+  let actionButtonsHtml = '';
+  if (platform === 'youtube') {
+    actionButtonsHtml = `
+      <button class="video-card__watch-btn" onclick="playVideoModal('${safeId}')" style="flex:1;min-width:130px;">
+        ▶ Play Video
+      </button>
+      <a href="${video.url}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" onclick="onDirectExternalWatch('${safeId}')" title="Watch directly on YouTube in new tab" style="font-size:12px;padding:6px 10px;text-decoration:none;">
+        YouTube ↗
+      </a>
+      <button class="video-card__ignore-btn" onclick="ignoreContent('${safeId}')" title="Not interested — show me a new recommendation">
+        🚫 Skip
+      </button>
+    `;
+  } else if (platform === 'facebook') {
+    actionButtonsHtml = `
+      <a href="${video.url}" target="_blank" rel="noopener noreferrer" class="video-card__watch-btn" onclick="onDirectExternalWatch('${safeId}')" style="flex:1;min-width:150px;text-align:center;text-decoration:none;background:#1877F2;color:white;display:flex;align-items:center;justify-content:center;gap:6px;">
+        f Watch on Facebook ↗
+      </a>
+      <button class="video-card__ignore-btn" onclick="ignoreContent('${safeId}')" title="Not interested — show me a new recommendation">
+        🚫 Skip
+      </button>
+    `;
+  } else if (platform === 'x') {
+    actionButtonsHtml = `
+      <a href="${video.url}" target="_blank" rel="noopener noreferrer" class="video-card__watch-btn" onclick="onDirectExternalWatch('${safeId}')" style="flex:1;min-width:150px;text-align:center;text-decoration:none;background:#0f1419;color:white;display:flex;align-items:center;justify-content:center;gap:6px;">
+        𝕏 Watch on Twitter ↗
+      </a>
+      <button class="video-card__ignore-btn" onclick="ignoreContent('${safeId}')" title="Not interested — show me a new recommendation">
+        🚫 Skip
+      </button>
+    `;
+  } else {
+    actionButtonsHtml = `
+      <a href="${video.url}" target="_blank" rel="noopener noreferrer" class="video-card__watch-btn" onclick="onDirectExternalWatch('${safeId}')" style="flex:1;min-width:150px;text-align:center;text-decoration:none;background:#148A5C;color:white;display:flex;align-items:center;justify-content:center;gap:6px;">
+        🏛 Open Archive ↗
+      </a>
+      <button class="video-card__ignore-btn" onclick="ignoreContent('${safeId}')" title="Not interested — show me a new recommendation">
+        🚫 Skip
+      </button>
+    `;
+  }
+
+  const onThumbClick = platform === 'youtube'
+    ? `playVideoModal('${safeId}')`
+    : `window.open('${video.url}', '_blank'); onDirectExternalWatch('${safeId}')`;
 
   return `
-    <div class="video-card entering" id="vcard-${video.id}" data-video-id="${video.id}">
-      <div class="video-card__thumb-wrap" onclick="playVideoModal('${video.id}')">
-        <img class="video-card__thumb" src="${thumbUrl}" alt="${safeTitle}" loading="lazy" onerror="this.onerror=null;this.src='https://img.youtube.com/vi/${video.id}/mqdefault.jpg';">
+    <div class="video-card entering" id="vcard-${safeId}" data-video-id="${safeId}">
+      <div class="video-card__thumb-wrap" onclick="${onThumbClick}">
+        <img class="video-card__thumb" src="${thumbUrl}" alt="${safeTitle}" loading="lazy" onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80';">
         <span class="video-card__platform-badge ${platformClass}">${platformLabel}</span>
         <div class="video-card__play-overlay">▶</div>
         ${video.duration ? `<span class="video-card__duration-badge">${video.duration}</span>` : ''}
@@ -3802,15 +3868,7 @@ function renderVideoCard(video, index) {
         <div class="video-card__title" title="${safeTitle}">${video.title}</div>
         <div class="video-card__channel">📡 ${video.channel}</div>
         <div class="video-card__actions" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
-          <button class="video-card__watch-btn" onclick="playVideoModal('${video.id}')" style="flex:1;min-width:130px;">
-            ▶ Play Video
-          </button>
-          <a href="${video.url}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" onclick="onDirectExternalWatch('${video.id}')" title="Watch directly on YouTube in new tab" style="font-size:12px;padding:6px 10px;text-decoration:none;">
-            YouTube ↗
-          </a>
-          <button class="video-card__ignore-btn" onclick="ignoreContent('${video.id}')" title="Not interested — show me a new recommendation">
-            🚫 Skip
-          </button>
+          ${actionButtonsHtml}
         </div>
       </div>
     </div>
@@ -3821,11 +3879,9 @@ function updateContentStats() {
   const interactions = getContentInteractions();
   const watchedCount = Object.values(interactions).filter(a => a === 'watched').length;
   const ignoredCount = Object.values(interactions).filter(a => a === 'ignored').length;
-  const totalCatalogCount = _contentCatalog ? _contentCatalog.length : 40;
-  const remaining = Math.max(0, totalCatalogCount - watchedCount - ignoredCount);
   const label = document.getElementById('content-stats-label');
   if (label) {
-    label.textContent = `✅ Watched: ${watchedCount} · 🚫 Skipped: ${ignoredCount} · 🎬 ${remaining} more tailored for you`;
+    label.innerHTML = `✅ Watched: <b>${watchedCount}</b> · 🚫 Skipped: <b>${ignoredCount}</b> · ♾️ <b>Endless Stream Active</b> across YouTube, Facebook &amp; 𝕏`;
   }
 }
 
@@ -3894,7 +3950,7 @@ function switchContentDecade(dec) {
 function renderContentGrid(catalog, user) {
   if (!catalog) return;
   const scored = scoreVideosForUser(catalog, user || getStoredUser());
-  const filtered = filterCatalog(scored, _contentCurrentCategory, _contentCurrentSearch);
+  const filtered = filterCatalog(scored, _contentCurrentCategory, _contentCurrentSearch, _contentCurrentPlatform);
   const pageVideos = filtered.slice(0, CONTENT_PAGE_SIZE + _contentPage * CONTENT_PAGE_SIZE);
   const grid = document.getElementById('content-video-grid');
   if (!grid) return;
@@ -3905,7 +3961,10 @@ function renderContentGrid(catalog, user) {
         <div style="font-size:56px;margin-bottom:16px;">🎉</div>
         <p style="font-size:22px;font-weight:800;color:var(--text-dark);margin-bottom:8px;">You've seen all suggestions in this category!</p>
         <p style="color:var(--text-sec);margin-bottom:24px;font-size:16px;">You can reset your history to re-watch any video, or explore other categories.</p>
-        <button onclick="resetContentHistory()" class="btn btn-primary btn-lg" style="font-weight:700;">🔄 Reset Watch History</button>
+        <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+          <button onclick="loadMoreContent()" class="btn btn-secondary btn-lg" style="font-weight:700;">✨ Generate Fresh Infinite Stream</button>
+          <button onclick="resetContentHistory()" class="btn btn-primary btn-lg" style="font-weight:700;">🔄 Reset Watch History</button>
+        </div>
       </div>`;
   } else {
     grid.innerHTML = pageVideos.map((v, i) => renderVideoCard(v, i)).join('');
@@ -3913,15 +3972,38 @@ function renderContentGrid(catalog, user) {
 
   const loadMoreWrap = document.getElementById('content-load-more-wrap');
   if (loadMoreWrap) {
-    loadMoreWrap.style.display = filtered.length > pageVideos.length ? 'block' : 'none';
+    loadMoreWrap.style.display = 'block'; // Always available for boundless streaming
   }
   updateContentStats();
+  setupInfiniteScroll();
 }
 
-function loadMoreContent() {
+async function loadMoreContent() {
+  const btn = document.getElementById('content-load-more-btn');
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Loading more tailored gems...';
+  }
   _contentPage++;
+  const user = getStoredUser();
+  const userParam = user && user.id ? `user_id=${encodeURIComponent(user.id)}&` : '';
+  const decade = _contentCurrentDecade || (user ? (user.decade || '') : '');
+  try {
+    const res = await apiRequest(`/content/recommendations?${userParam}decade=${encodeURIComponent(decade)}&category=${encodeURIComponent(_contentCurrentCategory)}&platform=${encodeURIComponent(_contentCurrentPlatform)}&page=${_contentPage + 1}&limit=12`);
+    if (res && res.success && res.videos && res.videos.length > 0) {
+      const existingIds = new Set((_contentCatalog || []).map(v => v.id));
+      const fresh = res.videos.filter(v => !existingIds.has(v.id));
+      _contentCatalog = (_contentCatalog || []).concat(fresh);
+    }
+  } catch (e) {
+    console.warn('[Content] Infinite load fetch error:', e);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = '✨ Load More Recommendations';
+    }
+  }
   renderContentGrid(_contentCatalog, getStoredUser());
-  window.scrollBy({ top: 400, behavior: 'smooth' });
 }
 
 function filterContentCategory(cat) {
@@ -3933,10 +4015,39 @@ function filterContentCategory(cat) {
   renderContentGrid(_contentCatalog, getStoredUser());
 }
 
+function filterContentPlatform(plat) {
+  _contentCurrentPlatform = plat;
+  _contentPage = 0;
+  document.querySelectorAll('.content-plat-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.plat === plat);
+  });
+  renderContentGrid(_contentCatalog, getStoredUser());
+  const label = plat === 'all' ? 'All Platforms' : (getPlatformLabel(plat) || plat);
+  showToast(`Showing recommendations for ${label} 🌐`, 'info', 2000);
+}
+
 function filterContentSearch(val) {
   _contentCurrentSearch = val;
   _contentPage = 0;
   renderContentGrid(_contentCatalog, getStoredUser());
+}
+
+let _infiniteScrollAttached = false;
+function setupInfiniteScroll() {
+  if (_infiniteScrollAttached) return;
+  _infiniteScrollAttached = true;
+  window.addEventListener('scroll', () => {
+    const currentView = document.querySelector('.view-section.active');
+    if (!currentView || currentView.id !== 'content-view') return;
+    const scrollPos = window.innerHeight + window.scrollY;
+    const docHeight = document.documentElement.scrollHeight;
+    if (docHeight - scrollPos < 450) {
+      const btn = document.getElementById('content-load-more-btn');
+      if (btn && !btn.disabled) {
+        loadMoreContent();
+      }
+    }
+  }, { passive: true });
 }
 
 // Senior In-Page Video Player Modal
@@ -4013,17 +4124,20 @@ function skipCurrentModalVideo() {
 function onDirectExternalWatch(videoId) {
   saveContentInteraction(videoId, 'watched');
   const user = getStoredUser();
+  const video = (_contentCatalog || []).find(v => String(v.id) === String(videoId));
+  const plat = video ? (video.platform || 'youtube') : 'youtube';
   if (user && user.id) {
     apiRequest('/content/interaction', 'POST', {
       user_id: user.id,
       video_id: videoId,
       action: 'watched',
-      platform: 'youtube'
+      platform: plat
     }).catch(() => {});
   }
   replaceCardInGrid(videoId);
   updateContentStats();
-  showToast('Opening video in new tab... Your feed has recommended something fresh! 🎬', 'success', 3000);
+  const label = getPlatformLabel(plat);
+  showToast(`Opening on ${label}... Your feed has updated with fresh recommendations! 🎬`, 'success', 3000);
 }
 
 // Replace card in grid with exit animation and seamless entry of next recommended card
@@ -4043,12 +4157,14 @@ async function ignoreContent(videoId) {
   saveContentInteraction(videoId, 'ignored');
 
   const user = getStoredUser();
+  const video = (_contentCatalog || []).find(v => String(v.id) === String(videoId));
+  const plat = video ? (video.platform || 'youtube') : 'youtube';
   if (user && user.id) {
     apiRequest('/content/interaction', 'POST', {
       user_id: user.id,
       video_id: videoId,
       action: 'ignored',
-      platform: 'youtube'
+      platform: plat
     }).catch(() => {});
   }
 

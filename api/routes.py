@@ -7,7 +7,14 @@ import hashlib
 import hmac
 import json
 import secrets
+import sys
+from pathlib import Path
 from datetime import datetime, date
+
+CURRENT_DIR = Path(__file__).parent.resolve()
+if str(CURRENT_DIR) not in sys.path:
+    sys.path.insert(0, str(CURRENT_DIR))
+
 from fastapi import APIRouter, HTTPException, Depends, Query, Path as FPath, status
 from pydantic import BaseModel, Field
 from typing import Optional, List, Dict, Any
@@ -20,9 +27,9 @@ except ImportError:
     from .news_service import get_news
 
 try:
-    from content_catalog import get_content_catalog
+    from content_catalog import get_content_catalog, generate_infinite_content_batch
 except ImportError:
-    from .content_catalog import get_content_catalog
+    from .content_catalog import get_content_catalog, generate_infinite_content_batch
 
 router = APIRouter()
 
@@ -1072,30 +1079,49 @@ class ContentResetRequest(BaseModel):
 
 @router.get("/content/recommendations", tags=["Content"])
 def get_content_recommendations(
-    user_id: Optional[int] = Query(None),
+    user_id: Optional[str] = Query(None),
     category: str = Query("all"),
     decade: Optional[str] = Query(None),
     culture: Optional[str] = Query(None),
+    platform: Optional[str] = Query("all"),
+    page: int = Query(1, ge=1),
+    limit: int = Query(12, ge=1, le=50),
 ):
     """
-    Return personalized video recommendations from the curated catalog.
+    Return infinite personalized video recommendations from the multi-platform catalog
+    (YouTube, Facebook Watch, 𝕏 / Twitter, Doordarshan archives).
     Scores and ranks every video based on the user's stored preferences (decade, wellness goal, culture, interests).
-    Excludes videos the user has already watched or ignored.
+    Excludes videos the user has already watched or ignored, and procedurally generates
+    an endless stream of fresh content so the feed never runs out.
     """
     catalog = get_content_catalog()
 
+    # Safe parameter normalization (supports direct calls & FastAPI Query)
+    if hasattr(decade, "default"): decade = decade.default
+    if hasattr(category, "default"): category = category.default or "all"
+    if hasattr(platform, "default"): platform = platform.default or "all"
+    if hasattr(page, "default"): page = page.default or 1
+    if hasattr(limit, "default"): limit = limit.default or 12
+    if hasattr(culture, "default"): culture = culture.default
+    if hasattr(user_id, "default"): user_id = user_id.default
+
     # User profile fields
-    user_decade = (decade or "").strip()
+    user_decade = (decade or "").strip() if isinstance(decade, str) else ""
     user_culture_set = set()
     user_wellness = ""
     user_lang = "Hindi"
     user_city = ""
 
+    # Parse numeric user_id safely (prevent 422 on empty string)
+    clean_user_id = None
+    if user_id is not None and str(user_id).strip().isdigit():
+        clean_user_id = int(str(user_id).strip())
+
     # Exclude already watched/ignored videos for this user
-    if user_id:
+    if clean_user_id:
         try:
             with get_db() as conn:
-                user_row = conn.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+                user_row = conn.execute("SELECT * FROM users WHERE id=?", (clean_user_id,)).fetchone()
                 if user_row:
                     u_dict = sanitize_user_dict(row_to_dict(user_row))
                     if not user_decade and u_dict.get("decade"):
@@ -1113,7 +1139,7 @@ def get_content_recommendations(
                 rows = conn.execute(
                     """SELECT video_id FROM user_content_interactions
                        WHERE user_id = ? AND action IN ('watched', 'ignored')""",
-                    (user_id,)
+                    (clean_user_id,)
                 ).fetchall()
                 excluded = {r["video_id"] for r in rows}
                 catalog = [v for v in catalog if v["id"] not in excluded]
@@ -1122,6 +1148,10 @@ def get_content_recommendations(
 
     if culture:
         user_culture_set.add(culture.strip().lower())
+
+    # Filter by platform if requested
+    if platform and platform != "all":
+        catalog = [v for v in catalog if v.get("platform") == platform]
 
     # Filter by category if requested
     if category and category != "all":
@@ -1142,6 +1172,7 @@ def get_content_recommendations(
         v_tags = [str(t).lower() for t in v.get("culture_tags", [])]
         v_langs = v.get("languages", [])
         v_title = v.get("title", "").lower()
+        v_platform = v.get("platform", "youtube")
 
         # 1. Decade matching
         if user_decade and user_decade in v_decades:
@@ -1188,11 +1219,19 @@ def get_content_recommendations(
             score += 25
             reasons.append("🎬 Classic Indian Cinema")
 
-        # 4. Language preference
+        # 4. Multi-platform diversity boost
+        if v_platform == "facebook":
+            reasons.append("f Facebook Watch Community Pick")
+        elif v_platform == "x":
+            reasons.append("𝕏 Archival Highlight from Twitter/X")
+        elif v_platform == "archive":
+            reasons.append("🏛 Doordarshan National Heritage Archive")
+
+        # 5. Language preference
         if user_lang in v_langs:
             score += 15
 
-        # 5. City & Travel interest
+        # 6. City & Travel interest
         if user_city and (user_city in v_title or any(user_city in t for t in v_tags)):
             score += 25
             reasons.append(f"📍 Connected to {user_city.title()}")
@@ -1205,7 +1244,31 @@ def get_content_recommendations(
     # Sort descending by score
     scored_catalog.sort(key=lambda x: x["score"], reverse=True)
 
-    return {"success": True, "videos": scored_catalog, "total": len(scored_catalog)}
+    # Infinite slice & generation
+    start_idx = (page - 1) * limit
+    end_idx = start_idx + limit
+    page_videos = scored_catalog[start_idx:end_idx]
+
+    # If the static catalog is exhausted for this page, dynamically generate infinite recommendations
+    if len(page_videos) < limit:
+        needed = limit - len(page_videos)
+        infinite_batch = generate_infinite_content_batch(
+            page=page,
+            limit=needed,
+            category=category,
+            decade=user_decade,
+            platform_filter=platform or "all"
+        )
+        page_videos.extend(infinite_batch)
+
+    return {
+        "success": True,
+        "videos": page_videos,
+        "page": page,
+        "limit": limit,
+        "total": len(scored_catalog) + 500,
+        "has_more": True
+    }
 
 
 @router.post("/content/interaction", tags=["Content"])

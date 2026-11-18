@@ -4,6 +4,13 @@ Handles STT audio transcription and TTS audio synthesis with size validation and
 """
 
 import io
+import sys
+from pathlib import Path
+
+CURRENT_DIR = Path(__file__).parent.resolve()
+if str(CURRENT_DIR) not in sys.path:
+    sys.path.insert(0, str(CURRENT_DIR))
+
 from fastapi import APIRouter, UploadFile, File, HTTPException, status
 from fastapi.responses import StreamingResponse, JSONResponse
 from pydantic import BaseModel, Field

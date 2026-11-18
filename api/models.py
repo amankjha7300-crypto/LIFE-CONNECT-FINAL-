@@ -1,7 +1,10 @@
 
+from __future__ import annotations
+
 import os
 import asyncio
 import re
+from typing import Dict, List, Optional, Any
 
 try:
     import openai

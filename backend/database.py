@@ -19,7 +19,10 @@ def get_connection() -> sqlite3.Connection:
     conn = sqlite3.connect(DB_PATH, timeout=10.0)
     conn.row_factory = sqlite3.Row
     # High-performance and concurrency pragmas
-    conn.execute("PRAGMA journal_mode=WAL")
+    if os.getenv("VERCEL"):
+        conn.execute("PRAGMA journal_mode=MEMORY")
+    else:
+        conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     conn.execute("PRAGMA busy_timeout=5000")
     conn.execute("PRAGMA synchronous=NORMAL")

@@ -960,13 +960,14 @@
 
               <div class="form-group">
                 <label class="form-label">Which decade means the most to you? *</label>
-                <div class="interest-grid">
-                  <button type="button" class="interest-chip decade-btn" data-decade="1950s">1950s</button>
-                  <button type="button" class="interest-chip decade-btn" data-decade="1960s">1960s</button>
-                  <button type="button" class="interest-chip decade-btn active" data-decade="1970s">1970s</button>
-                  <button type="button" class="interest-chip decade-btn" data-decade="1980s">1980s</button>
-                  <button type="button" class="interest-chip decade-btn" data-decade="1990s">1990s</button>
-                  <button type="button" class="interest-chip decade-btn" data-decade="2000s">2000s</button>
+                <input type="hidden" id="signup-decade" value="1970s">
+                <div class="interest-grid" id="signup-decade-selector">
+                  <button type="button" class="interest-chip decade-btn" data-decade="1950s" onclick="selectSignupDecade(this, '1950s')">1950s</button>
+                  <button type="button" class="interest-chip decade-btn" data-decade="1960s" onclick="selectSignupDecade(this, '1960s')">1960s</button>
+                  <button type="button" class="interest-chip decade-btn active selected" data-decade="1970s" onclick="selectSignupDecade(this, '1970s')">1970s</button>
+                  <button type="button" class="interest-chip decade-btn" data-decade="1980s" onclick="selectSignupDecade(this, '1980s')">1980s</button>
+                  <button type="button" class="interest-chip decade-btn" data-decade="1990s" onclick="selectSignupDecade(this, '1990s')">1990s</button>
+                  <button type="button" class="interest-chip decade-btn" data-decade="2000s" onclick="selectSignupDecade(this, '2000s')">2000s</button>
                 </div>
                 <div style="font-size:11px;color:var(--text-light);margin-top:4px;">Powers your Nostalgia Vault and Time Machine songs/movies</div>
               </div>
@@ -974,27 +975,27 @@
               <div class="form-group">
                 <label class="form-label">What would you most like to reconnect with?</label>
                 <div class="interest-grid">
-                  <div class="interest-chip selected" data-value="Old Friends">👥 Old Friends</div>
-                  <div class="interest-chip selected" data-value="Music">🎵 Music</div>
-                  <div class="interest-chip" data-value="Movies">🎬 Movies</div>
-                  <div class="interest-chip" data-value="Books">📚 Books</div>
-                  <div class="interest-chip" data-value="Family">👨‍👩‍👧 Family</div>
-                  <div class="interest-chip" data-value="Hobbies">🎨 Hobbies</div>
-                  <div class="interest-chip selected" data-value="Wellness">🧘 Wellness</div>
-                  <div class="interest-chip" data-value="Community">🤝 Community</div>
-                  <div class="interest-chip selected" data-value="Memories">💭 Memories</div>
+                  <div class="interest-chip selected" data-value="Old Friends" onclick="toggleChip(this)">👥 Old Friends</div>
+                  <div class="interest-chip selected" data-value="Music" onclick="toggleChip(this)">🎵 Music</div>
+                  <div class="interest-chip" data-value="Movies" onclick="toggleChip(this)">🎬 Movies</div>
+                  <div class="interest-chip" data-value="Books" onclick="toggleChip(this)">📚 Books</div>
+                  <div class="interest-chip" data-value="Family" onclick="toggleChip(this)">👨‍👩‍👧 Family</div>
+                  <div class="interest-chip" data-value="Hobbies" onclick="toggleChip(this)">🎨 Hobbies</div>
+                  <div class="interest-chip selected" data-value="Wellness" onclick="toggleChip(this)">🧘 Wellness</div>
+                  <div class="interest-chip" data-value="Community" onclick="toggleChip(this)">🤝 Community</div>
+                  <div class="interest-chip selected" data-value="Memories" onclick="toggleChip(this)">💭 Memories</div>
                 </div>
               </div>
 
               <div class="form-group">
                 <label class="form-label">Favorite Culture & Entertainment (Select Any)</label>
                 <div class="interest-grid" id="culture-preference-grid">
-                  <div class="interest-chip culture-chip selected" data-value="Classic Bollywood">🎬 Classic Bollywood</div>
-                  <div class="interest-chip culture-chip selected" data-value="Vividh Bharati Radio">📻 Vividh Bharati & Radio</div>
-                  <div class="interest-chip culture-chip" data-value="Ghazals & Classical Ragas">🎶 Ghazals & Classical Ragas</div>
-                  <div class="interest-chip culture-chip" data-value="Devotional & Bhajans">🕉️ Devotional & Bhajans</div>
-                  <div class="interest-chip culture-chip" data-value="Vintage Cricket & Sports">🏏 Vintage Cricket & Sports</div>
-                  <div class="interest-chip culture-chip" data-value="Literature & Poetry">📖 Literature & Poetry</div>
+                  <div class="interest-chip culture-chip selected" data-value="Classic Bollywood" onclick="toggleChip(this)">🎬 Classic Bollywood</div>
+                  <div class="interest-chip culture-chip selected" data-value="Vividh Bharati Radio" onclick="toggleChip(this)">📻 Vividh Bharati & Radio</div>
+                  <div class="interest-chip culture-chip" data-value="Ghazals & Classical Ragas" onclick="toggleChip(this)">🎶 Ghazals & Classical Ragas</div>
+                  <div class="interest-chip culture-chip" data-value="Devotional & Bhajans" onclick="toggleChip(this)">🕉️ Devotional & Bhajans</div>
+                  <div class="interest-chip culture-chip" data-value="Vintage Cricket & Sports" onclick="toggleChip(this)">🏏 Vintage Cricket & Sports</div>
+                  <div class="interest-chip culture-chip" data-value="Literature & Poetry" onclick="toggleChip(this)">📖 Literature & Poetry</div>
                 </div>
               </div>
 

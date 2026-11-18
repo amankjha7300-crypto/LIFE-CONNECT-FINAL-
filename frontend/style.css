@@ -795,11 +795,51 @@ select.form-input {
   user-select: none;
 }
 
-.interest-chip:hover,
-.interest-chip.selected {
+.interest-chip:hover {
   background: var(--orange-light);
   border-color: var(--orange);
   color: var(--orange-dark);
+}
+
+.interest-chip.selected,
+.interest-chip.active {
+  background: var(--orange-light);
+  border-color: var(--orange);
+  color: var(--orange-dark);
+  font-weight: 700;
+}
+
+/* Dedicated Senior Decade Selection Chips */
+.decade-btn {
+  font-size: 15px !important;
+  font-weight: 600 !important;
+  padding: 10px 22px !important;
+  cursor: pointer !important;
+  border: 2px solid #CBD5E1 !important;
+  border-radius: 24px !important;
+  background: #FFFFFF !important;
+  color: var(--text-dark, #263126) !important;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  user-select: none !important;
+}
+
+.decade-btn:hover {
+  border-color: var(--orange, #F47B20) !important;
+  color: var(--orange, #F47B20) !important;
+  background: #FFF5EE !important;
+  transform: translateY(-1px);
+}
+
+.decade-btn.active,
+.decade-btn.selected,
+.interest-chip.decade-btn.active,
+.interest-chip.decade-btn.selected {
+  background: var(--orange, #F47B20) !important;
+  border-color: var(--orange, #F47B20) !important;
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  box-shadow: 0 4px 14px rgba(244, 123, 32, 0.45) !important;
+  transform: translateY(-2px);
 }
 
 /* Navbar */

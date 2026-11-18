@@ -803,6 +803,8 @@ function activateView(viewId) {
 }
 
 function onViewChange(viewId) {
+  if (viewId === 'signup')    initSignupForm();
+  if (viewId === 'login')     initLoginForm();
   if (viewId === 'news')      loadNewsPage();
   if (viewId === 'dashboard') initDashboard();
   if (viewId === 'reconnect') initReconnect();
@@ -2866,6 +2868,23 @@ function initLoginForm() {
   }
 }
 
+// Global toggle for interactive signup chips
+window.toggleChip = function(el) {
+  if (!el) return;
+  el.classList.toggle('selected');
+};
+
+// Global single-select for decade buttons in signup form
+window.selectSignupDecade = function(btn, decade) {
+  if (!btn) return;
+  document.querySelectorAll('#signup-form .decade-btn').forEach(b => {
+    b.classList.remove('active', 'selected');
+  });
+  btn.classList.add('active', 'selected');
+  const input = document.getElementById('signup-decade');
+  if (input) input.value = decade;
+};
+
 function initSignupForm() {
   const form = document.getElementById('signup-form');
   const btn  = document.getElementById('signup-submit') || form?.querySelector('button[type=submit]');
@@ -2873,21 +2892,20 @@ function initSignupForm() {
 
   // Reconnect chips
   document.querySelectorAll('#signup-form .interest-chip:not(.decade-btn):not(.culture-chip)').forEach(chip => {
-    chip.addEventListener('click', () => chip.classList.toggle('selected'));
+    chip.onclick = () => chip.classList.toggle('selected');
   });
 
   // Culture preferences chips
   document.querySelectorAll('#signup-form .culture-chip').forEach(chip => {
-    chip.addEventListener('click', () => chip.classList.toggle('selected'));
+    chip.onclick = () => chip.classList.toggle('selected');
   });
 
   // Decade selection
   document.querySelectorAll('#signup-form .decade-btn').forEach(dBtn => {
-    dBtn.addEventListener('click', (e) => {
+    dBtn.onclick = (e) => {
       e.preventDefault();
-      document.querySelectorAll('#signup-form .decade-btn').forEach(b => b.classList.remove('active'));
-      dBtn.classList.add('active');
-    });
+      selectSignupDecade(dBtn, dBtn.dataset.decade || dBtn.textContent.trim());
+    };
   });
 
   async function handleSignup(e) {
@@ -2911,7 +2929,9 @@ function initSignupForm() {
     
     const interests  = [...document.querySelectorAll('#signup-form .interest-chip:not(.decade-btn):not(.culture-chip).selected')].map(c => c.dataset.value);
     const culture_preferences = [...document.querySelectorAll('#signup-form .culture-chip.selected')].map(c => c.dataset.value);
-    const decade     = document.querySelector('#signup-form .decade-btn.active')?.dataset.decade || '1970s';
+    const decadeInput = document.getElementById('signup-decade')?.value;
+    const decadeBtn   = document.querySelector('#signup-form .decade-btn.active, #signup-form .decade-btn.selected')?.dataset.decade;
+    const decade      = decadeInput || decadeBtn || '1970s';
 
     let valid = true;
     if (!name)   { showError('signup-name-error',  'Full name is required'); valid = false; }

@@ -788,8 +788,16 @@ function activateView(viewId) {
   const navHamburger = document.querySelector('.nav-hamburger');
   if (navHamburger) navHamburger.classList.remove('open');
 
-  // Scroll to top
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Desktop auth split-screen scroll lock: prevent outer window scroll, reset inner form scroll
+  if (viewId === 'login' || viewId === 'signup') {
+    document.body.classList.add('auth-locked');
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    const authRight = target.querySelector('.auth-right');
+    if (authRight) authRight.scrollTop = 0;
+  } else {
+    document.body.classList.remove('auth-locked');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
 
   // Show / hide the floating chat widget (hidden on landing/login/signup)
   const hiddenOnViews = ['home', 'login', 'signup'];
@@ -3020,6 +3028,19 @@ function clearErrors(formId) {
   document.querySelectorAll(`#${formId} .form-input`).forEach(el => el.classList.remove('error'));
 }
 
+function initAuthScrollSync() {
+  document.querySelectorAll('.auth-left').forEach(leftPane => {
+    if (leftPane.dataset.wheelBound) return;
+    leftPane.dataset.wheelBound = 'true';
+    leftPane.addEventListener('wheel', (e) => {
+      const rightPane = leftPane.closest('.auth-layout')?.querySelector('.auth-right');
+      if (rightPane) {
+        rightPane.scrollTop += e.deltaY;
+      }
+    }, { passive: true });
+  });
+}
+
 // ----------------------------------------------------------------
 // 26. APP INITIALIZATION
 // ----------------------------------------------------------------
@@ -3054,6 +3075,7 @@ function initApp() {
   // Auth forms MUST be initialized first
   try { initLoginForm(); } catch(e) { console.error('initLoginForm error:', e); }
   try { initSignupForm(); } catch(e) { console.error('initSignupForm error:', e); }
+  try { initAuthScrollSync(); } catch(e) { console.error('initAuthScrollSync error:', e); }
 
   // Apply easy mode and dark mode
   try { initEasyMode(); } catch(e) {}

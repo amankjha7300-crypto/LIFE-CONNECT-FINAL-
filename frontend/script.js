@@ -14,7 +14,7 @@ const LS_KEYS = {
 // ----------------------------------------------------------------
 // 1. API ARCHITECTURE & RESILIENCE
 // ----------------------------------------------------------------
-const API_BASE_URL = (function() {
+const API_BASE_URL = (function () {
   if (typeof window === 'undefined') return 'http://localhost:8000/api';
   if (window.location.protocol === 'file:') return 'http://localhost:8000/api';
   if ((window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') && window.location.port !== '8000') {
@@ -40,15 +40,15 @@ async function apiRequest(endpoint, method = 'GET', body = null, retries = 2) {
     try {
       const res = await fetch(API_BASE_URL + endpoint, opts);
       let data = null;
-      try { data = await res.json(); } catch(e) { data = null; }
+      try { data = await res.json(); } catch (e) { data = null; }
 
       if (!res.ok) {
-        const errMsg = (data && (data.detail || data.message || data.error)) || 
-                       (res.status === 401 ? 'Incorrect credentials or session expired.' :
-                        res.status === 404 ? 'Resource not found.' :
-                        res.status === 409 ? 'An account with this email already exists.' :
-                        res.status === 429 ? 'Rate limit reached. Please wait a moment.' :
-                        `Server error (${res.status})`);
+        const errMsg = (data && (data.detail || data.message || data.error)) ||
+          (res.status === 401 ? 'Incorrect credentials or session expired.' :
+            res.status === 404 ? 'Resource not found.' :
+              res.status === 409 ? 'An account with this email already exists.' :
+                res.status === 429 ? 'Rate limit reached. Please wait a moment.' :
+                  `Server error (${res.status})`);
         return { success: false, status: res.status, error: errMsg };
       }
       return data || { success: true };
@@ -299,32 +299,32 @@ async function getCommunities() {
 // 2. LOCAL STORAGE KEYS
 // ----------------------------------------------------------------
 const LS = {
-  USER:        'lifeconnect_user',
-  SESSION:     'lifeconnect_session',
-  PREFS:       'lifeconnect_preferences',
-  MEMORIES:    'lifeconnect_memories',
-  EASY_MODE:   'lifeconnect_easy_mode',
-  DARK_MODE:   'lifeconnect_dark_mode',
+  USER: 'lifeconnect_user',
+  SESSION: 'lifeconnect_session',
+  PREFS: 'lifeconnect_preferences',
+  MEMORIES: 'lifeconnect_memories',
+  EASY_MODE: 'lifeconnect_easy_mode',
+  DARK_MODE: 'lifeconnect_dark_mode',
   COMMUNITIES: 'lifeconnect_communities',
-  AVATAR:      'lifeconnect_avatar',
+  AVATAR: 'lifeconnect_avatar',
 };
 
 // ----------------------------------------------------------------
 // 3. DEMO CREDENTIALS
 // ----------------------------------------------------------------
-const DEMO_EMAIL    = 'demo@lifeconnect.local';
+const DEMO_EMAIL = 'demo@lifeconnect.local';
 const DEMO_PASSWORD = 'Demo123!';
 
 const DEMO_USER = {
-  name:      'Rajesh Sharma',
+  name: 'Rajesh Sharma',
   firstName: 'Rajesh',
-  email:     DEMO_EMAIL,
-  mobile:    '9876543210',
-  age:       65,
-  city:      'Chandigarh',
+  email: DEMO_EMAIL,
+  mobile: '9876543210',
+  age: 65,
+  city: 'Chandigarh',
   interests: ['Old Friends', 'Music', 'Movies', 'Family', 'Wellness'],
-  decade:    '1970s',
-  avatar:    'R',
+  decade: '1970s',
+  avatar: 'R',
 };
 
 // ----------------------------------------------------------------
@@ -332,208 +332,208 @@ const DEMO_USER = {
 // ----------------------------------------------------------------
 const MOCK_DATA = {
   friends: [
-    { id:1, name:'Rajiv Kumar Sharma', initials:'R', school:'DAV College', batch:'1978', city:'Chandigarh', profession:'Retired Engineer', common:'Same school batch of 1978', status:'connected' },
-    { id:2, name:'Sunita Malhotra', initials:'S', school:'Government Girls College', batch:'1979', city:'Delhi', profession:'Retired Teacher', common:'Same city, same era', status:'pending' },
-    { id:3, name:'Harinder Singh Gill', initials:'H', school:'Punjab University', batch:'1977', city:'Amritsar', profession:'Retired Doctor', common:'Mutual friend: Rajiv Sharma', status:'none' },
-    { id:4, name:'Meena Kapoor', initials:'M', school:'Loreto Convent School', batch:'1980', city:'Shimla', profession:'Writer', common:'Book lovers group', status:'none' },
-    { id:5, name:'Vikram Nath Joshi', initials:'V', school:'IIT Roorkee', batch:'1976', city:'Dehradun', profession:'Retired Professor', common:'Same college era', status:'connected' },
-    { id:6, name:'Kamla Devi Verma', initials:'K', school:'BHU Varanasi', batch:'1975', city:'Varanasi', profession:'Classical Musician', common:'Music lovers community', status:'pending' },
-    { id:7, name:'Arvind Chandra Gupta', initials:'A', school:'Allahabad University', batch:'1973', city:'Prayagraj', profession:'Retired Banker', common:'Same hometown era', status:'none' },
-    { id:8, name:'Padma Subramaniam', initials:'P', school:'Stella Maris College', batch:'1974', city:'Chennai', profession:'Retired Nurse', common:'Wellness community', status:'none' },
+    { id: 1, name: 'Rajiv Kumar Sharma', initials: 'R', school: 'DAV College', batch: '1978', city: 'Chandigarh', profession: 'Retired Engineer', common: 'Same school batch of 1978', status: 'connected' },
+    { id: 2, name: 'Sunita Malhotra', initials: 'S', school: 'Government Girls College', batch: '1979', city: 'Delhi', profession: 'Retired Teacher', common: 'Same city, same era', status: 'pending' },
+    { id: 3, name: 'Harinder Singh Gill', initials: 'H', school: 'Punjab University', batch: '1977', city: 'Amritsar', profession: 'Retired Doctor', common: 'Mutual friend: Rajiv Sharma', status: 'none' },
+    { id: 4, name: 'Meena Kapoor', initials: 'M', school: 'Loreto Convent School', batch: '1980', city: 'Shimla', profession: 'Writer', common: 'Book lovers group', status: 'none' },
+    { id: 5, name: 'Vikram Nath Joshi', initials: 'V', school: 'IIT Roorkee', batch: '1976', city: 'Dehradun', profession: 'Retired Professor', common: 'Same college era', status: 'connected' },
+    { id: 6, name: 'Kamla Devi Verma', initials: 'K', school: 'BHU Varanasi', batch: '1975', city: 'Varanasi', profession: 'Classical Musician', common: 'Music lovers community', status: 'pending' },
+    { id: 7, name: 'Arvind Chandra Gupta', initials: 'A', school: 'Allahabad University', batch: '1973', city: 'Prayagraj', profession: 'Retired Banker', common: 'Same hometown era', status: 'none' },
+    { id: 8, name: 'Padma Subramaniam', initials: 'P', school: 'Stella Maris College', batch: '1974', city: 'Chennai', profession: 'Retired Nurse', common: 'Wellness community', status: 'none' },
   ],
   communities: [
-    { id:1, name:'1970s School Alumni', emoji:'🏫', category:'Alumni', members:2431, active:'Very Active', meetup:'Monthly online', desc:'Connect with schoolmates from the golden decade of the 1970s.', joined:true },
-    { id:2, name:'Lata Mangeshkar Fans', emoji:'🎵', category:'Music', members:8923, active:'Very Active', meetup:'Weekly discussions', desc:'Celebrate the timeless music of the nightingale of India.', joined:true },
-    { id:3, name:'Old Bollywood Lovers', emoji:'🎬', category:'Movies', members:5621, active:'Active', meetup:'Fortnightly watch party', desc:'Rediscover the golden era of Hindi cinema from the 60s, 70s and 80s.', joined:false },
-    { id:4, name:'Morning Yoga & Walking', emoji:'🧘', category:'Wellness', members:3218, active:'Very Active', meetup:'Daily 6 AM', desc:'Start your day right with a supportive community of walkers and yogis.', joined:false },
-    { id:5, name:'Cricket Memories', emoji:'🏏', category:'Sports', members:6754, active:'Active', meetup:'Match days', desc:'Relive the golden era of Indian cricket with fellow fans.', joined:false },
-    { id:6, name:'Classic Book Lovers', emoji:'📚', category:'Books', members:2109, active:'Active', meetup:'Monthly book club', desc:'Discuss the books that shaped generations — Premchand, Tagore, Gulzar and more.', joined:false },
-    { id:7, name:'Punjabi Heritage Group', emoji:'🌾', category:'Regional', members:4320, active:'Active', meetup:'Cultural events', desc:'Celebrate Punjabi culture, food, language and community.', joined:false },
-    { id:8, name:'Doordarshan Memories', emoji:'📺', category:'Nostalgia', members:7891, active:'Very Active', meetup:'Sundays', desc:'Remember Ramayan, Mahabharat, Chitrahaar and all those memorable shows.', joined:false },
+    { id: 1, name: '1970s School Alumni', emoji: '🏫', category: 'Alumni', members: 2431, active: 'Very Active', meetup: 'Monthly online', desc: 'Connect with schoolmates from the golden decade of the 1970s.', joined: true },
+    { id: 2, name: 'Lata Mangeshkar Fans', emoji: '🎵', category: 'Music', members: 8923, active: 'Very Active', meetup: 'Weekly discussions', desc: 'Celebrate the timeless music of the nightingale of India.', joined: true },
+    { id: 3, name: 'Old Bollywood Lovers', emoji: '🎬', category: 'Movies', members: 5621, active: 'Active', meetup: 'Fortnightly watch party', desc: 'Rediscover the golden era of Hindi cinema from the 60s, 70s and 80s.', joined: false },
+    { id: 4, name: 'Morning Yoga & Walking', emoji: '🧘', category: 'Wellness', members: 3218, active: 'Very Active', meetup: 'Daily 6 AM', desc: 'Start your day right with a supportive community of walkers and yogis.', joined: false },
+    { id: 5, name: 'Cricket Memories', emoji: '🏏', category: 'Sports', members: 6754, active: 'Active', meetup: 'Match days', desc: 'Relive the golden era of Indian cricket with fellow fans.', joined: false },
+    { id: 6, name: 'Classic Book Lovers', emoji: '📚', category: 'Books', members: 2109, active: 'Active', meetup: 'Monthly book club', desc: 'Discuss the books that shaped generations — Premchand, Tagore, Gulzar and more.', joined: false },
+    { id: 7, name: 'Punjabi Heritage Group', emoji: '🌾', category: 'Regional', members: 4320, active: 'Active', meetup: 'Cultural events', desc: 'Celebrate Punjabi culture, food, language and community.', joined: false },
+    { id: 8, name: 'Doordarshan Memories', emoji: '📺', category: 'Nostalgia', members: 7891, active: 'Very Active', meetup: 'Sundays', desc: 'Remember Ramayan, Mahabharat, Chitrahaar and all those memorable shows.', joined: false },
   ],
   memories: [
-    { year:1965, title:'First Day at School', content:'I still remember the smell of new notebooks and the nervousness of that first day at DAV School, Chandigarh. My mother had packed laddoos in my tiffin.', type:'story', emoji:'📚' },
-    { year:1970, title:'College Days', content:'The best years of my life at Punjab University. The canteen, the debates, the friendships formed in the hostels.', type:'story', emoji:'🎓' },
-    { year:1975, title:'First Job in Delhi', content:'Got my first government job posting. Arrived in Delhi with one suitcase and a heart full of dreams.', type:'story', emoji:'💼' },
-    { year:1980, title:'Marriage', content:'The most beautiful day of my life. Family gathered from across Punjab and Haryana. The shehnai, the marigolds, the celebration.', type:'story', emoji:'💑' },
-    { year:1984, title:'First Child — Rohit', content:'Became a parent. Held the baby and understood what love truly means.', type:'story', emoji:'👶' },
-    { year:1988, title:'Family Trip to Shimla', content:'Our first proper family holiday. The children saw snow for the first time. Priya\'s expression when snowflakes fell on her nose.', type:'story', emoji:'⛄' },
-    { year:1992, title:'New Home', content:'Built our own house after years of saving. Every brick has a memory in it.', type:'story', emoji:'🏡' },
-    { year:1998, title:'Daughter\'s School Result', content:'Priya scored 95% in board exams. The entire neighbourhood celebrated with us.', type:'story', emoji:'🌟' },
+    { year: 1965, title: 'First Day at School', content: 'I still remember the smell of new notebooks and the nervousness of that first day at DAV School, Chandigarh. My mother had packed laddoos in my tiffin.', type: 'story', emoji: '📚' },
+    { year: 1970, title: 'College Days', content: 'The best years of my life at Punjab University. The canteen, the debates, the friendships formed in the hostels.', type: 'story', emoji: '🎓' },
+    { year: 1975, title: 'First Job in Delhi', content: 'Got my first government job posting. Arrived in Delhi with one suitcase and a heart full of dreams.', type: 'story', emoji: '💼' },
+    { year: 1980, title: 'Marriage', content: 'The most beautiful day of my life. Family gathered from across Punjab and Haryana. The shehnai, the marigolds, the celebration.', type: 'story', emoji: '💑' },
+    { year: 1984, title: 'First Child — Rohit', content: 'Became a parent. Held the baby and understood what love truly means.', type: 'story', emoji: '👶' },
+    { year: 1988, title: 'Family Trip to Shimla', content: 'Our first proper family holiday. The children saw snow for the first time. Priya\'s expression when snowflakes fell on her nose.', type: 'story', emoji: '⛄' },
+    { year: 1992, title: 'New Home', content: 'Built our own house after years of saving. Every brick has a memory in it.', type: 'story', emoji: '🏡' },
+    { year: 1998, title: 'Daughter\'s School Result', content: 'Priya scored 95% in board exams. The entire neighbourhood celebrated with us.', type: 'story', emoji: '🌟' },
   ],
   timeMachine: {
     1965: {
-      songs:    ['Aaj Phir Jeene Ki Tamanna Hai — Lata', 'Mere Sanam — Asha Bhosle', 'Teri Aankhon Ke Siva — Mohd Rafi', 'Phoolon Ka Taron Ka — Lata'],
-      movies:   ['Guide', 'Waqt', 'Himalaya Ki God Mein', 'Dosti'],
-      cricket:  ['India vs Pakistan Test Series', 'Tiger Pataudi leading India', 'Nawab of Pataudi era', 'Test cricket golden age'],
-      events:   ['India-Pakistan War 1965', 'First Indian satellite plans', 'Green Revolution begins', 'IIT system established'],
-      radio:    ['Binaca Geetmala on Radio Ceylon', 'Vividh Bharati launches', 'Radio Ceylon golden era', 'Ameen Sayani hosts'],
-      magazines:['Dharmayug', 'Illustrated Weekly of India', 'Filmfare', 'Nandan for children'],
+      songs: ['Aaj Phir Jeene Ki Tamanna Hai — Lata', 'Mere Sanam — Asha Bhosle', 'Teri Aankhon Ke Siva — Mohd Rafi', 'Phoolon Ka Taron Ka — Lata'],
+      movies: ['Guide', 'Waqt', 'Himalaya Ki God Mein', 'Dosti'],
+      cricket: ['India vs Pakistan Test Series', 'Tiger Pataudi leading India', 'Nawab of Pataudi era', 'Test cricket golden age'],
+      events: ['India-Pakistan War 1965', 'First Indian satellite plans', 'Green Revolution begins', 'IIT system established'],
+      radio: ['Binaca Geetmala on Radio Ceylon', 'Vividh Bharati launches', 'Radio Ceylon golden era', 'Ameen Sayani hosts'],
+      magazines: ['Dharmayug', 'Illustrated Weekly of India', 'Filmfare', 'Nandan for children'],
     },
     1970: {
-      songs:    ['Mere Naina Sawan Bhado — Kishore Kumar', 'Chhoti Si Baat — Amol Palekar', 'Dum Maro Dum — Asha', 'Yeh Jo Hai Zindagi — Kishore'],
-      movies:   ['Hare Rama Hare Krishna', 'Haathi Mere Saathi', 'Anand', 'Jawani Diwani'],
-      cricket:  ['Sunil Gavaskar debuts', 'India vs West Indies tours', 'Farokh Engineer wicketkeeping', 'Bishan Bedi spinning magic'],
-      events:   ['Bangladesh Liberation 1971', 'Indira Gandhi wins election', 'India-Soviet Treaty', 'First Green Revolution results'],
-      radio:    ['Vividh Bharati popular shows', 'Jai Mala show', 'Hawa Mahal drama', 'Chitralok film music'],
-      magazines:['Sarika', 'Kadambini', 'Champak launched', 'Bal Bharati'],
+      songs: ['Mere Naina Sawan Bhado — Kishore Kumar', 'Chhoti Si Baat — Amol Palekar', 'Dum Maro Dum — Asha', 'Yeh Jo Hai Zindagi — Kishore'],
+      movies: ['Hare Rama Hare Krishna', 'Haathi Mere Saathi', 'Anand', 'Jawani Diwani'],
+      cricket: ['Sunil Gavaskar debuts', 'India vs West Indies tours', 'Farokh Engineer wicketkeeping', 'Bishan Bedi spinning magic'],
+      events: ['Bangladesh Liberation 1971', 'Indira Gandhi wins election', 'India-Soviet Treaty', 'First Green Revolution results'],
+      radio: ['Vividh Bharati popular shows', 'Jai Mala show', 'Hawa Mahal drama', 'Chitralok film music'],
+      magazines: ['Sarika', 'Kadambini', 'Champak launched', 'Bal Bharati'],
     },
     1975: {
-      songs:    ['Dil Apna Aur Preet Parai', 'Ek Ajnabee Haseena Se — Kishore', 'Aana Jaana Laga Rahega — Rafi', 'Kabhie Kabhie — Lata'],
-      movies:   ['Sholay', 'Deewar', 'Jai Santoshi Maa', 'Chupke Chupke'],
-      cricket:  ['Clive Lloyd\'s West Indies domination', 'India struggling in tests', 'Farokh Engineer\'s last years', 'First World Cup — West Indies win'],
-      events:   ['Emergency declared 1975', 'Indira Gandhi\'s government', 'Kisan movement', 'Railway strike'],
-      radio:    ['Binaca Geetmala — Ameen Sayani', 'Military band programmes', 'Sangeeth Sarita', 'Youth programmes'],
-      magazines:['Parag for youth', 'Suman Saurabh', 'Navneet', 'Sarika literature'],
+      songs: ['Dil Apna Aur Preet Parai', 'Ek Ajnabee Haseena Se — Kishore', 'Aana Jaana Laga Rahega — Rafi', 'Kabhie Kabhie — Lata'],
+      movies: ['Sholay', 'Deewar', 'Jai Santoshi Maa', 'Chupke Chupke'],
+      cricket: ['Clive Lloyd\'s West Indies domination', 'India struggling in tests', 'Farokh Engineer\'s last years', 'First World Cup — West Indies win'],
+      events: ['Emergency declared 1975', 'Indira Gandhi\'s government', 'Kisan movement', 'Railway strike'],
+      radio: ['Binaca Geetmala — Ameen Sayani', 'Military band programmes', 'Sangeeth Sarita', 'Youth programmes'],
+      magazines: ['Parag for youth', 'Suman Saurabh', 'Navneet', 'Sarika literature'],
     },
     1980: {
-      songs:    ['Dard-E-Dil — Kishore Kumar', 'Pyaar Karne Waale — Lata', 'Hungama Ho Gaya — Kishore', 'Dekha Ek Khwaab — Lata & Kishore'],
-      movies:   ['Karz', 'Kranti', 'Qurbani', 'Dostana'],
-      cricket:  ['Kapil Dev\'s rise', 'Sunil Gavaskar\'s 10000 runs', 'India tours England', 'Young Mohinder Amarnath'],
-      events:   ['Indira Gandhi returns to power', 'Olympic boycott', 'Punjab unrest begins', 'India\'s first satellite Rohini'],
-      tv:       ['Doordarshan begins colour', 'Hum Log serial begins', 'Buniyaad serial', 'Doordarshan'],
-      magazines:['Indrajaal Comics', 'Chandamama', 'Nandan', 'Bal Bharati'],
+      songs: ['Dard-E-Dil — Kishore Kumar', 'Pyaar Karne Waale — Lata', 'Hungama Ho Gaya — Kishore', 'Dekha Ek Khwaab — Lata & Kishore'],
+      movies: ['Karz', 'Kranti', 'Qurbani', 'Dostana'],
+      cricket: ['Kapil Dev\'s rise', 'Sunil Gavaskar\'s 10000 runs', 'India tours England', 'Young Mohinder Amarnath'],
+      events: ['Indira Gandhi returns to power', 'Olympic boycott', 'Punjab unrest begins', 'India\'s first satellite Rohini'],
+      tv: ['Doordarshan begins colour', 'Hum Log serial begins', 'Buniyaad serial', 'Doordarshan'],
+      magazines: ['Indrajaal Comics', 'Chandamama', 'Nandan', 'Bal Bharati'],
     },
     1985: {
-      songs:    ['Tujhse Naraaz Nahin — Lata & Anup', 'Saat Samundar Paar — Kumar Sanu', 'Jaadu Teri Nazar — Udit Narayan', 'Pehla Nasha — Udit & Sadhna'],
-      movies:   ['Ram Teri Ganga Maili', 'Tezaab', 'Arjun', 'Mard'],
-      cricket:  ['India wins 1983 World Cup legacy', 'Kapil Dev\'s bowling records', 'Gavaskar\'s centuries', 'Mohinder Amarnath\'s heroics'],
-      events:   ['Rajiv Gandhi becomes PM', 'Bhopal gas tragedy aftermath', 'Computerisation begins', 'BSNL telephone expansion'],
-      tv:       ['Ramayan serials begin', 'Chitrahaar Wednesday & Friday', 'Hum Log final episodes', 'Quiz programmes'],
-      magazines:['Reader\'s Digest Hindi', 'Grihshobha', 'Sarita', 'Manohar Kahaniyan'],
+      songs: ['Tujhse Naraaz Nahin — Lata & Anup', 'Saat Samundar Paar — Kumar Sanu', 'Jaadu Teri Nazar — Udit Narayan', 'Pehla Nasha — Udit & Sadhna'],
+      movies: ['Ram Teri Ganga Maili', 'Tezaab', 'Arjun', 'Mard'],
+      cricket: ['India wins 1983 World Cup legacy', 'Kapil Dev\'s bowling records', 'Gavaskar\'s centuries', 'Mohinder Amarnath\'s heroics'],
+      events: ['Rajiv Gandhi becomes PM', 'Bhopal gas tragedy aftermath', 'Computerisation begins', 'BSNL telephone expansion'],
+      tv: ['Ramayan serials begin', 'Chitrahaar Wednesday & Friday', 'Hum Log final episodes', 'Quiz programmes'],
+      magazines: ['Reader\'s Digest Hindi', 'Grihshobha', 'Sarita', 'Manohar Kahaniyan'],
     },
     1990: {
-      songs:    ['Dil Hai Ke Manta Nahin', 'Pehla Nasha', 'Mere Rang Mein', 'Tip Tip Barsa Pani'],
-      movies:   ['Dil', 'Qayamat Se Qayamat Tak legacy', 'Dil Hai Ke Manta Nahin', 'Sadak'],
-      cricket:  ['Sachin Tendulkar\'s early years', 'Azharuddin captaincy', 'India in World Cup', 'Wills Cup cricket'],
-      events:   ['Economic reforms 1991', 'Mandal Commission agitation', 'Gulf War effects', 'Satellite TV arrives in India'],
-      tv:       ['Star TV launches in India', 'Mahabharat on DD', 'Shri Krishna serial', 'MTV India begins'],
-      magazines:['Outlook magazine', 'India Today', 'Femina', 'Filmfare awards era'],
+      songs: ['Dil Hai Ke Manta Nahin', 'Pehla Nasha', 'Mere Rang Mein', 'Tip Tip Barsa Pani'],
+      movies: ['Dil', 'Qayamat Se Qayamat Tak legacy', 'Dil Hai Ke Manta Nahin', 'Sadak'],
+      cricket: ['Sachin Tendulkar\'s early years', 'Azharuddin captaincy', 'India in World Cup', 'Wills Cup cricket'],
+      events: ['Economic reforms 1991', 'Mandal Commission agitation', 'Gulf War effects', 'Satellite TV arrives in India'],
+      tv: ['Star TV launches in India', 'Mahabharat on DD', 'Shri Krishna serial', 'MTV India begins'],
+      magazines: ['Outlook magazine', 'India Today', 'Femina', 'Filmfare awards era'],
     },
     1995: {
-      songs:    ['Chura Ke Dil Mera', 'Kuch Kuch Hota Hai coming', 'Tu Cheez Badi Hai', 'Maahi Ve — AR Rahman'],
-      movies:   ['Dilwale Dulhania Le Jayenge', 'Rangeela', 'Bombay', 'Karan Arjun'],
-      cricket:  ['Sachin\'s golden era', 'India vs Sri Lanka matches', 'Vinod Kambli era', 'World Cup 1996 preparations'],
-      events:   ['Internet arrives in India 1995', 'Mobile phones begin', 'Economic liberalisation results', 'IT industry growth begins'],
-      tv:       ['Zee TV established', 'KBC precursor shows', 'Sangeeth Mala', 'Film-based programmes'],
-      magazines:['Internet magazines begin', 'Business Today', 'India Today international', 'Sportstar'],
+      songs: ['Chura Ke Dil Mera', 'Kuch Kuch Hota Hai coming', 'Tu Cheez Badi Hai', 'Maahi Ve — AR Rahman'],
+      movies: ['Dilwale Dulhania Le Jayenge', 'Rangeela', 'Bombay', 'Karan Arjun'],
+      cricket: ['Sachin\'s golden era', 'India vs Sri Lanka matches', 'Vinod Kambli era', 'World Cup 1996 preparations'],
+      events: ['Internet arrives in India 1995', 'Mobile phones begin', 'Economic liberalisation results', 'IT industry growth begins'],
+      tv: ['Zee TV established', 'KBC precursor shows', 'Sangeeth Mala', 'Film-based programmes'],
+      magazines: ['Internet magazines begin', 'Business Today', 'India Today international', 'Sportstar'],
     },
     2000: {
-      songs:    ['Kaho Naa Pyaar Hai', 'Lagaan music', 'Dil Chahta Hai soundtrack', 'Mohabbatein songs'],
-      movies:   ['Lagaan', 'Dil Chahta Hai', 'Kabhi Khushi Kabhie Gham', 'Devdas'],
-      cricket:  ['India wins 2000s series', 'Sachin vs Sehwag opening', 'Harbhajan\'s hat trick', 'Dravid\'s wall era'],
-      events:   ['IT boom and bust', 'Mobile revolution', 'KBC with Amitabh Bachchan', 'Commonwealth Games preparation'],
-      tv:       ['KBC — Kaun Banega Crorepati', 'Indian Idol begin years', 'Reality TV arrives', 'News channels multiply'],
-      magazines:['Digital magazines begin', 'Technology focus journals', 'Health magazines boom', 'Celebrity magazines'],
+      songs: ['Kaho Naa Pyaar Hai', 'Lagaan music', 'Dil Chahta Hai soundtrack', 'Mohabbatein songs'],
+      movies: ['Lagaan', 'Dil Chahta Hai', 'Kabhi Khushi Kabhie Gham', 'Devdas'],
+      cricket: ['India wins 2000s series', 'Sachin vs Sehwag opening', 'Harbhajan\'s hat trick', 'Dravid\'s wall era'],
+      events: ['IT boom and bust', 'Mobile revolution', 'KBC with Amitabh Bachchan', 'Commonwealth Games preparation'],
+      tv: ['KBC — Kaun Banega Crorepati', 'Indian Idol begin years', 'Reality TV arrives', 'News channels multiply'],
+      magazines: ['Digital magazines begin', 'Technology focus journals', 'Health magazines boom', 'Celebrity magazines'],
     },
   },
   legalTopics: [
-    { id:'pension', label:'Pension Forms', icon:'💰' },
-    { id:'bank',    label:'Bank Documents', icon:'🏦' },
-    { id:'govt',    label:'Government Schemes', icon:'🏛️' },
-    { id:'insurance', label:'Insurance', icon:'🛡️' },
-    { id:'property', label:'Property Papers', icon:'🏠' },
-    { id:'tax',     label:'Income Tax', icon:'📋' },
+    { id: 'pension', label: 'Pension Forms', icon: '💰' },
+    { id: 'bank', label: 'Bank Documents', icon: '🏦' },
+    { id: 'govt', label: 'Government Schemes', icon: '🏛️' },
+    { id: 'insurance', label: 'Insurance', icon: '🛡️' },
+    { id: 'property', label: 'Property Papers', icon: '🏠' },
+    { id: 'tax', label: 'Income Tax', icon: '📋' },
   ],
   legalResponses: {
     pension: {
       question: 'What is this pension form asking me?',
       steps: [
-        { n:1, title:'Your Personal Information', desc:'Section A asks for your full name as per service records, date of birth, and personal identification number.' },
-        { n:2, title:'Your Service Details', desc:'Section B asks for your department, designation at retirement, date of joining, and date of retirement.' },
-        { n:3, title:'Bank Information', desc:'Section C needs your bank account number and IFSC code where the pension will be credited each month.' },
-        { n:4, title:'Documents You May Need', desc:'Life certificate (required yearly), service book, retirement order, identity proof (Aadhaar), and two passport photos.' },
+        { n: 1, title: 'Your Personal Information', desc: 'Section A asks for your full name as per service records, date of birth, and personal identification number.' },
+        { n: 2, title: 'Your Service Details', desc: 'Section B asks for your department, designation at retirement, date of joining, and date of retirement.' },
+        { n: 3, title: 'Bank Information', desc: 'Section C needs your bank account number and IFSC code where the pension will be credited each month.' },
+        { n: 4, title: 'Documents You May Need', desc: 'Life certificate (required yearly), service book, retirement order, identity proof (Aadhaar), and two passport photos.' },
       ],
     },
     bank: {
       question: 'Can you explain this bank form?',
       steps: [
-        { n:1, title:'Account Holder Details', desc:'Your name, address, and mobile number linked to your account. These must match your Aadhaar.' },
-        { n:2, title:'Service Request', desc:'The specific service you are requesting — nomination update, KYC update, or signature change.' },
-        { n:3, title:'Declaration', desc:'By signing, you confirm the information is correct. Read each point carefully before signing.' },
-        { n:4, title:'Documents to Attach', desc:'Self-attested copy of Aadhaar and PAN card. Recent passport-size photograph.' },
+        { n: 1, title: 'Account Holder Details', desc: 'Your name, address, and mobile number linked to your account. These must match your Aadhaar.' },
+        { n: 2, title: 'Service Request', desc: 'The specific service you are requesting — nomination update, KYC update, or signature change.' },
+        { n: 3, title: 'Declaration', desc: 'By signing, you confirm the information is correct. Read each point carefully before signing.' },
+        { n: 4, title: 'Documents to Attach', desc: 'Self-attested copy of Aadhaar and PAN card. Recent passport-size photograph.' },
       ],
     },
     govt: {
       question: 'What is this government scheme about?',
       steps: [
-        { n:1, title:'Who Can Apply', desc:'Citizens above 60 years of age with no other government pension income below the threshold amount.' },
-        { n:2, title:'What You Receive', desc:'Monthly financial support credited directly to your bank account. Amount varies by state scheme.' },
-        { n:3, title:'How to Apply', desc:'Visit your nearest Common Service Centre (CSC) with documents, or apply online at the scheme portal.' },
-        { n:4, title:'Documents Required', desc:'Age proof (Aadhaar), income certificate from tehsildar, bank passbook, and residence proof.' },
+        { n: 1, title: 'Who Can Apply', desc: 'Citizens above 60 years of age with no other government pension income below the threshold amount.' },
+        { n: 2, title: 'What You Receive', desc: 'Monthly financial support credited directly to your bank account. Amount varies by state scheme.' },
+        { n: 3, title: 'How to Apply', desc: 'Visit your nearest Common Service Centre (CSC) with documents, or apply online at the scheme portal.' },
+        { n: 4, title: 'Documents Required', desc: 'Age proof (Aadhaar), income certificate from tehsildar, bank passbook, and residence proof.' },
       ],
     },
     insurance: {
       question: 'Can you explain my insurance policy?',
       steps: [
-        { n:1, title:'Policy Basics', desc:'Your policy number, start date, and end date. The insured amount you or your family will receive.' },
-        { n:2, title:'Premium Details', desc:'How much you pay and when — monthly, quarterly, or annually. Grace period if you miss a payment.' },
-        { n:3, title:'What is Covered', desc:'The specific situations where the insurance will pay — hospitalisation, accident, or life cover.' },
-        { n:4, title:'How to Make a Claim', desc:'Contact the insurance company by phone or app, fill the claim form, and attach hospital bills and identity proof.' },
+        { n: 1, title: 'Policy Basics', desc: 'Your policy number, start date, and end date. The insured amount you or your family will receive.' },
+        { n: 2, title: 'Premium Details', desc: 'How much you pay and when — monthly, quarterly, or annually. Grace period if you miss a payment.' },
+        { n: 3, title: 'What is Covered', desc: 'The specific situations where the insurance will pay — hospitalisation, accident, or life cover.' },
+        { n: 4, title: 'How to Make a Claim', desc: 'Contact the insurance company by phone or app, fill the claim form, and attach hospital bills and identity proof.' },
       ],
     },
     property: {
       question: 'Can you help me understand this property document?',
       steps: [
-        { n:1, title:'Property Details', desc:'Survey number, plot area, location, and address as registered with local authority.' },
-        { n:2, title:'Owner Information', desc:'Current registered owner name and any co-owners. Check if your name is correctly spelled.' },
-        { n:3, title:'Encumbrances', desc:'Any loans or legal claims against the property. This must be clear before any sale or transfer.' },
-        { n:4, title:'Important Advice', desc:'For any property transaction, always consult a registered lawyer. This explanation is for understanding only.' },
+        { n: 1, title: 'Property Details', desc: 'Survey number, plot area, location, and address as registered with local authority.' },
+        { n: 2, title: 'Owner Information', desc: 'Current registered owner name and any co-owners. Check if your name is correctly spelled.' },
+        { n: 3, title: 'Encumbrances', desc: 'Any loans or legal claims against the property. This must be clear before any sale or transfer.' },
+        { n: 4, title: 'Important Advice', desc: 'For any property transaction, always consult a registered lawyer. This explanation is for understanding only.' },
       ],
     },
     tax: {
       question: 'Can you explain my Income Tax form?',
       steps: [
-        { n:1, title:'Personal Details Section', desc:'Your name, PAN number, date of birth, and contact information. These must exactly match your PAN card.' },
-        { n:2, title:'Income Details', desc:'All sources of income — pension, bank interest, rent, or any business income. Senior citizens have special provisions.' },
-        { n:3, title:'Deductions Available', desc:'Senior citizens can claim higher standard deduction, medical insurance deduction, and other benefits. Check Section 80D.' },
-        { n:4, title:'Verification', desc:'Sign the form digitally using Aadhaar OTP, or physically sign and mail to the Income Tax Department.' },
+        { n: 1, title: 'Personal Details Section', desc: 'Your name, PAN number, date of birth, and contact information. These must exactly match your PAN card.' },
+        { n: 2, title: 'Income Details', desc: 'All sources of income — pension, bank interest, rent, or any business income. Senior citizens have special provisions.' },
+        { n: 3, title: 'Deductions Available', desc: 'Senior citizens can claim higher standard deduction, medical insurance deduction, and other benefits. Check Section 80D.' },
+        { n: 4, title: 'Verification', desc: 'Sign the form digitally using Aadhaar OTP, or physically sign and mail to the Income Tax Department.' },
       ],
     },
   },
   wellnessActivities: [
-    { id:1, icon:'🧘', title:'Morning Yoga', duration:'10 minutes', desc:'Gentle stretches to start your day with energy.', completed:false },
-    { id:2, icon:'🧠', title:'Memory Game', duration:'5 minutes', desc:'Keep your mind sharp with today\'s puzzle.', completed:false },
-    { id:3, icon:'🚶', title:'Morning Walk', duration:'20 minutes', desc:'A refreshing community walk — even indoors counts.', completed:false },
-    { id:4, icon:'💨', title:'Deep Breathing', duration:'5 minutes', desc:'4-7-8 breathing to calm your mind and body.', completed:false },
-    { id:5, icon:'📖', title:'Read Something', duration:'15 minutes', desc:'A poem, a story, or a chapter of your favourite book.', completed:false },
-    { id:6, icon:'🤲', title:'Light Stretching', duration:'8 minutes', desc:'Gentle neck, shoulder, and hand stretches.', completed:false },
-    { id:7, icon:'🎵', title:'Listen to Favourite Music', duration:'15 minutes', desc:'A familiar song can lift the spirit beautifully.', completed:false },
-    { id:8, icon:'📝', title:'Write One Memory', duration:'10 minutes', desc:'Write one beautiful memory in your life vault today.', completed:false },
-    { id:9, icon:'📞', title:'Call a Friend or Family', duration:'Any', desc:'Connection is the best wellness activity of all.', completed:false },
+    { id: 1, icon: '🧘', title: 'Morning Yoga', duration: '10 minutes', desc: 'Gentle stretches to start your day with energy.', completed: false },
+    { id: 2, icon: '🧠', title: 'Memory Game', duration: '5 minutes', desc: 'Keep your mind sharp with today\'s puzzle.', completed: false },
+    { id: 3, icon: '🚶', title: 'Morning Walk', duration: '20 minutes', desc: 'A refreshing community walk — even indoors counts.', completed: false },
+    { id: 4, icon: '💨', title: 'Deep Breathing', duration: '5 minutes', desc: '4-7-8 breathing to calm your mind and body.', completed: false },
+    { id: 5, icon: '📖', title: 'Read Something', duration: '15 minutes', desc: 'A poem, a story, or a chapter of your favourite book.', completed: false },
+    { id: 6, icon: '🤲', title: 'Light Stretching', duration: '8 minutes', desc: 'Gentle neck, shoulder, and hand stretches.', completed: false },
+    { id: 7, icon: '🎵', title: 'Listen to Favourite Music', duration: '15 minutes', desc: 'A familiar song can lift the spirit beautifully.', completed: false },
+    { id: 8, icon: '📝', title: 'Write One Memory', duration: '10 minutes', desc: 'Write one beautiful memory in your life vault today.', completed: false },
+    { id: 9, icon: '📞', title: 'Call a Friend or Family', duration: 'Any', desc: 'Connection is the best wellness activity of all.', completed: false },
   ],
   nostalgiaLibrary: {
     songs: [
-      { title:'Laga Chunari Mein Daag', artist:'Lata Mangeshkar', year:'1963', emoji:'🎵' },
-      { title:'Roop Tera Mastana', artist:'Kishore Kumar', year:'1969', emoji:'🎵' },
-      { title:'Aaj Phir Jeene Ki', artist:'Lata Mangeshkar', year:'1965', emoji:'🎵' },
-      { title:'Mere Naina Sawan Bhado', artist:'Kishore Kumar', year:'1974', emoji:'🎵' },
-      { title:'Kabhi Kabhi Mere Dil Mein', artist:'Lata Mangeshkar', year:'1976', emoji:'🎵' },
-      { title:'O Saathi Re', artist:'Kishore Kumar', year:'1978', emoji:'🎵' },
-      { title:'Pardah Hai Pardah', artist:'Mohd Rafi', year:'1977', emoji:'🎵' },
-      { title:'Chura Liya Hai Tumne', artist:'Asha Bhosle & Rafi', year:'1973', emoji:'🎵' },
+      { title: 'Laga Chunari Mein Daag', artist: 'Lata Mangeshkar', year: '1963', emoji: '🎵' },
+      { title: 'Roop Tera Mastana', artist: 'Kishore Kumar', year: '1969', emoji: '🎵' },
+      { title: 'Aaj Phir Jeene Ki', artist: 'Lata Mangeshkar', year: '1965', emoji: '🎵' },
+      { title: 'Mere Naina Sawan Bhado', artist: 'Kishore Kumar', year: '1974', emoji: '🎵' },
+      { title: 'Kabhi Kabhi Mere Dil Mein', artist: 'Lata Mangeshkar', year: '1976', emoji: '🎵' },
+      { title: 'O Saathi Re', artist: 'Kishore Kumar', year: '1978', emoji: '🎵' },
+      { title: 'Pardah Hai Pardah', artist: 'Mohd Rafi', year: '1977', emoji: '🎵' },
+      { title: 'Chura Liya Hai Tumne', artist: 'Asha Bhosle & Rafi', year: '1973', emoji: '🎵' },
     ],
     movies: [
-      { title:'Sholay', year:'1975', emoji:'🎬' },
-      { title:'Deewar', year:'1975', emoji:'🎬' },
-      { title:'Guide', year:'1965', emoji:'🎬' },
-      { title:'Anand', year:'1971', emoji:'🎬' },
-      { title:'Mughal-E-Azam', year:'1960', emoji:'🎬' },
-      { title:'Pakeezah', year:'1972', emoji:'🎬' },
+      { title: 'Sholay', year: '1975', emoji: '🎬' },
+      { title: 'Deewar', year: '1975', emoji: '🎬' },
+      { title: 'Guide', year: '1965', emoji: '🎬' },
+      { title: 'Anand', year: '1971', emoji: '🎬' },
+      { title: 'Mughal-E-Azam', year: '1960', emoji: '🎬' },
+      { title: 'Pakeezah', year: '1972', emoji: '🎬' },
     ],
     magazines: [
-      { title:'Nandan', desc:'Beloved children\'s magazine', emoji:'📕' },
-      { title:'Champak', desc:'Stories, puzzles and wisdom', emoji:'📗' },
-      { title:'Dharmayug', desc:'Literary and cultural weekly', emoji:'📘' },
-      { title:'Sarika', desc:'Short stories and literature', emoji:'📙' },
-      { title:'Bal Bharati', desc:'School children\'s magazine', emoji:'📓' },
-      { title:'Chandamama', desc:'Classic children\'s stories', emoji:'📔' },
+      { title: 'Nandan', desc: 'Beloved children\'s magazine', emoji: '📕' },
+      { title: 'Champak', desc: 'Stories, puzzles and wisdom', emoji: '📗' },
+      { title: 'Dharmayug', desc: 'Literary and cultural weekly', emoji: '📘' },
+      { title: 'Sarika', desc: 'Short stories and literature', emoji: '📙' },
+      { title: 'Bal Bharati', desc: 'School children\'s magazine', emoji: '📓' },
+      { title: 'Chandamama', desc: 'Classic children\'s stories', emoji: '📔' },
     ],
     radio: [
-      { title:'Binaca Geetmala', desc:'Ameen Sayani\'s iconic countdown show', emoji:'📻' },
-      { title:'Hawa Mahal', desc:'Hindi drama on All India Radio', emoji:'📻' },
-      { title:'Vividh Bharati', desc:'India\'s premier entertainment radio', emoji:'📻' },
-      { title:'Jaimala', desc:'Military dedication programme', emoji:'📻' },
+      { title: 'Binaca Geetmala', desc: 'Ameen Sayani\'s iconic countdown show', emoji: '📻' },
+      { title: 'Hawa Mahal', desc: 'Hindi drama on All India Radio', emoji: '📻' },
+      { title: 'Vividh Bharati', desc: 'India\'s premier entertainment radio', emoji: '📻' },
+      { title: 'Jaimala', desc: 'Military dedication programme', emoji: '📻' },
     ],
   },
   familyBridgeCards: [
@@ -582,19 +582,19 @@ function getStoredSession() {
 }
 
 function getStoredMemories() { return JSON.parse(localStorage.getItem(LS.MEMORIES) || 'null'); }
-function getEasyMode()       { return localStorage.getItem(LS.EASY_MODE) === 'true'; }
-function getDarkMode()       {
+function getEasyMode() { return localStorage.getItem(LS.EASY_MODE) === 'true'; }
+function getDarkMode() {
   const saved = localStorage.getItem(LS.DARK_MODE);
   if (saved !== null) return saved === 'true';
   return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 }
-function getJoinedComms()    { return JSON.parse(localStorage.getItem(LS.COMMUNITIES) || '[]'); }
-function getAvatar()         { return localStorage.getItem(LS.AVATAR) || null; }
+function getJoinedComms() { return JSON.parse(localStorage.getItem(LS.COMMUNITIES) || '[]'); }
+function getAvatar() { return localStorage.getItem(LS.AVATAR) || null; }
 
 function saveStoredMemory(mem) {
   const mems = getStoredMemories() || [...MOCK_DATA.memories];
   mems.push(mem);
-  mems.sort((a,b) => a.year - b.year);
+  mems.sort((a, b) => a.year - b.year);
   localStorage.setItem(LS.MEMORIES, JSON.stringify(mems));
   return mem;
 }
@@ -673,8 +673,8 @@ function logout() {
 // 7. NAVIGATION / ROUTER & STRICT AUTH GUARD
 // ----------------------------------------------------------------
 const VIEWS = ['home', 'news', 'dashboard', 'login', 'signup', 'reconnect', 'memories',
-               'wellness', 'community', 'companion', 'voice', 'legal', 'vault',
-               'family', 'profile', 'nostalgia', 'content'];
+  'wellness', 'community', 'companion', 'voice', 'legal', 'vault',
+  'family', 'profile', 'nostalgia', 'content'];
 
 // ONLY landing page, login, signup, and legal are accessible without an account
 const PUBLIC_VIEWS = ['home', 'login', 'signup', 'legal'];
@@ -811,21 +811,21 @@ function activateView(viewId) {
 }
 
 function onViewChange(viewId) {
-  if (viewId === 'signup')    initSignupForm();
-  if (viewId === 'login')     initLoginForm();
-  if (viewId === 'news')      loadNewsPage();
+  if (viewId === 'signup') initSignupForm();
+  if (viewId === 'login') initLoginForm();
+  if (viewId === 'news') loadNewsPage();
   if (viewId === 'dashboard') initDashboard();
   if (viewId === 'reconnect') initReconnect();
   if (viewId === 'community') initCommunity();
-  if (viewId === 'wellness')  initWellness();
-  if (viewId === 'vault')     initVault();
+  if (viewId === 'wellness') initWellness();
+  if (viewId === 'vault') initVault();
   if (viewId === 'nostalgia') initNostalgia();
   if (viewId === 'companion') initCompanion();
-  if (viewId === 'voice')     initVoicePage();
-  if (viewId === 'family')    initFamily();
-  if (viewId === 'profile')   initProfile();
-  if (viewId === 'memories')  initMemories();
-  if (viewId === 'content')   initContentPage();
+  if (viewId === 'voice') initVoicePage();
+  if (viewId === 'family') initFamily();
+  if (viewId === 'profile') initProfile();
+  if (viewId === 'memories') initMemories();
+  if (viewId === 'content') initContentPage();
 }
 
 function initVoicePage() {
@@ -1048,13 +1048,13 @@ let companionAvatar = companionName === 'Guru' ? '📚' : (companionName === 'Sa
 function updateFloatingChatUI() {
   const btnIcon = document.querySelector('.floating-chat-btn__avatar');
   if (btnIcon) btnIcon.textContent = companionAvatar;
-  
+
   const headerAvatar = document.querySelector('.floating-chat-panel__avatar');
   if (headerAvatar) headerAvatar.textContent = companionAvatar;
-  
+
   const headerName = document.querySelector('.floating-chat-panel__name');
   if (headerName) headerName.textContent = companionName;
-  
+
   const input = document.getElementById('floating-chat-input');
   if (input) {
     input.placeholder = `Talk to ${companionName}…`;
@@ -1063,10 +1063,10 @@ function updateFloatingChatUI() {
 
   const panel = document.getElementById('floating-chat-panel');
   if (panel) panel.setAttribute('aria-label', `${companionName} AI Companion`);
-  
+
   const btn = document.getElementById('floating-chat-btn');
   if (btn) btn.setAttribute('aria-label', `Open Chat with ${companionName}`);
-  
+
   const companionAvatarDisplay = document.getElementById('companion-avatar-display');
   if (companionAvatarDisplay) companionAvatarDisplay.textContent = companionAvatar;
 }
@@ -1635,7 +1635,7 @@ function initCompanionChatUI(containerId, bodyId, inputId, sendId) {
   if (!body || !input || !send) return;
 
   body.innerHTML = '';
-  
+
   if (chatHistory.length === 0) {
     const user = getStoredUser();
     const firstName = user ? (user.firstName || user.name.split(' ')[0]) : null;
@@ -1644,7 +1644,7 @@ function initCompanionChatUI(containerId, bodyId, inputId, sendId) {
     const greeting = firstName
       ? `${timeGreeting}, ${firstName} Ji. Good to have you here. What would you like to explore today?`
       : `${timeGreeting}! I'm Mitra, your companion here on LifeConnect. What would you like to explore today?`;
-    
+
     chatHistory.push({ role: 'assistant', content: greeting });
     saveChatHistory();
     addChatMessage(body, 'ai', greeting, ['Wellness', 'Nostalgia Library', 'Memory Vault']);
@@ -1740,7 +1740,7 @@ function stopSpeaking() {
     window.speechSynthesis.cancel();
   }
   if (currentAudioPlayer) {
-    try { currentAudioPlayer.pause(); } catch(e) {}
+    try { currentAudioPlayer.pause(); } catch (e) { }
     currentAudioPlayer = null;
   }
   currentSpeechUtterance = null;
@@ -1763,10 +1763,10 @@ function speakText(text, onStartCallback, onEndCallback) {
     utterance.volume = 1.0;
 
     const voices = window.speechSynthesis.getVoices();
-    const preferredVoice = voices.find(v => 
+    const preferredVoice = voices.find(v =>
       v.lang.startsWith('hi') || v.lang.includes('en-IN') || v.name.includes('India') || v.name.includes('Natural')
     ) || voices.find(v => v.lang.startsWith('en'));
-    
+
     if (preferredVoice) utterance.voice = preferredVoice;
 
     utterance.onstart = () => {
@@ -1909,7 +1909,7 @@ async function fetchVoiceSearch(queryText) {
   if (q.includes('cricket') || q.includes('world cup') || q.includes('1983')) {
     return "India won its first historic Cricket World Cup in 1983 under Kapil Dev at Lord's, defeating the West Indies, and won again in 2011 under MS Dhoni.";
   }
-  
+
   return `Search result for '${queryText}': Here is the information on your query. You can ask me about live market prices, health remedies, weather, cricket facts, or daily knowledge.`;
 }
 
@@ -1940,14 +1940,14 @@ function initVoiceUI(orbId, statusId, transcriptId) {
     // Navigation shortcuts check
     const lower = userText.toLowerCase();
     if (lower.includes('photo') || lower.includes('vault')) {
-      speakText("Opening your Photo Vault.", 
+      speakText("Opening your Photo Vault.",
         () => { orb.classList.remove('thinking'); orb.classList.add('speaking'); setStatus('Opening Vault...'); },
         () => { orb.classList.remove('speaking'); setStatus('Tap the microphone to speak'); navigate('vault'); }
       );
       return;
     }
     if (lower.includes('friend') || lower.includes('reconnect')) {
-      speakText("Opening Old Friends reconnect section.", 
+      speakText("Opening Old Friends reconnect section.",
         () => { orb.classList.remove('thinking'); orb.classList.add('speaking'); setStatus('Opening Friends...'); },
         () => { orb.classList.remove('speaking'); setStatus('Tap the microphone to speak'); navigate('reconnect'); }
       );
@@ -2021,7 +2021,7 @@ function initVoiceUI(orbId, statusId, transcriptId) {
         orb.classList.remove('listening');
         localIsListening = false;
       };
-    } catch(err) {
+    } catch (err) {
       localRecognition = null;
     }
   }
@@ -2038,7 +2038,7 @@ function initVoiceUI(orbId, statusId, transcriptId) {
 
     if (localIsListening) {
       if (localRecognition) {
-        try { localRecognition.stop(); } catch(e) {}
+        try { localRecognition.stop(); } catch (e) { }
       }
       orb.classList.remove('listening');
       localIsListening = false;
@@ -2054,10 +2054,10 @@ function initVoiceUI(orbId, statusId, transcriptId) {
     setTranscript('');
 
     if (SpeechRecognition && localRecognition) {
-      try { 
-        localRecognition.start(); 
-      } catch(e) { 
-        startSimulatedListening(); 
+      try {
+        localRecognition.start();
+      } catch (e) {
+        startSimulatedListening();
       }
     } else {
       startSimulatedListening();
@@ -2091,13 +2091,13 @@ function initTimeMachine() {
     const data = MOCK_DATA.timeMachine[year];
     document.querySelectorAll('.year-btn').forEach(b => b.classList.toggle('active', b.dataset.year === year));
     const categories = [
-      { key: 'songs',    label: 'Popular Songs',       icon: '🎵' },
-      { key: 'movies',   label: 'Hit Movies',          icon: '🎬' },
-      { key: 'cricket',  label: 'Cricket Moments',     icon: '🏏' },
-      { key: 'events',   label: 'Important Events',    icon: '📰' },
-      { key: 'radio',    label: 'Radio',               icon: '📻' },
-      { key: 'tv',       label: 'Television',          icon: '📺' },
-      { key: 'magazines',label: 'Magazines & Comics',  icon: '📕' },
+      { key: 'songs', label: 'Popular Songs', icon: '🎵' },
+      { key: 'movies', label: 'Hit Movies', icon: '🎬' },
+      { key: 'cricket', label: 'Cricket Moments', icon: '🏏' },
+      { key: 'events', label: 'Important Events', icon: '📰' },
+      { key: 'radio', label: 'Radio', icon: '📻' },
+      { key: 'tv', label: 'Television', icon: '📺' },
+      { key: 'magazines', label: 'Magazines & Comics', icon: '📕' },
     ];
     const available = categories.filter(c => data[c.key]);
     const html = available.map(c => `
@@ -2158,8 +2158,8 @@ function renderFriends() {
   const grid = document.getElementById('friends-grid');
   if (!grid) return;
   const search = (document.getElementById('reconnect-search')?.value || '').toLowerCase();
-  const batch  = document.getElementById('batch-filter')?.value || '';
-  const city   = document.getElementById('city-filter')?.value || '';
+  const batch = document.getElementById('batch-filter')?.value || '';
+  const city = document.getElementById('city-filter')?.value || '';
 
   const user = getStoredUser();
   let friends = [...MOCK_DATA.friends];
@@ -2263,7 +2263,7 @@ function renderFriends() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
             Connected
           </button>` : sent ? `<button class="btn btn-secondary btn-sm btn-block" disabled>Request Sent</button>` :
-          `<button class="btn btn-primary btn-sm btn-block" onclick="sendReconnectRequest(${f.id}, '${f.name}')">
+        `<button class="btn btn-primary btn-sm btn-block" onclick="sendReconnectRequest(${f.id}, '${f.name}')">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><line x1="12" y1="12" x2="12" y2="18"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
             Reconnect
           </button>`}
@@ -2325,9 +2325,9 @@ function initCommunity() {
           <p style="font-size:var(--text-sm);color:var(--text-sec);margin-bottom:16px;line-height:1.55;">${c.desc}</p>
           <p style="font-size:12px;color:var(--text-light);margin-bottom:16px;">📅 ${c.meetup}</p>
           ${isJoined ?
-            `<button class="btn btn-ghost btn-sm btn-block" onclick="leaveCommunity(${c.id},'${c.name}')">Joined — Leave?</button>` :
-            `<button class="btn btn-primary btn-sm btn-block" onclick="joinCommunity(${c.id},'${c.name}')">Join Community</button>`
-          }
+        `<button class="btn btn-ghost btn-sm btn-block" onclick="leaveCommunity(${c.id},'${c.name}')">Joined — Leave?</button>` :
+        `<button class="btn btn-primary btn-sm btn-block" onclick="joinCommunity(${c.id},'${c.name}')">Join Community</button>`
+      }
         </div>
       </div>
     `;
@@ -2392,15 +2392,15 @@ function renderWellness() {
   // If user selected a goal, prioritize matching activities
   const sortedActivities = [...wellnessState].sort((a, b) => {
     const aMatch = userGoal && (a.title.toLowerCase().includes('walk') && userGoal.includes('walk') ||
-                                a.title.toLowerCase().includes('yoga') && userGoal.includes('yoga') ||
-                                a.title.toLowerCase().includes('breath') && (userGoal.includes('pranayama') || userGoal.includes('breath')) ||
-                                a.title.toLowerCase().includes('meditat') && userGoal.includes('meditat') ||
-                                a.title.toLowerCase().includes('laugh') && userGoal.includes('laugh'));
+      a.title.toLowerCase().includes('yoga') && userGoal.includes('yoga') ||
+      a.title.toLowerCase().includes('breath') && (userGoal.includes('pranayama') || userGoal.includes('breath')) ||
+      a.title.toLowerCase().includes('meditat') && userGoal.includes('meditat') ||
+      a.title.toLowerCase().includes('laugh') && userGoal.includes('laugh'));
     const bMatch = userGoal && (b.title.toLowerCase().includes('walk') && userGoal.includes('walk') ||
-                                b.title.toLowerCase().includes('yoga') && userGoal.includes('yoga') ||
-                                b.title.toLowerCase().includes('breath') && (userGoal.includes('pranayama') || userGoal.includes('breath')) ||
-                                b.title.toLowerCase().includes('meditat') && userGoal.includes('meditat') ||
-                                b.title.toLowerCase().includes('laugh') && userGoal.includes('laugh'));
+      b.title.toLowerCase().includes('yoga') && userGoal.includes('yoga') ||
+      b.title.toLowerCase().includes('breath') && (userGoal.includes('pranayama') || userGoal.includes('breath')) ||
+      b.title.toLowerCase().includes('meditat') && userGoal.includes('meditat') ||
+      b.title.toLowerCase().includes('laugh') && userGoal.includes('laugh'));
     if (aMatch && !bMatch) return -1;
     if (!aMatch && bMatch) return 1;
     return 0;
@@ -2408,10 +2408,10 @@ function renderWellness() {
 
   grid.innerHTML = sortedActivities.map(a => {
     const isGoalMatch = userGoal && (a.title.toLowerCase().includes('walk') && userGoal.includes('walk') ||
-                                     a.title.toLowerCase().includes('yoga') && userGoal.includes('yoga') ||
-                                     a.title.toLowerCase().includes('breath') && (userGoal.includes('pranayama') || userGoal.includes('breath')) ||
-                                     a.title.toLowerCase().includes('meditat') && userGoal.includes('meditat') ||
-                                     a.title.toLowerCase().includes('laugh') && userGoal.includes('laugh'));
+      a.title.toLowerCase().includes('yoga') && userGoal.includes('yoga') ||
+      a.title.toLowerCase().includes('breath') && (userGoal.includes('pranayama') || userGoal.includes('breath')) ||
+      a.title.toLowerCase().includes('meditat') && userGoal.includes('meditat') ||
+      a.title.toLowerCase().includes('laugh') && userGoal.includes('laugh'));
     return `
       <div class="activity-card ${a.completed ? 'completed' : ''} ${isGoalMatch ? 'goal-focused' : ''}" onclick="toggleActivity(${a.id})" role="listitem" tabindex="0" aria-label="${a.title} — ${a.completed ? 'completed' : 'tap to complete'}" ${isGoalMatch ? 'style="border:2px solid var(--forest-green);background:linear-gradient(to bottom, #F7FCF7, #FFF);"' : ''}>
         ${isGoalMatch ? '<div style="background:var(--forest-green);color:white;font-size:11px;font-weight:800;padding:2px 8px;border-radius:12px;margin-bottom:6px;display:inline-block;">🌟 Your Daily Chosen Goal</div>' : ''}
@@ -2473,10 +2473,10 @@ function closeAddMemoryModal() {
 }
 
 function saveNewMemory() {
-  const year  = document.getElementById('mem-year').value;
+  const year = document.getElementById('mem-year').value;
   const title = document.getElementById('mem-title').value;
   const content = document.getElementById('mem-content').value;
-  const type  = document.getElementById('mem-type').value;
+  const type = document.getElementById('mem-type').value;
 
   if (!year || !title) {
     showToast('Please fill in the year and title.', 'error');
@@ -2488,7 +2488,7 @@ function saveNewMemory() {
   showToast('Memory saved to your Vault!', 'success');
   renderTimeline();
   // Clear form
-  ['mem-year', 'mem-title', 'mem-content'].forEach(id => { const el = document.getElementById(id); if(el) el.value = ''; });
+  ['mem-year', 'mem-title', 'mem-content'].forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
 }
 
 // ----------------------------------------------------------------
@@ -2820,7 +2820,7 @@ function initProfile() {
 // ----------------------------------------------------------------
 function initLoginForm() {
   const form = document.getElementById('login-form');
-  const btn  = document.getElementById('login-submit') || form?.querySelector('button[type=submit]');
+  const btn = document.getElementById('login-submit') || form?.querySelector('button[type=submit]');
   if (!form) return;
 
   async function handleLogin(e) {
@@ -2829,14 +2829,14 @@ function initLoginForm() {
       e.stopPropagation();
     }
     const emailInput = document.getElementById('login-email');
-    const passInput  = document.getElementById('login-password');
+    const passInput = document.getElementById('login-password');
     const email = emailInput ? emailInput.value.trim() : '';
-    const pass  = passInput ? passInput.value : '';
+    const pass = passInput ? passInput.value : '';
     clearErrors('login-form');
 
     let valid = true;
     if (!email) { showError('login-email-error', 'Email Address or Mobile Number is required'); valid = false; }
-    if (!pass)  { showError('login-pass-error',  'Password is required'); valid = false; }
+    if (!pass) { showError('login-pass-error', 'Password is required'); valid = false; }
     if (!valid) return;
 
     if (btn) {
@@ -2877,13 +2877,13 @@ function initLoginForm() {
 }
 
 // Global toggle for interactive signup chips
-window.toggleChip = function(el) {
+window.toggleChip = function (el) {
   if (!el) return;
   el.classList.toggle('selected');
 };
 
 // Global single-select for decade buttons in signup form
-window.selectSignupDecade = function(btn, decade) {
+window.selectSignupDecade = function (btn, decade) {
   if (!btn) return;
   document.querySelectorAll('#signup-form .decade-btn').forEach(b => {
     b.classList.remove('active', 'selected');
@@ -2895,7 +2895,7 @@ window.selectSignupDecade = function(btn, decade) {
 
 function initSignupForm() {
   const form = document.getElementById('signup-form');
-  const btn  = document.getElementById('signup-submit') || form?.querySelector('button[type=submit]');
+  const btn = document.getElementById('signup-submit') || form?.querySelector('button[type=submit]');
   if (!form) return;
 
   // Reconnect chips
@@ -2923,30 +2923,30 @@ function initSignupForm() {
     }
     clearErrors('signup-form');
 
-    const name       = document.getElementById('signup-name')?.value.trim() || '';
-    const email      = document.getElementById('signup-email')?.value.trim() || '';
-    const mobile     = document.getElementById('signup-mobile')?.value.trim() || '';
-    const age        = document.getElementById('signup-age')?.value || '';
-    const city       = document.getElementById('signup-city')?.value || 'New Delhi';
-    const language   = document.getElementById('signup-language')?.value || 'Hindi';
-    const pass       = document.getElementById('signup-pass')?.value || '';
-    const confirm    = document.getElementById('signup-confirm')?.value || '';
-    const college    = document.getElementById('signup-college')?.value.trim() || '';
+    const name = document.getElementById('signup-name')?.value.trim() || '';
+    const email = document.getElementById('signup-email')?.value.trim() || '';
+    const mobile = document.getElementById('signup-mobile')?.value.trim() || '';
+    const age = document.getElementById('signup-age')?.value || '';
+    const city = document.getElementById('signup-city')?.value || 'New Delhi';
+    const language = document.getElementById('signup-language')?.value || 'Hindi';
+    const pass = document.getElementById('signup-pass')?.value || '';
+    const confirm = document.getElementById('signup-confirm')?.value || '';
+    const college = document.getElementById('signup-college')?.value.trim() || '';
     const profession = document.getElementById('signup-profession')?.value || 'Homemaker & Family Guardian';
     const wellness_goal = document.getElementById('signup-wellness-goal')?.value || 'Morning Walking & Fresh Air';
-    
-    const interests  = [...document.querySelectorAll('#signup-form .interest-chip:not(.decade-btn):not(.culture-chip).selected')].map(c => c.dataset.value);
+
+    const interests = [...document.querySelectorAll('#signup-form .interest-chip:not(.decade-btn):not(.culture-chip).selected')].map(c => c.dataset.value);
     const culture_preferences = [...document.querySelectorAll('#signup-form .culture-chip.selected')].map(c => c.dataset.value);
     const decadeInput = document.getElementById('signup-decade')?.value;
-    const decadeBtn   = document.querySelector('#signup-form .decade-btn.active, #signup-form .decade-btn.selected')?.dataset.decade;
-    const decade      = decadeInput || decadeBtn || '1970s';
+    const decadeBtn = document.querySelector('#signup-form .decade-btn.active, #signup-form .decade-btn.selected')?.dataset.decade;
+    const decade = decadeInput || decadeBtn || '1970s';
 
     let valid = true;
-    if (!name)   { showError('signup-name-error',  'Full name is required'); valid = false; }
-    if (!email)  { showError('signup-email-error', 'Email is required'); valid = false; }
+    if (!name) { showError('signup-name-error', 'Full name is required'); valid = false; }
+    if (!email) { showError('signup-email-error', 'Email is required'); valid = false; }
     else if (!/\S+@\S+\.\S+/.test(email)) { showError('signup-email-error', 'Please enter a valid email'); valid = false; }
     if (mobile && !/^[6-9]\d{9}$/.test(mobile)) { showError('signup-mobile-error', 'Please enter a valid 10-digit Indian mobile number'); valid = false; }
-    if (!pass)   { showError('signup-pass-error',    'Password is required'); valid = false; }
+    if (!pass) { showError('signup-pass-error', 'Password is required'); valid = false; }
     else if (pass.length < 8) { showError('signup-pass-error', 'Password must be at least 8 characters'); valid = false; }
     if (pass !== confirm) { showError('signup-confirm-error', 'Passwords do not match'); valid = false; }
     if (!valid) return;
@@ -2974,7 +2974,7 @@ function initSignupForm() {
         avatar: name.charAt(0).toUpperCase()
       });
       if (btn) {
-        btn.textContent = '✨ Create Account & Personalize LifeConnect';
+        btn.textContent = '✨Create Account & Personalize LifeConnect';
         btn.disabled = false;
       }
 
@@ -2990,7 +2990,7 @@ function initSignupForm() {
       }
     } catch (err) {
       if (btn) {
-        btn.textContent = '✨ Create Account & Personalize LifeConnect';
+        btn.textContent = '✨Create Account & Personalize LifeConnect';
         btn.disabled = false;
       }
       showError('signup-general-error', 'Signup error: ' + err.message);
@@ -3051,7 +3051,7 @@ function initApp() {
     localStorage.removeItem('lc_high_contrast');
     localStorage.removeItem('lifeconnect_font_scale');
     localStorage.removeItem('lifeconnect_high_contrast');
-  } catch (e) {}
+  } catch (e) { }
 
   // Clean up accidental query parameters from previous browser GET submits
   if (window.location.search) {
@@ -3069,20 +3069,20 @@ function initApp() {
       }
       const cleanUrl = window.location.pathname + (window.location.hash || '#login');
       window.history.replaceState(null, '', cleanUrl);
-    } catch (e) {}
+    } catch (e) { }
   }
 
   // Auth forms MUST be initialized first
-  try { initLoginForm(); } catch(e) { console.error('initLoginForm error:', e); }
-  try { initSignupForm(); } catch(e) { console.error('initSignupForm error:', e); }
-  try { initAuthScrollSync(); } catch(e) { console.error('initAuthScrollSync error:', e); }
+  try { initLoginForm(); } catch (e) { console.error('initLoginForm error:', e); }
+  try { initSignupForm(); } catch (e) { console.error('initSignupForm error:', e); }
+  try { initAuthScrollSync(); } catch (e) { console.error('initAuthScrollSync error:', e); }
 
   // Apply easy mode and dark mode
-  try { initEasyMode(); } catch(e) {}
-  try { initDarkMode(); } catch(e) {}
+  try { initEasyMode(); } catch (e) { }
+  try { initDarkMode(); } catch (e) { }
 
   // Init navbar
-  try { initNavbar(); } catch(e) {}
+  try { initNavbar(); } catch (e) { }
 
   // Handle hash routing
   const hash = window.location.hash.replace('#', '') || 'home';
@@ -3095,34 +3095,34 @@ function initApp() {
     } else {
       navigate(hash);
     }
-  } catch(e) {
+  } catch (e) {
     console.error('navigate error:', e);
   }
 
   // Landing page voice
-  try { initVoiceUI('voice-orb', 'voice-status', 'voice-transcript'); } catch(e) {}
+  try { initVoiceUI('voice-orb', 'voice-status', 'voice-transcript'); } catch (e) { }
 
   // Hero animation
-  try { initHero(); } catch(e) {}
+  try { initHero(); } catch (e) { }
 
   // Landing chat
-  try { initCompanionChatUI('home-chat', 'home-chat-body', 'home-chat-input', 'home-chat-send'); } catch(e) {}
+  try { initCompanionChatUI('home-chat', 'home-chat-body', 'home-chat-input', 'home-chat-send'); } catch (e) { }
 
   // Time Machine (landing)
-  try { initTimeMachine(); } catch(e) {}
+  try { initTimeMachine(); } catch (e) { }
 
   // Legal assistant
-  try { initLegal(); } catch(e) {}
+  try { initLegal(); } catch (e) { }
 
   // Memory search (landing)
-  try { initMemorySearch(); } catch(e) {}
+  try { initMemorySearch(); } catch (e) { }
 
   // Float mic nav
   const floatMic = document.getElementById('floating-mic');
   if (floatMic) floatMic.addEventListener('click', () => navigate('voice'));
 
   // Floating chat widget
-  try { initFloatingChat(); } catch(e) {}
+  try { initFloatingChat(); } catch (e) { }
 
   // Hash change listener with auth protection
   window.addEventListener('hashchange', () => {
@@ -3141,9 +3141,9 @@ function initApp() {
   wellbeingBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       const action = btn.dataset.action;
-      if (action === 'call')   showToast('Calling family — this would connect to your phone or app. (Demo mode)', 'info');
-      if (action === 'music')  showToast('Music would play from your favourite playlist. (Demo mode)', 'info');
-      if (action === 'fine')   showToast('That\'s wonderful! Have a beautiful day!', 'success');
+      if (action === 'call') showToast('Calling family — this would connect to your phone or app. (Demo mode)', 'info');
+      if (action === 'music') showToast('Music would play from your favourite playlist. (Demo mode)', 'info');
+      if (action === 'fine') showToast('That\'s wonderful! Have a beautiful day!', 'success');
     });
   });
 }
@@ -3153,13 +3153,13 @@ function initApp() {
 // ----------------------------------------------------------------
 function initFloatingChat() {
   const widget = document.getElementById('floating-chat-widget');
-  const btn    = document.getElementById('floating-chat-btn');
-  const panel  = document.getElementById('floating-chat-panel');
+  const btn = document.getElementById('floating-chat-btn');
+  const panel = document.getElementById('floating-chat-panel');
   const closeBtn = document.getElementById('floating-chat-close');
-  const body   = document.getElementById('floating-chat-body');
-  const input  = document.getElementById('floating-chat-input');
-  const send   = document.getElementById('floating-chat-send');
-  const badge  = document.getElementById('floating-chat-badge');
+  const body = document.getElementById('floating-chat-body');
+  const input = document.getElementById('floating-chat-input');
+  const send = document.getElementById('floating-chat-send');
+  const badge = document.getElementById('floating-chat-badge');
   if (!widget || !btn || !panel) return;
 
   updateFloatingChatUI();
@@ -3182,7 +3182,7 @@ function initFloatingChat() {
         const greeting = firstName
           ? `${timeGreeting}, ${firstName} Ji! I'm ${companionName}. How can I help you today?`
           : `${timeGreeting}! I'm ${companionName}, your AI companion on LifeConnect. What would you like to explore?`;
-          
+
         chatHistory.push({ role: 'assistant', content: greeting });
         saveChatHistory();
         addChatMessage(body, 'ai', greeting, ['Wellness', 'Nostalgia Library', 'Memory Vault']);
@@ -3614,7 +3614,7 @@ function readNewsAloud() {
 
   if (!currentNewsData || !currentNewsData.national_24h) return;
 
-  const textToRead = "Here is your 24-hour India and City News summary. " + 
+  const textToRead = "Here is your 24-hour India and City News summary. " +
     currentNewsData.national_24h.map(n => n.title + ". " + n.summary).join(" ") +
     " City updates include senior walking clubs in Delhi and Mumbai, and Lalbagh electric shuttles in Bengaluru.";
 
@@ -3671,7 +3671,7 @@ const CONTENT_INTERACTIONS_KEY = 'lc_content_interactions';
 function getContentInteractions() {
   try {
     return JSON.parse(localStorage.getItem(CONTENT_INTERACTIONS_KEY) || '{}');
-  } catch(e) { return {}; }
+  } catch (e) { return {}; }
 }
 
 function saveContentInteraction(videoId, action) {
@@ -3696,7 +3696,7 @@ async function fetchContentCatalog() {
       _contentCatalog = res.videos;
       return _contentCatalog;
     }
-  } catch(e) {
+  } catch (e) {
     console.warn('[Content] Backend fetch failed, using embedded catalog:', e);
   }
   _contentCatalog = getEmbeddedCatalog();
@@ -3834,7 +3834,7 @@ function renderVideoCard(video, index) {
   const platform = video.platform || 'youtube';
   const platformLabel = getPlatformLabel(platform);
   const platformClass = getPlatformClass(platform);
-  
+
   let thumbUrl = video.thumbnail;
   if (!thumbUrl) {
     if (platform === 'youtube') {
@@ -3944,7 +3944,7 @@ async function initContentPage() {
       if (_contentCurrentDecade || user.decade) tags.push(`🕰️ ${_contentCurrentDecade || user.decade}`);
       if (user.city) tags.push(`📍 ${user.city}`);
       if (user.language) tags.push(`🗣️ ${user.language}`);
-      if (user.wellness_goal) tags.push(`🧘 ${user.wellness_goal.split(' ').slice(0,3).join(' ')}`);
+      if (user.wellness_goal) tags.push(`🧘 ${user.wellness_goal.split(' ').slice(0, 3).join(' ')}`);
 
       banner.innerHTML = `
         <div class="content-pers-banner" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
@@ -4108,7 +4108,7 @@ function playVideoModal(videoId) {
       video_id: videoId,
       action: 'watched',
       platform: video.platform || 'youtube'
-    }).catch(() => {});
+    }).catch(() => { });
   }
 
   // Populate modal elements
@@ -4174,7 +4174,7 @@ function onDirectExternalWatch(videoId) {
       video_id: videoId,
       action: 'watched',
       platform: plat
-    }).catch(() => {});
+    }).catch(() => { });
   }
   replaceCardInGrid(videoId);
   updateContentStats();
@@ -4207,7 +4207,7 @@ async function ignoreContent(videoId) {
       video_id: videoId,
       action: 'ignored',
       platform: plat
-    }).catch(() => {});
+    }).catch(() => { });
   }
 
   replaceCardInGrid(videoId);
@@ -4221,7 +4221,7 @@ async function resetContentHistory() {
 
   const user = getStoredUser();
   if (user && user.id) {
-    apiRequest('/content/reset', 'POST', { user_id: user.id }).catch(() => {});
+    apiRequest('/content/reset', 'POST', { user_id: user.id }).catch(() => { });
   }
 
   renderContentGrid(_contentCatalog, user);
@@ -4231,954 +4231,954 @@ async function resetContentHistory() {
 // Full 40-item Embedded Catalog (100% verified, playable YouTube IDs)
 function getEmbeddedCatalog() {
   return [
-  {
-    "id": "3wAnXhoCBXQ",
-    "platform": "youtube",
-    "title": "Lag Jaa Gale Ki Phir Ye Haseen Raat Ho Na Ho | Lata Mangeshkar | Woh Kaun Thi | Manoj Kumar, Sadhana",
-    "channel": "Saregama Music",
-    "thumbnail": "https://img.youtube.com/vi/3wAnXhoCBXQ/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=3wAnXhoCBXQ",
-    "embed_url": "https://www.youtube-nocookie.com/embed/3wAnXhoCBXQ?autoplay=1&rel=0",
-    "duration": "4:15",
-    "categories": [
-      "nostalgia_music",
-      "classic_cinema"
-    ],
-    "decades": [
-      "1960s",
-      "1970s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Classic Bollywood"
-    ],
-    "description": "Lata Mangeshkar's evergreen masterpiece from Woh Kaun Thi (1964)."
-  },
-  {
-    "id": "b8tm0k08XDo",
-    "platform": "youtube",
-    "title": "Mere Sapno Ki Rani 4K Song  मेरे सपनो की रानी  आराधना  राजेश खन्ना - शर्मिला टैगोर - किशोर कुमार",
-    "channel": "Saregama Music",
-    "thumbnail": "https://img.youtube.com/vi/b8tm0k08XDo/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=b8tm0k08XDo",
-    "embed_url": "https://www.youtube-nocookie.com/embed/b8tm0k08XDo?autoplay=1&rel=0",
-    "duration": "3:52",
-    "categories": [
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1960s",
-      "1970s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Classic Bollywood"
-    ],
-    "description": "Kishore Kumar's iconic train song featuring Rajesh Khanna from Aradhana (1969)."
-  },
-  {
-    "id": "5ZaKMzJrzXQ",
-    "platform": "youtube",
-    "title": "Yeh Shaam Mastani | Kishore Kumar | Remastered",
-    "channel": "Saregama Music",
-    "thumbnail": "https://img.youtube.com/vi/5ZaKMzJrzXQ/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=5ZaKMzJrzXQ",
-    "embed_url": "https://www.youtube-nocookie.com/embed/5ZaKMzJrzXQ?autoplay=1&rel=0",
-    "duration": "4:40",
-    "categories": [
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1980s",
-      "1970s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Classic Bollywood"
-    ],
-    "description": "Kishore Kumar's evergreen romantic melody from Kati Patang (1970)."
-  },
-  {
-    "id": "seFeZOgyFsc",
-    "platform": "youtube",
-    "title": "Chura Liya Hai Tumne Jo Dil Ko -  Yaadon Ki Baaraat | Zeenat Aman, Vijay Arora",
-    "channel": "Tips Official",
-    "thumbnail": "https://img.youtube.com/vi/seFeZOgyFsc/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=seFeZOgyFsc",
-    "embed_url": "https://www.youtube-nocookie.com/embed/seFeZOgyFsc?autoplay=1&rel=0",
-    "duration": "4:48",
-    "categories": [
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1980s",
-      "1970s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Classic Bollywood"
-    ],
-    "description": "Mohammed Rafi & Asha Bhosle's iconic duet from Yaadon Ki Baaraat (1973)."
-  },
-  {
-    "id": "ltIvlvgEmkA",
-    "platform": "youtube",
-    "title": "Ek Pyar Ka Naghma Hai - Lyrical Video | Shor | Lata Mangeshkar | Manoj Kumar | Jaya Bhaduri",
-    "channel": "Saregama Music",
-    "thumbnail": "https://img.youtube.com/vi/ltIvlvgEmkA/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=ltIvlvgEmkA",
-    "embed_url": "https://www.youtube-nocookie.com/embed/ltIvlvgEmkA?autoplay=1&rel=0",
-    "duration": "5:05",
-    "categories": [
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1980s",
-      "1970s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Classic Bollywood"
-    ],
-    "description": "Soul-stirring song by Lata Mangeshkar & Mukesh from Shor (1972)."
-  },
-  {
-    "id": "g_O5lttb5ww",
-    "platform": "youtube",
-    "title": "Kabhi Kabhie Mere Dil Mein - Mukesh - Kabhi Kabhie [1976]",
-    "channel": "Yash Raj Films",
-    "thumbnail": "https://img.youtube.com/vi/g_O5lttb5ww/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=g_O5lttb5ww",
-    "embed_url": "https://www.youtube-nocookie.com/embed/g_O5lttb5ww?autoplay=1&rel=0",
-    "duration": "5:12",
-    "categories": [
-      "nostalgia_music",
-      "classic_cinema"
-    ],
-    "decades": [
-      "1980s",
-      "1970s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Classic Bollywood"
-    ],
-    "description": "Mukesh's timeless classic with Sahir Ludhianvi's poetry from Kabhi Kabhie (1976)."
-  },
-  {
-    "id": "cP44iDZZ_wY",
-    "platform": "youtube",
-    "title": "Zindagi Kaisi Hai Paheli | Manna Dey | Anand | Rajesh Khanna | Classic Hindi Song",
-    "channel": "Saregama Music",
-    "thumbnail": "https://img.youtube.com/vi/cP44iDZZ_wY/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=cP44iDZZ_wY",
-    "embed_url": "https://www.youtube-nocookie.com/embed/cP44iDZZ_wY?autoplay=1&rel=0",
-    "duration": "3:38",
-    "categories": [
-      "nostalgia_music",
-      "classic_cinema"
-    ],
-    "decades": [
-      "1980s",
-      "1970s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Classic Bollywood"
-    ],
-    "description": "Manna Dey's philosophical masterpiece from Anand (1971)."
-  },
-  {
-    "id": "Zm4V6ty4K6k",
-    "platform": "youtube",
-    "title": "Tere Bina Zindagi Se Lyrical | तेरे बिना ज़िन्दगी से | Aandhi | Suchitra Sen | Sanjeev Kumar | Gulzar",
-    "channel": "Saregama Music",
-    "thumbnail": "https://img.youtube.com/vi/Zm4V6ty4K6k/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=Zm4V6ty4K6k",
-    "embed_url": "https://www.youtube-nocookie.com/embed/Zm4V6ty4K6k?autoplay=1&rel=0",
-    "duration": "5:14",
-    "categories": [
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1980s",
-      "1970s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Classic Bollywood"
-    ],
-    "description": "Kishore Kumar & Lata Mangeshkar duet composed by R.D. Burman in Aandhi (1975)."
-  },
-  {
-    "id": "X0gB9jcgXxg",
-    "platform": "youtube",
-    "title": "HOTHON SE CHHU LO TUM - Jagjit Singh | Prem Geet",
-    "channel": "Saregama Music",
-    "thumbnail": "https://img.youtube.com/vi/X0gB9jcgXxg/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=X0gB9jcgXxg",
-    "embed_url": "https://www.youtube-nocookie.com/embed/X0gB9jcgXxg?autoplay=1&rel=0",
-    "duration": "5:20",
-    "categories": [
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1990s",
-      "1980s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Ghazals & Classical Ragas"
-    ],
-    "description": "Jagjit Singh's immortal ghazal that touched millions of hearts."
-  },
-  {
-    "id": "WtPbNKk9XpU",
-    "platform": "youtube",
-    "title": "Tum Ko Dekha To Yeh Khayal Aaya - Lyrical Video | Jagjit Singh Ghazals | Chitra Singh | Love Song",
-    "channel": "Saregama Music",
-    "thumbnail": "https://img.youtube.com/vi/WtPbNKk9XpU/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=WtPbNKk9XpU",
-    "embed_url": "https://www.youtube-nocookie.com/embed/WtPbNKk9XpU?autoplay=1&rel=0",
-    "duration": "5:18",
-    "categories": [
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1990s",
-      "1980s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Ghazals & Classical Ragas"
-    ],
-    "description": "Soulful ghazal by Jagjit Singh & Chitra Singh from Saath Saath."
-  },
-  {
-    "id": "v0_IRIFYC0k",
-    "platform": "youtube",
-    "title": "Chitthi Aayi Hai | Pankaj Udhas | Naam 1986 Songs | Sanjay Dutt, Nutan, Amrita Singh",
-    "channel": "Tips Official",
-    "thumbnail": "https://img.youtube.com/vi/v0_IRIFYC0k/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=v0_IRIFYC0k",
-    "embed_url": "https://www.youtube-nocookie.com/embed/v0_IRIFYC0k?autoplay=1&rel=0",
-    "duration": "7:12",
-    "categories": [
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1990s",
-      "1980s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Ghazals & Classical Ragas"
-    ],
-    "description": "Pankaj Udhas's nostalgic classic that connects every Indian to home."
-  },
-  {
-    "id": "Jf92MOkrbEw",
-    "platform": "youtube",
-    "title": "Rang Barse Song | Holi Song | Silsila | Amitabh Bachchan, Rekha, Sanjeev, Jaya | रंग बरसे | होली गीत",
-    "channel": "Yash Raj Films",
-    "thumbnail": "https://img.youtube.com/vi/Jf92MOkrbEw/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=Jf92MOkrbEw",
-    "embed_url": "https://www.youtube-nocookie.com/embed/Jf92MOkrbEw?autoplay=1&rel=0",
-    "duration": "5:30",
-    "categories": [
-      "nostalgia_music",
-      "classic_cinema"
-    ],
-    "decades": [
-      "1990s",
-      "1980s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Classic Bollywood"
-    ],
-    "description": "Amitabh Bachchan's energetic festive classic from Silsila (1981)."
-  },
-  {
-    "id": "cNV5hLSa9H8",
-    "platform": "youtube",
-    "title": "Tujhe Dekha Toh Song | Dilwale Dulhania Le Jayenge | Shah Rukh Khan, Kajol | Lata, Kumar Sanu | DDLJ",
-    "channel": "Yash Raj Films",
-    "thumbnail": "https://img.youtube.com/vi/cNV5hLSa9H8/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=cNV5hLSa9H8",
-    "embed_url": "https://www.youtube-nocookie.com/embed/cNV5hLSa9H8?autoplay=1&rel=0",
-    "duration": "5:02",
-    "categories": [
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1990s",
-      "2000s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Classic Bollywood"
-    ],
-    "description": "Kumar Sanu & Lata Mangeshkar's golden 90s anthem from DDLJ."
-  },
-  {
-    "id": "SBfPs-PMGTA",
-    "platform": "youtube",
-    "title": "Pehla Nasha Pehla khumar Full HD l Udit Narayan,Sadhana sargaml Jo jeeta wohi sikandar",
-    "channel": "Sony Music India",
-    "thumbnail": "https://img.youtube.com/vi/SBfPs-PMGTA/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=SBfPs-PMGTA",
-    "embed_url": "https://www.youtube-nocookie.com/embed/SBfPs-PMGTA?autoplay=1&rel=0",
-    "duration": "4:28",
-    "categories": [
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1990s",
-      "2000s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Classic Bollywood"
-    ],
-    "description": "Udit Narayan & Sadhana Sargam in the youth anthem of the 90s."
-  },
-  {
-    "id": "sWqjZpBtcxc",
-    "platform": "youtube",
-    "title": "Aye Mere Humsafar Full Song | Qayamat Se Qayamat Tak | Udit N | Alka Y| Aamir Khan, Juhi Chawla",
-    "channel": "T-Series",
-    "thumbnail": "https://img.youtube.com/vi/sWqjZpBtcxc/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=sWqjZpBtcxc",
-    "embed_url": "https://www.youtube-nocookie.com/embed/sWqjZpBtcxc?autoplay=1&rel=0",
-    "duration": "4:45",
-    "categories": [
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1990s",
-      "1980s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Classic Bollywood"
-    ],
-    "description": "Udit Narayan & Alka Yagnik's romantic superhit from QSRT (1988)."
-  },
-  {
-    "id": "Mcs2xEZ6K8o",
-    "platform": "youtube",
-    "title": "Dheere Dhheere Se Meri Zindagi Mein Aana Full Song (Audio) | Aashiqui | Anuradha Paudwal, Kumar Sanu",
-    "channel": "T-Series",
-    "thumbnail": "https://img.youtube.com/vi/Mcs2xEZ6K8o/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=Mcs2xEZ6K8o",
-    "embed_url": "https://www.youtube-nocookie.com/embed/Mcs2xEZ6K8o?autoplay=1&rel=0",
-    "duration": "5:25",
-    "categories": [
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1990s",
-      "2000s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Classic Bollywood"
-    ],
-    "description": "Kumar Sanu & Anuradha Paudwal in the iconic romantic song of the 90s."
-  },
-  {
-    "id": "LUx8wlA_dk8",
-    "platform": "youtube",
-    "title": "श्री हनुमान चालीसा I Shree Hanuman Chalisa I GULSHAN KUMAR, HARIHARAN I Hanuman Chalisa Ashtak",
-    "channel": "T-Series Bhakti Sagar",
-    "thumbnail": "https://img.youtube.com/vi/LUx8wlA_dk8/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=LUx8wlA_dk8",
-    "embed_url": "https://www.youtube-nocookie.com/embed/LUx8wlA_dk8?autoplay=1&rel=0",
-    "duration": "9:42",
-    "categories": [
-      "devotional"
-    ],
-    "decades": [
-      "2000s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Devotional & Bhajans"
-    ],
-    "description": "The most revered devotional chant of India sung by Hariharan & Gulshan Kumar."
-  },
-  {
-    "id": "nwRoHC83wx0",
-    "platform": "youtube",
-    "title": "Gayatri Mantra 108 times Anuradha Paudwal I Full Audio Song I T-Series Bhakti Sagar",
-    "channel": "T-Series Bhakti Sagar",
-    "thumbnail": "https://img.youtube.com/vi/nwRoHC83wx0/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=nwRoHC83wx0",
-    "embed_url": "https://www.youtube-nocookie.com/embed/nwRoHC83wx0?autoplay=1&rel=0",
-    "duration": "35:10",
-    "categories": [
-      "devotional"
-    ],
-    "decades": [
-      "2000s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Devotional & Bhajans"
-    ],
-    "description": "Anuradha Paudwal's sacred and calming 108 chants of Gayatri Mantra."
-  },
-  {
-    "id": "drszYwxBvpE",
-    "platform": "youtube",
-    "title": "ऐसी लागी लगन मीरा हो गई मगन | Anup Jalota Bhajan | Krishna Bhakti Song | Meera Bhajan | Krishna",
-    "channel": "Saregama Bhakti",
-    "thumbnail": "https://img.youtube.com/vi/drszYwxBvpE/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=drszYwxBvpE",
-    "embed_url": "https://www.youtube-nocookie.com/embed/drszYwxBvpE?autoplay=1&rel=0",
-    "duration": "7:22",
-    "categories": [
-      "devotional"
-    ],
-    "decades": [
-      "1990s",
-      "1980s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Devotional & Bhajans"
-    ],
-    "description": "Anup Jalota's timeless Meera bhajan that touches the soul."
-  },
-  {
-    "id": "ATflA6WOy0I",
-    "platform": "youtube",
-    "title": "Vishnu Sahasranamam - M.S.Subbulakshmi",
-    "channel": "Sangeetham Classical",
-    "thumbnail": "https://img.youtube.com/vi/ATflA6WOy0I/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=ATflA6WOy0I",
-    "embed_url": "https://www.youtube-nocookie.com/embed/ATflA6WOy0I?autoplay=1&rel=0",
-    "duration": "29:15",
-    "categories": [
-      "devotional"
-    ],
-    "decades": [
-      "1980s",
-      "1970s"
-    ],
-    "languages": [
-      "Sanskrit",
-      "Tamil",
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Devotional & Bhajans"
-    ],
-    "description": "Bharat Ratna M.S. Subbulakshmi's divine chanting of Sri Vishnu Sahasranamam."
-  },
-  {
-    "id": "WkYz1g47Hj0",
-    "platform": "youtube",
-    "title": "Senior & Beginner Workout - 15 minute Gentle Chair Yoga",
-    "channel": "Senior Fitness With Meredith",
-    "thumbnail": "https://img.youtube.com/vi/WkYz1g47Hj0/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=WkYz1g47Hj0",
-    "embed_url": "https://www.youtube-nocookie.com/embed/WkYz1g47Hj0?autoplay=1&rel=0",
-    "duration": "15:20",
-    "categories": [
-      "wellness"
-    ],
-    "decades": [
-      "2000s"
-    ],
-    "languages": [
-      "English",
-      "Hindi"
-    ],
-    "culture_tags": [],
-    "description": "Gentle 15-minute chair yoga for seniors to build mobility and ease joint stiffness."
-  },
-  {
-    "id": "uoP5Pr3vkPM",
-    "platform": "youtube",
-    "title": "Chair Yoga for Balance - Improve your Strength & Mobility",
-    "channel": "SilverSneakers",
-    "thumbnail": "https://img.youtube.com/vi/uoP5Pr3vkPM/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=uoP5Pr3vkPM",
-    "embed_url": "https://www.youtube-nocookie.com/embed/uoP5Pr3vkPM?autoplay=1&rel=0",
-    "duration": "18:40",
-    "categories": [
-      "wellness"
-    ],
-    "decades": [
-      "2000s"
-    ],
-    "languages": [
-      "English",
-      "Hindi"
-    ],
-    "culture_tags": [],
-    "description": "Targeted chair exercises to improve balance and prevent falls safely at home."
-  },
-  {
-    "id": "3p4r_ad2Y7g",
-    "platform": "youtube",
-    "title": "Complete Package of Pranayama for Beginner's",
-    "channel": "Patanjali Yogpeeth",
-    "thumbnail": "https://img.youtube.com/vi/3p4r_ad2Y7g/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=3p4r_ad2Y7g",
-    "embed_url": "https://www.youtube-nocookie.com/embed/3p4r_ad2Y7g?autoplay=1&rel=0",
-    "duration": "25:30",
-    "categories": [
-      "wellness"
-    ],
-    "decades": [
-      "2000s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [],
-    "description": "Swami Ramdev guides Pranayama (Anulom Vilom, Kapalbhati, Bhastrika) for daily vitality."
-  },
-  {
-    "id": "90DKrNwwnzA",
-    "platform": "youtube",
-    "title": "Daily Exercise Routine for JOINT PAIN RELIEF | Full Body Workout | Saurabh Bothra Yoga",
-    "channel": "Senior Health & Wellness",
-    "thumbnail": "https://img.youtube.com/vi/90DKrNwwnzA/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=90DKrNwwnzA",
-    "embed_url": "https://www.youtube-nocookie.com/embed/90DKrNwwnzA?autoplay=1&rel=0",
-    "duration": "14:15",
-    "categories": [
-      "wellness"
-    ],
-    "decades": [
-      "2000s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [],
-    "description": "Physiotherapist-guided slow joint-relief routine for arthritis and knee comfort."
-  },
-  {
-    "id": "LYJ3U0Fs4dg",
-    "platform": "youtube",
-    "title": "15 minute Walking Workout for Seniors, Beginners",
-    "channel": "Walk At Home",
-    "thumbnail": "https://img.youtube.com/vi/LYJ3U0Fs4dg/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=LYJ3U0Fs4dg",
-    "embed_url": "https://www.youtube-nocookie.com/embed/LYJ3U0Fs4dg?autoplay=1&rel=0",
-    "duration": "15:00",
-    "categories": [
-      "wellness"
-    ],
-    "decades": [
-      "2000s"
-    ],
-    "languages": [
-      "English",
-      "Hindi"
-    ],
-    "culture_tags": [],
-    "description": "Gentle low-impact indoor walking workout designed specifically for seniors."
-  },
-  {
-    "id": "ZgPHetPG4MY",
-    "platform": "youtube",
-    "title": "10 Minute Meditation for Before You Sleep",
-    "channel": "Mindful Peace",
-    "thumbnail": "https://img.youtube.com/vi/ZgPHetPG4MY/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=ZgPHetPG4MY",
-    "embed_url": "https://www.youtube-nocookie.com/embed/ZgPHetPG4MY?autoplay=1&rel=0",
-    "duration": "10:00",
-    "categories": [
-      "wellness"
-    ],
-    "decades": [
-      "2000s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [],
-    "description": "Calming guided meditation to release stress and promote deep, restful sleep."
-  },
-  {
-    "id": "qYLgpj9i4Fw",
-    "platform": "youtube",
-    "title": "Malgudi days Episode-1 | Swamy and Friends",
-    "channel": "Doordarshan National",
-    "thumbnail": "https://img.youtube.com/vi/qYLgpj9i4Fw/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=qYLgpj9i4Fw",
-    "embed_url": "https://www.youtube-nocookie.com/embed/qYLgpj9i4Fw?autoplay=1&rel=0",
-    "duration": "24:30",
-    "categories": [
-      "classic_cinema",
-      "heritage_sports"
-    ],
-    "decades": [
-      "1990s",
-      "1980s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Literature & Poetry"
-    ],
-    "description": "R.K. Narayan's timeless classic television series from the golden age of Doordarshan."
-  },
-  {
-    "id": "RG3Hqth0Eus",
-    "platform": "youtube",
-    "title": "Ramayan EP 1 - श्री राम भगवान्‌ का जन्म और बाललीला का आनंद | HQ WIDE SCREEN | English Subtitles",
-    "channel": "Sagar World",
-    "thumbnail": "https://img.youtube.com/vi/RG3Hqth0Eus/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=RG3Hqth0Eus",
-    "embed_url": "https://www.youtube-nocookie.com/embed/RG3Hqth0Eus?autoplay=1&rel=0",
-    "duration": "42:10",
-    "categories": [
-      "devotional",
-      "classic_cinema"
-    ],
-    "decades": [
-      "1990s",
-      "1980s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Devotional & Bhajans"
-    ],
-    "description": "Ramanand Sagar's historic epic Ramayan that united India every Sunday morning."
-  },
-  {
-    "id": "TltC-AllzGY",
-    "platform": "youtube",
-    "title": "Mahabharat (महाभारत) | B.R. Chopra | Pen Bhakti | Episodes 01, 02, 03",
-    "channel": "Pen Bhakti",
-    "thumbnail": "https://img.youtube.com/vi/TltC-AllzGY/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=TltC-AllzGY",
-    "embed_url": "https://www.youtube-nocookie.com/embed/TltC-AllzGY?autoplay=1&rel=0",
-    "duration": "45:00",
-    "categories": [
-      "devotional",
-      "classic_cinema"
-    ],
-    "decades": [
-      "1990s",
-      "1980s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Devotional & Bhajans"
-    ],
-    "description": "B.R. Chopra's legendary television epic Mahabharat - episode 1."
-  },
-  {
-    "id": "SsSZWH9aloc",
-    "platform": "youtube",
-    "title": "Kitne Aadmi The? -  Most Famous Dialogue From Sholay | Gabbar Singh | Amazon Prime Video",
-    "channel": "Sippy Films",
-    "thumbnail": "https://img.youtube.com/vi/SsSZWH9aloc/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=SsSZWH9aloc",
-    "embed_url": "https://www.youtube-nocookie.com/embed/SsSZWH9aloc?autoplay=1&rel=0",
-    "duration": "4:15",
-    "categories": [
-      "classic_cinema"
-    ],
-    "decades": [
-      "1980s",
-      "1970s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Classic Bollywood"
-    ],
-    "description": "Gabbar Singh's legendary 'Kitne Aadmi The' dialogue from the 1975 blockbuster Sholay."
-  },
-  {
-    "id": "8O7uQ4XHgNg",
-    "platform": "youtube",
-    "title": "राजेश खन्ना का यह डायलॉग सुनकर आप रो देंगे | Anand का सबसे इमोशनल सीन | Amitabh Bachchan",
-    "channel": "Shemaroo Movies",
-    "thumbnail": "https://img.youtube.com/vi/8O7uQ4XHgNg/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=8O7uQ4XHgNg",
-    "embed_url": "https://www.youtube-nocookie.com/embed/8O7uQ4XHgNg?autoplay=1&rel=0",
-    "duration": "6:20",
-    "categories": [
-      "classic_cinema"
-    ],
-    "decades": [
-      "1980s",
-      "1970s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Classic Bollywood"
-    ],
-    "description": "Rajesh Khanna & Amitabh Bachchan's unforgettable emotional climax from Anand."
-  },
-  {
-    "id": "k8DtPqXjptM",
-    "platform": "youtube",
-    "title": "MIle Sur Mera Tumhara - 720P High Quality - Doordarshan",
-    "channel": "Doordarshan National",
-    "thumbnail": "https://img.youtube.com/vi/k8DtPqXjptM/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=k8DtPqXjptM",
-    "embed_url": "https://www.youtube-nocookie.com/embed/k8DtPqXjptM?autoplay=1&rel=0",
-    "duration": "6:10",
-    "categories": [
-      "heritage_sports",
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1990s",
-      "1980s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Literature & Poetry"
-    ],
-    "description": "The iconic national integration song from 1988 featuring India's greatest legends."
-  },
-  {
-    "id": "WmKQ7W-Miso",
-    "platform": "youtube",
-    "title": "HIGHLIGHTS: Prudential  World Cup Final 1983 Watch India Win World Cup 83 Final | #83TheFilm Trailor",
-    "channel": "ICC Vintage Cricket",
-    "thumbnail": "https://img.youtube.com/vi/WmKQ7W-Miso/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=WmKQ7W-Miso",
-    "embed_url": "https://www.youtube-nocookie.com/embed/WmKQ7W-Miso?autoplay=1&rel=0",
-    "duration": "12:45",
-    "categories": [
-      "heritage_sports"
-    ],
-    "decades": [
-      "1990s",
-      "1980s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [],
-    "description": "Relive Kapil Dev & India lifting the 1983 World Cup at Lord's Cricket Ground."
-  },
-  {
-    "id": "vXoEKeR4uz8",
-    "platform": "youtube",
-    "title": "Ganga Aarti  Varanasi || FULL VIDEO || Dashaswamegh Ghat || संपूर्ण गंगा आरती, वाराणसी",
-    "channel": "Incredible India Heritage",
-    "thumbnail": "https://img.youtube.com/vi/vXoEKeR4uz8/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=vXoEKeR4uz8",
-    "embed_url": "https://www.youtube-nocookie.com/embed/vXoEKeR4uz8?autoplay=1&rel=0",
-    "duration": "18:20",
-    "categories": [
-      "nature_travel",
-      "devotional"
-    ],
-    "decades": [
-      "2000s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Devotional & Bhajans"
-    ],
-    "description": "Experience the spiritual grandeur of the evening Maha Aarti at Dashashwamedh Ghat, Kashi."
-  },
-  {
-    "id": "vP6wxPBfg6k",
-    "platform": "youtube",
-    "title": "Kerala Backwaters Houseboat Journey 🛶 Relaxing Scenic Cruise Through Alappuzha | 4K Nature Sounds",
-    "channel": "Kerala Tourism",
-    "thumbnail": "https://img.youtube.com/vi/vP6wxPBfg6k/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=vP6wxPBfg6k",
-    "embed_url": "https://www.youtube-nocookie.com/embed/vP6wxPBfg6k?autoplay=1&rel=0",
-    "duration": "15:40",
-    "categories": [
-      "nature_travel",
-      "wellness"
-    ],
-    "decades": [
-      "2000s"
-    ],
-    "languages": [
-      "Malayalam",
-      "English",
-      "Hindi"
-    ],
-    "culture_tags": [],
-    "description": "Serene houseboat cruise through tranquil Kerala backwaters and lush palm groves."
-  },
-  {
-    "id": "3XfQ041s_Fc",
-    "platform": "youtube",
-    "title": "Jaipur - The Pink City in 4K",
-    "channel": "Heritage Walks India",
-    "thumbnail": "https://img.youtube.com/vi/3XfQ041s_Fc/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=3XfQ041s_Fc",
-    "embed_url": "https://www.youtube-nocookie.com/embed/3XfQ041s_Fc?autoplay=1&rel=0",
-    "duration": "14:50",
-    "categories": [
-      "nature_travel",
-      "heritage_sports"
-    ],
-    "decades": [
-      "2000s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [],
-    "description": "A cinematic walk through the palaces, havelis and bazaars of the Pink City Jaipur."
-  },
-  {
-    "id": "r1yXbHldZms",
-    "platform": "youtube",
-    "title": "Pandit Ravi Shankar || Raag Bhairavi",
-    "channel": "Classical Heritage",
-    "thumbnail": "https://img.youtube.com/vi/r1yXbHldZms/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=r1yXbHldZms",
-    "embed_url": "https://www.youtube-nocookie.com/embed/r1yXbHldZms?autoplay=1&rel=0",
-    "duration": "24:10",
-    "categories": [
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1980s",
-      "1970s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Ghazals & Classical Ragas"
-    ],
-    "description": "Pandit Ravi Shankar's sitar mastery performing the morning Raga Bhairavi live."
-  },
-  {
-    "id": "2u9gevMQE8E",
-    "platform": "youtube",
-    "title": "Ustad Bismillah Khan Live in Russia",
-    "channel": "Classical Heritage",
-    "thumbnail": "https://img.youtube.com/vi/2u9gevMQE8E/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=2u9gevMQE8E",
-    "embed_url": "https://www.youtube-nocookie.com/embed/2u9gevMQE8E?autoplay=1&rel=0",
-    "duration": "16:45",
-    "categories": [
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1980s",
-      "1970s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Ghazals & Classical Ragas"
-    ],
-    "description": "Bharat Ratna Ustad Bismillah Khan's magical shehnai concert recital."
-  },
-  {
-    "id": "H_jI_gMmI5Q",
-    "platform": "youtube",
-    "title": "Beautiful poem by Amit Ji's Father🥹 || #shorts",
-    "channel": "Sahitya Live",
-    "thumbnail": "https://img.youtube.com/vi/H_jI_gMmI5Q/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=H_jI_gMmI5Q",
-    "embed_url": "https://www.youtube-nocookie.com/embed/H_jI_gMmI5Q?autoplay=1&rel=0",
-    "duration": "4:10",
-    "categories": [
-      "classic_cinema"
-    ],
-    "decades": [
-      "1990s",
-      "1980s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Literature & Poetry"
-    ],
-    "description": "Dr. Harivansh Rai Bachchan's immortal verses from Madhushala."
-  },
-  {
-    "id": "v1qCxCz43PU",
-    "platform": "youtube",
-    "title": "Piyush Mishra recites Faiz Ahmad Faiz's Poetry Kuch Ishq Kiya Kuch Kaam Kiya | Jashn-e-Adab",
-    "channel": "Jashn-e-Adab",
-    "thumbnail": "https://img.youtube.com/vi/v1qCxCz43PU/hqdefault.jpg",
-    "url": "https://www.youtube.com/watch?v=v1qCxCz43PU",
-    "embed_url": "https://www.youtube-nocookie.com/embed/v1qCxCz43PU?autoplay=1&rel=0",
-    "duration": "8:30",
-    "categories": [
-      "nostalgia_music"
-    ],
-    "decades": [
-      "1990s",
-      "2000s"
-    ],
-    "languages": [
-      "Hindi"
-    ],
-    "culture_tags": [
-      "Literature & Poetry"
-    ],
-    "description": "Soulful poetry recitation of Faiz Ahmad Faiz that touches nostalgic hearts."
-  }
-];
+    {
+      "id": "3wAnXhoCBXQ",
+      "platform": "youtube",
+      "title": "Lag Jaa Gale Ki Phir Ye Haseen Raat Ho Na Ho | Lata Mangeshkar | Woh Kaun Thi | Manoj Kumar, Sadhana",
+      "channel": "Saregama Music",
+      "thumbnail": "https://img.youtube.com/vi/3wAnXhoCBXQ/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=3wAnXhoCBXQ",
+      "embed_url": "https://www.youtube-nocookie.com/embed/3wAnXhoCBXQ?autoplay=1&rel=0",
+      "duration": "4:15",
+      "categories": [
+        "nostalgia_music",
+        "classic_cinema"
+      ],
+      "decades": [
+        "1960s",
+        "1970s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Classic Bollywood"
+      ],
+      "description": "Lata Mangeshkar's evergreen masterpiece from Woh Kaun Thi (1964)."
+    },
+    {
+      "id": "b8tm0k08XDo",
+      "platform": "youtube",
+      "title": "Mere Sapno Ki Rani 4K Song  मेरे सपनो की रानी  आराधना  राजेश खन्ना - शर्मिला टैगोर - किशोर कुमार",
+      "channel": "Saregama Music",
+      "thumbnail": "https://img.youtube.com/vi/b8tm0k08XDo/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=b8tm0k08XDo",
+      "embed_url": "https://www.youtube-nocookie.com/embed/b8tm0k08XDo?autoplay=1&rel=0",
+      "duration": "3:52",
+      "categories": [
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1960s",
+        "1970s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Classic Bollywood"
+      ],
+      "description": "Kishore Kumar's iconic train song featuring Rajesh Khanna from Aradhana (1969)."
+    },
+    {
+      "id": "5ZaKMzJrzXQ",
+      "platform": "youtube",
+      "title": "Yeh Shaam Mastani | Kishore Kumar | Remastered",
+      "channel": "Saregama Music",
+      "thumbnail": "https://img.youtube.com/vi/5ZaKMzJrzXQ/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=5ZaKMzJrzXQ",
+      "embed_url": "https://www.youtube-nocookie.com/embed/5ZaKMzJrzXQ?autoplay=1&rel=0",
+      "duration": "4:40",
+      "categories": [
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1980s",
+        "1970s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Classic Bollywood"
+      ],
+      "description": "Kishore Kumar's evergreen romantic melody from Kati Patang (1970)."
+    },
+    {
+      "id": "seFeZOgyFsc",
+      "platform": "youtube",
+      "title": "Chura Liya Hai Tumne Jo Dil Ko -  Yaadon Ki Baaraat | Zeenat Aman, Vijay Arora",
+      "channel": "Tips Official",
+      "thumbnail": "https://img.youtube.com/vi/seFeZOgyFsc/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=seFeZOgyFsc",
+      "embed_url": "https://www.youtube-nocookie.com/embed/seFeZOgyFsc?autoplay=1&rel=0",
+      "duration": "4:48",
+      "categories": [
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1980s",
+        "1970s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Classic Bollywood"
+      ],
+      "description": "Mohammed Rafi & Asha Bhosle's iconic duet from Yaadon Ki Baaraat (1973)."
+    },
+    {
+      "id": "ltIvlvgEmkA",
+      "platform": "youtube",
+      "title": "Ek Pyar Ka Naghma Hai - Lyrical Video | Shor | Lata Mangeshkar | Manoj Kumar | Jaya Bhaduri",
+      "channel": "Saregama Music",
+      "thumbnail": "https://img.youtube.com/vi/ltIvlvgEmkA/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=ltIvlvgEmkA",
+      "embed_url": "https://www.youtube-nocookie.com/embed/ltIvlvgEmkA?autoplay=1&rel=0",
+      "duration": "5:05",
+      "categories": [
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1980s",
+        "1970s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Classic Bollywood"
+      ],
+      "description": "Soul-stirring song by Lata Mangeshkar & Mukesh from Shor (1972)."
+    },
+    {
+      "id": "g_O5lttb5ww",
+      "platform": "youtube",
+      "title": "Kabhi Kabhie Mere Dil Mein - Mukesh - Kabhi Kabhie [1976]",
+      "channel": "Yash Raj Films",
+      "thumbnail": "https://img.youtube.com/vi/g_O5lttb5ww/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=g_O5lttb5ww",
+      "embed_url": "https://www.youtube-nocookie.com/embed/g_O5lttb5ww?autoplay=1&rel=0",
+      "duration": "5:12",
+      "categories": [
+        "nostalgia_music",
+        "classic_cinema"
+      ],
+      "decades": [
+        "1980s",
+        "1970s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Classic Bollywood"
+      ],
+      "description": "Mukesh's timeless classic with Sahir Ludhianvi's poetry from Kabhi Kabhie (1976)."
+    },
+    {
+      "id": "cP44iDZZ_wY",
+      "platform": "youtube",
+      "title": "Zindagi Kaisi Hai Paheli | Manna Dey | Anand | Rajesh Khanna | Classic Hindi Song",
+      "channel": "Saregama Music",
+      "thumbnail": "https://img.youtube.com/vi/cP44iDZZ_wY/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=cP44iDZZ_wY",
+      "embed_url": "https://www.youtube-nocookie.com/embed/cP44iDZZ_wY?autoplay=1&rel=0",
+      "duration": "3:38",
+      "categories": [
+        "nostalgia_music",
+        "classic_cinema"
+      ],
+      "decades": [
+        "1980s",
+        "1970s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Classic Bollywood"
+      ],
+      "description": "Manna Dey's philosophical masterpiece from Anand (1971)."
+    },
+    {
+      "id": "Zm4V6ty4K6k",
+      "platform": "youtube",
+      "title": "Tere Bina Zindagi Se Lyrical | तेरे बिना ज़िन्दगी से | Aandhi | Suchitra Sen | Sanjeev Kumar | Gulzar",
+      "channel": "Saregama Music",
+      "thumbnail": "https://img.youtube.com/vi/Zm4V6ty4K6k/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=Zm4V6ty4K6k",
+      "embed_url": "https://www.youtube-nocookie.com/embed/Zm4V6ty4K6k?autoplay=1&rel=0",
+      "duration": "5:14",
+      "categories": [
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1980s",
+        "1970s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Classic Bollywood"
+      ],
+      "description": "Kishore Kumar & Lata Mangeshkar duet composed by R.D. Burman in Aandhi (1975)."
+    },
+    {
+      "id": "X0gB9jcgXxg",
+      "platform": "youtube",
+      "title": "HOTHON SE CHHU LO TUM - Jagjit Singh | Prem Geet",
+      "channel": "Saregama Music",
+      "thumbnail": "https://img.youtube.com/vi/X0gB9jcgXxg/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=X0gB9jcgXxg",
+      "embed_url": "https://www.youtube-nocookie.com/embed/X0gB9jcgXxg?autoplay=1&rel=0",
+      "duration": "5:20",
+      "categories": [
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1990s",
+        "1980s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Ghazals & Classical Ragas"
+      ],
+      "description": "Jagjit Singh's immortal ghazal that touched millions of hearts."
+    },
+    {
+      "id": "WtPbNKk9XpU",
+      "platform": "youtube",
+      "title": "Tum Ko Dekha To Yeh Khayal Aaya - Lyrical Video | Jagjit Singh Ghazals | Chitra Singh | Love Song",
+      "channel": "Saregama Music",
+      "thumbnail": "https://img.youtube.com/vi/WtPbNKk9XpU/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=WtPbNKk9XpU",
+      "embed_url": "https://www.youtube-nocookie.com/embed/WtPbNKk9XpU?autoplay=1&rel=0",
+      "duration": "5:18",
+      "categories": [
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1990s",
+        "1980s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Ghazals & Classical Ragas"
+      ],
+      "description": "Soulful ghazal by Jagjit Singh & Chitra Singh from Saath Saath."
+    },
+    {
+      "id": "v0_IRIFYC0k",
+      "platform": "youtube",
+      "title": "Chitthi Aayi Hai | Pankaj Udhas | Naam 1986 Songs | Sanjay Dutt, Nutan, Amrita Singh",
+      "channel": "Tips Official",
+      "thumbnail": "https://img.youtube.com/vi/v0_IRIFYC0k/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=v0_IRIFYC0k",
+      "embed_url": "https://www.youtube-nocookie.com/embed/v0_IRIFYC0k?autoplay=1&rel=0",
+      "duration": "7:12",
+      "categories": [
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1990s",
+        "1980s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Ghazals & Classical Ragas"
+      ],
+      "description": "Pankaj Udhas's nostalgic classic that connects every Indian to home."
+    },
+    {
+      "id": "Jf92MOkrbEw",
+      "platform": "youtube",
+      "title": "Rang Barse Song | Holi Song | Silsila | Amitabh Bachchan, Rekha, Sanjeev, Jaya | रंग बरसे | होली गीत",
+      "channel": "Yash Raj Films",
+      "thumbnail": "https://img.youtube.com/vi/Jf92MOkrbEw/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=Jf92MOkrbEw",
+      "embed_url": "https://www.youtube-nocookie.com/embed/Jf92MOkrbEw?autoplay=1&rel=0",
+      "duration": "5:30",
+      "categories": [
+        "nostalgia_music",
+        "classic_cinema"
+      ],
+      "decades": [
+        "1990s",
+        "1980s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Classic Bollywood"
+      ],
+      "description": "Amitabh Bachchan's energetic festive classic from Silsila (1981)."
+    },
+    {
+      "id": "cNV5hLSa9H8",
+      "platform": "youtube",
+      "title": "Tujhe Dekha Toh Song | Dilwale Dulhania Le Jayenge | Shah Rukh Khan, Kajol | Lata, Kumar Sanu | DDLJ",
+      "channel": "Yash Raj Films",
+      "thumbnail": "https://img.youtube.com/vi/cNV5hLSa9H8/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=cNV5hLSa9H8",
+      "embed_url": "https://www.youtube-nocookie.com/embed/cNV5hLSa9H8?autoplay=1&rel=0",
+      "duration": "5:02",
+      "categories": [
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1990s",
+        "2000s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Classic Bollywood"
+      ],
+      "description": "Kumar Sanu & Lata Mangeshkar's golden 90s anthem from DDLJ."
+    },
+    {
+      "id": "SBfPs-PMGTA",
+      "platform": "youtube",
+      "title": "Pehla Nasha Pehla khumar Full HD l Udit Narayan,Sadhana sargaml Jo jeeta wohi sikandar",
+      "channel": "Sony Music India",
+      "thumbnail": "https://img.youtube.com/vi/SBfPs-PMGTA/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=SBfPs-PMGTA",
+      "embed_url": "https://www.youtube-nocookie.com/embed/SBfPs-PMGTA?autoplay=1&rel=0",
+      "duration": "4:28",
+      "categories": [
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1990s",
+        "2000s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Classic Bollywood"
+      ],
+      "description": "Udit Narayan & Sadhana Sargam in the youth anthem of the 90s."
+    },
+    {
+      "id": "sWqjZpBtcxc",
+      "platform": "youtube",
+      "title": "Aye Mere Humsafar Full Song | Qayamat Se Qayamat Tak | Udit N | Alka Y| Aamir Khan, Juhi Chawla",
+      "channel": "T-Series",
+      "thumbnail": "https://img.youtube.com/vi/sWqjZpBtcxc/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=sWqjZpBtcxc",
+      "embed_url": "https://www.youtube-nocookie.com/embed/sWqjZpBtcxc?autoplay=1&rel=0",
+      "duration": "4:45",
+      "categories": [
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1990s",
+        "1980s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Classic Bollywood"
+      ],
+      "description": "Udit Narayan & Alka Yagnik's romantic superhit from QSRT (1988)."
+    },
+    {
+      "id": "Mcs2xEZ6K8o",
+      "platform": "youtube",
+      "title": "Dheere Dhheere Se Meri Zindagi Mein Aana Full Song (Audio) | Aashiqui | Anuradha Paudwal, Kumar Sanu",
+      "channel": "T-Series",
+      "thumbnail": "https://img.youtube.com/vi/Mcs2xEZ6K8o/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=Mcs2xEZ6K8o",
+      "embed_url": "https://www.youtube-nocookie.com/embed/Mcs2xEZ6K8o?autoplay=1&rel=0",
+      "duration": "5:25",
+      "categories": [
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1990s",
+        "2000s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Classic Bollywood"
+      ],
+      "description": "Kumar Sanu & Anuradha Paudwal in the iconic romantic song of the 90s."
+    },
+    {
+      "id": "LUx8wlA_dk8",
+      "platform": "youtube",
+      "title": "श्री हनुमान चालीसा I Shree Hanuman Chalisa I GULSHAN KUMAR, HARIHARAN I Hanuman Chalisa Ashtak",
+      "channel": "T-Series Bhakti Sagar",
+      "thumbnail": "https://img.youtube.com/vi/LUx8wlA_dk8/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=LUx8wlA_dk8",
+      "embed_url": "https://www.youtube-nocookie.com/embed/LUx8wlA_dk8?autoplay=1&rel=0",
+      "duration": "9:42",
+      "categories": [
+        "devotional"
+      ],
+      "decades": [
+        "2000s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Devotional & Bhajans"
+      ],
+      "description": "The most revered devotional chant of India sung by Hariharan & Gulshan Kumar."
+    },
+    {
+      "id": "nwRoHC83wx0",
+      "platform": "youtube",
+      "title": "Gayatri Mantra 108 times Anuradha Paudwal I Full Audio Song I T-Series Bhakti Sagar",
+      "channel": "T-Series Bhakti Sagar",
+      "thumbnail": "https://img.youtube.com/vi/nwRoHC83wx0/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=nwRoHC83wx0",
+      "embed_url": "https://www.youtube-nocookie.com/embed/nwRoHC83wx0?autoplay=1&rel=0",
+      "duration": "35:10",
+      "categories": [
+        "devotional"
+      ],
+      "decades": [
+        "2000s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Devotional & Bhajans"
+      ],
+      "description": "Anuradha Paudwal's sacred and calming 108 chants of Gayatri Mantra."
+    },
+    {
+      "id": "drszYwxBvpE",
+      "platform": "youtube",
+      "title": "ऐसी लागी लगन मीरा हो गई मगन | Anup Jalota Bhajan | Krishna Bhakti Song | Meera Bhajan | Krishna",
+      "channel": "Saregama Bhakti",
+      "thumbnail": "https://img.youtube.com/vi/drszYwxBvpE/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=drszYwxBvpE",
+      "embed_url": "https://www.youtube-nocookie.com/embed/drszYwxBvpE?autoplay=1&rel=0",
+      "duration": "7:22",
+      "categories": [
+        "devotional"
+      ],
+      "decades": [
+        "1990s",
+        "1980s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Devotional & Bhajans"
+      ],
+      "description": "Anup Jalota's timeless Meera bhajan that touches the soul."
+    },
+    {
+      "id": "ATflA6WOy0I",
+      "platform": "youtube",
+      "title": "Vishnu Sahasranamam - M.S.Subbulakshmi",
+      "channel": "Sangeetham Classical",
+      "thumbnail": "https://img.youtube.com/vi/ATflA6WOy0I/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=ATflA6WOy0I",
+      "embed_url": "https://www.youtube-nocookie.com/embed/ATflA6WOy0I?autoplay=1&rel=0",
+      "duration": "29:15",
+      "categories": [
+        "devotional"
+      ],
+      "decades": [
+        "1980s",
+        "1970s"
+      ],
+      "languages": [
+        "Sanskrit",
+        "Tamil",
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Devotional & Bhajans"
+      ],
+      "description": "Bharat Ratna M.S. Subbulakshmi's divine chanting of Sri Vishnu Sahasranamam."
+    },
+    {
+      "id": "WkYz1g47Hj0",
+      "platform": "youtube",
+      "title": "Senior & Beginner Workout - 15 minute Gentle Chair Yoga",
+      "channel": "Senior Fitness With Meredith",
+      "thumbnail": "https://img.youtube.com/vi/WkYz1g47Hj0/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=WkYz1g47Hj0",
+      "embed_url": "https://www.youtube-nocookie.com/embed/WkYz1g47Hj0?autoplay=1&rel=0",
+      "duration": "15:20",
+      "categories": [
+        "wellness"
+      ],
+      "decades": [
+        "2000s"
+      ],
+      "languages": [
+        "English",
+        "Hindi"
+      ],
+      "culture_tags": [],
+      "description": "Gentle 15-minute chair yoga for seniors to build mobility and ease joint stiffness."
+    },
+    {
+      "id": "uoP5Pr3vkPM",
+      "platform": "youtube",
+      "title": "Chair Yoga for Balance - Improve your Strength & Mobility",
+      "channel": "SilverSneakers",
+      "thumbnail": "https://img.youtube.com/vi/uoP5Pr3vkPM/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=uoP5Pr3vkPM",
+      "embed_url": "https://www.youtube-nocookie.com/embed/uoP5Pr3vkPM?autoplay=1&rel=0",
+      "duration": "18:40",
+      "categories": [
+        "wellness"
+      ],
+      "decades": [
+        "2000s"
+      ],
+      "languages": [
+        "English",
+        "Hindi"
+      ],
+      "culture_tags": [],
+      "description": "Targeted chair exercises to improve balance and prevent falls safely at home."
+    },
+    {
+      "id": "3p4r_ad2Y7g",
+      "platform": "youtube",
+      "title": "Complete Package of Pranayama for Beginner's",
+      "channel": "Patanjali Yogpeeth",
+      "thumbnail": "https://img.youtube.com/vi/3p4r_ad2Y7g/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=3p4r_ad2Y7g",
+      "embed_url": "https://www.youtube-nocookie.com/embed/3p4r_ad2Y7g?autoplay=1&rel=0",
+      "duration": "25:30",
+      "categories": [
+        "wellness"
+      ],
+      "decades": [
+        "2000s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [],
+      "description": "Swami Ramdev guides Pranayama (Anulom Vilom, Kapalbhati, Bhastrika) for daily vitality."
+    },
+    {
+      "id": "90DKrNwwnzA",
+      "platform": "youtube",
+      "title": "Daily Exercise Routine for JOINT PAIN RELIEF | Full Body Workout | Saurabh Bothra Yoga",
+      "channel": "Senior Health & Wellness",
+      "thumbnail": "https://img.youtube.com/vi/90DKrNwwnzA/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=90DKrNwwnzA",
+      "embed_url": "https://www.youtube-nocookie.com/embed/90DKrNwwnzA?autoplay=1&rel=0",
+      "duration": "14:15",
+      "categories": [
+        "wellness"
+      ],
+      "decades": [
+        "2000s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [],
+      "description": "Physiotherapist-guided slow joint-relief routine for arthritis and knee comfort."
+    },
+    {
+      "id": "LYJ3U0Fs4dg",
+      "platform": "youtube",
+      "title": "15 minute Walking Workout for Seniors, Beginners",
+      "channel": "Walk At Home",
+      "thumbnail": "https://img.youtube.com/vi/LYJ3U0Fs4dg/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=LYJ3U0Fs4dg",
+      "embed_url": "https://www.youtube-nocookie.com/embed/LYJ3U0Fs4dg?autoplay=1&rel=0",
+      "duration": "15:00",
+      "categories": [
+        "wellness"
+      ],
+      "decades": [
+        "2000s"
+      ],
+      "languages": [
+        "English",
+        "Hindi"
+      ],
+      "culture_tags": [],
+      "description": "Gentle low-impact indoor walking workout designed specifically for seniors."
+    },
+    {
+      "id": "ZgPHetPG4MY",
+      "platform": "youtube",
+      "title": "10 Minute Meditation for Before You Sleep",
+      "channel": "Mindful Peace",
+      "thumbnail": "https://img.youtube.com/vi/ZgPHetPG4MY/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=ZgPHetPG4MY",
+      "embed_url": "https://www.youtube-nocookie.com/embed/ZgPHetPG4MY?autoplay=1&rel=0",
+      "duration": "10:00",
+      "categories": [
+        "wellness"
+      ],
+      "decades": [
+        "2000s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [],
+      "description": "Calming guided meditation to release stress and promote deep, restful sleep."
+    },
+    {
+      "id": "qYLgpj9i4Fw",
+      "platform": "youtube",
+      "title": "Malgudi days Episode-1 | Swamy and Friends",
+      "channel": "Doordarshan National",
+      "thumbnail": "https://img.youtube.com/vi/qYLgpj9i4Fw/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=qYLgpj9i4Fw",
+      "embed_url": "https://www.youtube-nocookie.com/embed/qYLgpj9i4Fw?autoplay=1&rel=0",
+      "duration": "24:30",
+      "categories": [
+        "classic_cinema",
+        "heritage_sports"
+      ],
+      "decades": [
+        "1990s",
+        "1980s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Literature & Poetry"
+      ],
+      "description": "R.K. Narayan's timeless classic television series from the golden age of Doordarshan."
+    },
+    {
+      "id": "RG3Hqth0Eus",
+      "platform": "youtube",
+      "title": "Ramayan EP 1 - श्री राम भगवान्‌ का जन्म और बाललीला का आनंद | HQ WIDE SCREEN | English Subtitles",
+      "channel": "Sagar World",
+      "thumbnail": "https://img.youtube.com/vi/RG3Hqth0Eus/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=RG3Hqth0Eus",
+      "embed_url": "https://www.youtube-nocookie.com/embed/RG3Hqth0Eus?autoplay=1&rel=0",
+      "duration": "42:10",
+      "categories": [
+        "devotional",
+        "classic_cinema"
+      ],
+      "decades": [
+        "1990s",
+        "1980s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Devotional & Bhajans"
+      ],
+      "description": "Ramanand Sagar's historic epic Ramayan that united India every Sunday morning."
+    },
+    {
+      "id": "TltC-AllzGY",
+      "platform": "youtube",
+      "title": "Mahabharat (महाभारत) | B.R. Chopra | Pen Bhakti | Episodes 01, 02, 03",
+      "channel": "Pen Bhakti",
+      "thumbnail": "https://img.youtube.com/vi/TltC-AllzGY/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=TltC-AllzGY",
+      "embed_url": "https://www.youtube-nocookie.com/embed/TltC-AllzGY?autoplay=1&rel=0",
+      "duration": "45:00",
+      "categories": [
+        "devotional",
+        "classic_cinema"
+      ],
+      "decades": [
+        "1990s",
+        "1980s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Devotional & Bhajans"
+      ],
+      "description": "B.R. Chopra's legendary television epic Mahabharat - episode 1."
+    },
+    {
+      "id": "SsSZWH9aloc",
+      "platform": "youtube",
+      "title": "Kitne Aadmi The? -  Most Famous Dialogue From Sholay | Gabbar Singh | Amazon Prime Video",
+      "channel": "Sippy Films",
+      "thumbnail": "https://img.youtube.com/vi/SsSZWH9aloc/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=SsSZWH9aloc",
+      "embed_url": "https://www.youtube-nocookie.com/embed/SsSZWH9aloc?autoplay=1&rel=0",
+      "duration": "4:15",
+      "categories": [
+        "classic_cinema"
+      ],
+      "decades": [
+        "1980s",
+        "1970s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Classic Bollywood"
+      ],
+      "description": "Gabbar Singh's legendary 'Kitne Aadmi The' dialogue from the 1975 blockbuster Sholay."
+    },
+    {
+      "id": "8O7uQ4XHgNg",
+      "platform": "youtube",
+      "title": "राजेश खन्ना का यह डायलॉग सुनकर आप रो देंगे | Anand का सबसे इमोशनल सीन | Amitabh Bachchan",
+      "channel": "Shemaroo Movies",
+      "thumbnail": "https://img.youtube.com/vi/8O7uQ4XHgNg/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=8O7uQ4XHgNg",
+      "embed_url": "https://www.youtube-nocookie.com/embed/8O7uQ4XHgNg?autoplay=1&rel=0",
+      "duration": "6:20",
+      "categories": [
+        "classic_cinema"
+      ],
+      "decades": [
+        "1980s",
+        "1970s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Classic Bollywood"
+      ],
+      "description": "Rajesh Khanna & Amitabh Bachchan's unforgettable emotional climax from Anand."
+    },
+    {
+      "id": "k8DtPqXjptM",
+      "platform": "youtube",
+      "title": "MIle Sur Mera Tumhara - 720P High Quality - Doordarshan",
+      "channel": "Doordarshan National",
+      "thumbnail": "https://img.youtube.com/vi/k8DtPqXjptM/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=k8DtPqXjptM",
+      "embed_url": "https://www.youtube-nocookie.com/embed/k8DtPqXjptM?autoplay=1&rel=0",
+      "duration": "6:10",
+      "categories": [
+        "heritage_sports",
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1990s",
+        "1980s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Literature & Poetry"
+      ],
+      "description": "The iconic national integration song from 1988 featuring India's greatest legends."
+    },
+    {
+      "id": "WmKQ7W-Miso",
+      "platform": "youtube",
+      "title": "HIGHLIGHTS: Prudential  World Cup Final 1983 Watch India Win World Cup 83 Final | #83TheFilm Trailor",
+      "channel": "ICC Vintage Cricket",
+      "thumbnail": "https://img.youtube.com/vi/WmKQ7W-Miso/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=WmKQ7W-Miso",
+      "embed_url": "https://www.youtube-nocookie.com/embed/WmKQ7W-Miso?autoplay=1&rel=0",
+      "duration": "12:45",
+      "categories": [
+        "heritage_sports"
+      ],
+      "decades": [
+        "1990s",
+        "1980s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [],
+      "description": "Relive Kapil Dev & India lifting the 1983 World Cup at Lord's Cricket Ground."
+    },
+    {
+      "id": "vXoEKeR4uz8",
+      "platform": "youtube",
+      "title": "Ganga Aarti  Varanasi || FULL VIDEO || Dashaswamegh Ghat || संपूर्ण गंगा आरती, वाराणसी",
+      "channel": "Incredible India Heritage",
+      "thumbnail": "https://img.youtube.com/vi/vXoEKeR4uz8/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=vXoEKeR4uz8",
+      "embed_url": "https://www.youtube-nocookie.com/embed/vXoEKeR4uz8?autoplay=1&rel=0",
+      "duration": "18:20",
+      "categories": [
+        "nature_travel",
+        "devotional"
+      ],
+      "decades": [
+        "2000s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Devotional & Bhajans"
+      ],
+      "description": "Experience the spiritual grandeur of the evening Maha Aarti at Dashashwamedh Ghat, Kashi."
+    },
+    {
+      "id": "vP6wxPBfg6k",
+      "platform": "youtube",
+      "title": "Kerala Backwaters Houseboat Journey 🛶 Relaxing Scenic Cruise Through Alappuzha | 4K Nature Sounds",
+      "channel": "Kerala Tourism",
+      "thumbnail": "https://img.youtube.com/vi/vP6wxPBfg6k/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=vP6wxPBfg6k",
+      "embed_url": "https://www.youtube-nocookie.com/embed/vP6wxPBfg6k?autoplay=1&rel=0",
+      "duration": "15:40",
+      "categories": [
+        "nature_travel",
+        "wellness"
+      ],
+      "decades": [
+        "2000s"
+      ],
+      "languages": [
+        "Malayalam",
+        "English",
+        "Hindi"
+      ],
+      "culture_tags": [],
+      "description": "Serene houseboat cruise through tranquil Kerala backwaters and lush palm groves."
+    },
+    {
+      "id": "3XfQ041s_Fc",
+      "platform": "youtube",
+      "title": "Jaipur - The Pink City in 4K",
+      "channel": "Heritage Walks India",
+      "thumbnail": "https://img.youtube.com/vi/3XfQ041s_Fc/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=3XfQ041s_Fc",
+      "embed_url": "https://www.youtube-nocookie.com/embed/3XfQ041s_Fc?autoplay=1&rel=0",
+      "duration": "14:50",
+      "categories": [
+        "nature_travel",
+        "heritage_sports"
+      ],
+      "decades": [
+        "2000s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [],
+      "description": "A cinematic walk through the palaces, havelis and bazaars of the Pink City Jaipur."
+    },
+    {
+      "id": "r1yXbHldZms",
+      "platform": "youtube",
+      "title": "Pandit Ravi Shankar || Raag Bhairavi",
+      "channel": "Classical Heritage",
+      "thumbnail": "https://img.youtube.com/vi/r1yXbHldZms/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=r1yXbHldZms",
+      "embed_url": "https://www.youtube-nocookie.com/embed/r1yXbHldZms?autoplay=1&rel=0",
+      "duration": "24:10",
+      "categories": [
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1980s",
+        "1970s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Ghazals & Classical Ragas"
+      ],
+      "description": "Pandit Ravi Shankar's sitar mastery performing the morning Raga Bhairavi live."
+    },
+    {
+      "id": "2u9gevMQE8E",
+      "platform": "youtube",
+      "title": "Ustad Bismillah Khan Live in Russia",
+      "channel": "Classical Heritage",
+      "thumbnail": "https://img.youtube.com/vi/2u9gevMQE8E/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=2u9gevMQE8E",
+      "embed_url": "https://www.youtube-nocookie.com/embed/2u9gevMQE8E?autoplay=1&rel=0",
+      "duration": "16:45",
+      "categories": [
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1980s",
+        "1970s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Ghazals & Classical Ragas"
+      ],
+      "description": "Bharat Ratna Ustad Bismillah Khan's magical shehnai concert recital."
+    },
+    {
+      "id": "H_jI_gMmI5Q",
+      "platform": "youtube",
+      "title": "Beautiful poem by Amit Ji's Father🥹 || #shorts",
+      "channel": "Sahitya Live",
+      "thumbnail": "https://img.youtube.com/vi/H_jI_gMmI5Q/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=H_jI_gMmI5Q",
+      "embed_url": "https://www.youtube-nocookie.com/embed/H_jI_gMmI5Q?autoplay=1&rel=0",
+      "duration": "4:10",
+      "categories": [
+        "classic_cinema"
+      ],
+      "decades": [
+        "1990s",
+        "1980s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Literature & Poetry"
+      ],
+      "description": "Dr. Harivansh Rai Bachchan's immortal verses from Madhushala."
+    },
+    {
+      "id": "v1qCxCz43PU",
+      "platform": "youtube",
+      "title": "Piyush Mishra recites Faiz Ahmad Faiz's Poetry Kuch Ishq Kiya Kuch Kaam Kiya | Jashn-e-Adab",
+      "channel": "Jashn-e-Adab",
+      "thumbnail": "https://img.youtube.com/vi/v1qCxCz43PU/hqdefault.jpg",
+      "url": "https://www.youtube.com/watch?v=v1qCxCz43PU",
+      "embed_url": "https://www.youtube-nocookie.com/embed/v1qCxCz43PU?autoplay=1&rel=0",
+      "duration": "8:30",
+      "categories": [
+        "nostalgia_music"
+      ],
+      "decades": [
+        "1990s",
+        "2000s"
+      ],
+      "languages": [
+        "Hindi"
+      ],
+      "culture_tags": [
+        "Literature & Poetry"
+      ],
+      "description": "Soulful poetry recitation of Faiz Ahmad Faiz that touches nostalgic hearts."
+    }
+  ];
 }

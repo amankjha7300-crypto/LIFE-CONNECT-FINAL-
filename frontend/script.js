@@ -871,6 +871,11 @@ function updateNavForAuth() {
 
   if (loggedIn && user) {
     navActions.innerHTML = `
+      <button id="nav-mic-btn" class="nav-mic-btn" onclick="openVoiceAssistantModal()" title="Voice Assistant & Navigation (Speak 'Go to news', 'Order medicine', etc.)" aria-label="Open Voice Assistant">
+        <span class="nav-mic-icon">🎙️</span>
+        <span class="nav-mic-label">Voice</span>
+        <span class="nav-mic-pulse"></span>
+      </button>
       <button class="nav-avatar" onclick="navigate('dashboard')" title="My Dashboard" aria-label="Go to dashboard">${user.avatar || user.name.charAt(0)}</button>
       <button class="btn btn-secondary btn-sm" onclick="navigate('profile')">Profile</button>
       <button class="btn btn-ghost btn-sm" onclick="logout()">Sign Out</button>
@@ -878,6 +883,11 @@ function updateNavForAuth() {
     `;
   } else {
     navActions.innerHTML = `
+      <button id="nav-mic-btn" class="nav-mic-btn" onclick="openVoiceAssistantModal()" title="Voice Assistant & Navigation (Speak 'Go to news', 'Order medicine', etc.)" aria-label="Open Voice Assistant">
+        <span class="nav-mic-icon">🎙️</span>
+        <span class="nav-mic-label">Voice</span>
+        <span class="nav-mic-pulse"></span>
+      </button>
       <button class="btn btn-secondary btn-sm" onclick="navigate('login')">Login</button>
       <button class="btn btn-primary btn-sm" onclick="navigate('signup')">Get Started</button>
       <button id="dark-mode-toggle" class="btn btn-ghost btn-sm dark-mode-toggle" title="${darkTitle}" aria-label="${darkTitle}">${darkIcon}</button>
@@ -1703,7 +1713,7 @@ function initCompanion() {
   initCompanionChatUI('companion-chat', 'companion-chat-body', 'companion-chat-input', 'companion-chat-send');
 
   // Wire up voice orb click handler
-  initVoiceUI('companion-voice-orb', 'companion-voice-status', 'companion-voice-transcript');
+  initVoiceUI('companion-voice-orb', 'companion-voice-status', 'companion-voice-transcript', 'companion-medicine-results');
 }
 
 // ----------------------------------------------------------------
@@ -1913,7 +1923,585 @@ async function fetchVoiceSearch(queryText) {
   return `Search result for '${queryText}': Here is the information on your query. You can ask me about live market prices, health remedies, weather, cricket facts, or daily knowledge.`;
 }
 
-function initVoiceUI(orbId, statusId, transcriptId) {
+// ----------------------------------------------------------------
+// UNIVERSAL VOICE NAVIGATION & ONLINE MEDICINE ORDERING ENGINE
+// ----------------------------------------------------------------
+
+function parseNavigationCommand(lower) {
+  const routes = [
+    {
+      viewId: 'news',
+      title: '24-Hour News & City Updates',
+      keywords: ['news', 'samachar', 'headline', 'headlines', 'khabar', 'akhbar', 'breaking news']
+    },
+    {
+      viewId: 'wellness',
+      title: 'Senior Wellness, Walking & Yoga',
+      keywords: ['wellness', 'exercise', 'exercises', 'yoga', 'stretch', 'stretching', 'swasthya', 'fitness', 'health', 'walking', 'routine', 'routines', 'breathing']
+    },
+    {
+      viewId: 'memories',
+      title: 'Nostalgia & Memory Vault',
+      keywords: ['memory', 'memories', 'vault', 'photo', 'photos', 'album', 'yaad', 'yaadein', 'purani yaadein', 'nostalgia']
+    },
+    {
+      viewId: 'reconnect',
+      title: 'Old Friends & Batchmates Reconnect',
+      keywords: ['reconnect', 'friend', 'friends', 'dost', 'batchmate', 'batchmates', 'school friend', 'college', 'classmate', 'classmates', 'alumni']
+    },
+    {
+      viewId: 'content',
+      title: 'For You Entertainment & Music',
+      keywords: ['for you', 'foryou', 'content', 'song', 'songs', 'gaana', 'gaane', 'music', 'video', 'videos', 'movie', 'movies', 'cinema', 'retro', 'radio', 'vividh bharati']
+    },
+    {
+      viewId: 'community',
+      title: 'Senior Community & Clubs',
+      keywords: ['community', 'club', 'clubs', 'group', 'groups', 'mandal', 'samuh', 'seniors', 'discussion']
+    },
+    {
+      viewId: 'companion',
+      title: 'AI Life Companion',
+      keywords: ['companion', 'mitra', 'saheli', 'guru', 'ai friend', 'ai companion', 'chat', 'assistant']
+    },
+    {
+      viewId: 'dashboard',
+      title: 'My Home Dashboard',
+      keywords: ['dashboard', 'my home', 'my dashboard']
+    },
+    {
+      viewId: 'home',
+      title: 'Home',
+      keywords: ['home', 'homepage', 'main page', 'start', 'mukhya']
+    },
+    {
+      viewId: 'profile',
+      title: 'Profile & Account Settings',
+      keywords: ['profile', 'account', 'settings', 'user profile', 'my profile']
+    }
+  ];
+
+  const navPrefixes = [
+    'let me to', 'let me go to', 'lead me to', 'take me to', 'go to', 'come to',
+    'open', 'show', 'show me', 'navigate to', 'switch to', 'bring me to', 'visit',
+    'chalo', 'kholo', 'dikhao', 'le chalo', 'section'
+  ];
+
+  const hasNavIntent = navPrefixes.some(p => lower.includes(p)) || lower.includes('section');
+
+  for (const route of routes) {
+    for (const kw of route.keywords) {
+      if (lower.includes(kw)) {
+        return route;
+      }
+    }
+  }
+
+  if (hasNavIntent && lower.includes('section')) {
+    return { viewId: 'home', title: 'Home' };
+  }
+
+  return null;
+}
+
+function parseMedicineCommand(cleanText, lower) {
+  const medicineKeywords = [
+    'medicine', 'medicines', 'dawa', 'dawai', 'order', 'buy', 'purchase',
+    'pharmacy', 'chemist', 'tablet', 'tablets', 'capsule', 'capsules', 'syrup',
+    'dose', 'mg', 'pill', 'pills', 'paracetamol', 'dolo', 'crocin', 'calpol',
+    'metformin', 'telmisartan', 'amlodipine', 'atorvastatin', 'thyronorm',
+    'shelcal', 'combiflam', 'januvia', 'glycomet', 'ecosprin', 'aspirin',
+    'pantocid', 'pan d', 'vicks', 'insulin', 'bp medicine', 'diabetes medicine'
+  ];
+
+  const hasMedIntent = medicineKeywords.some(k => lower.includes(k));
+  if (!hasMedIntent) return null;
+
+  const seniorMedicines = {
+    'dolo 650': {
+      name: 'Dolo 650 Tablet',
+      generic: 'Paracetamol 650mg',
+      category: 'Fever & Pain Relief',
+      desc: 'Most trusted antipyretic & analgesic for relief from fever, headache, body ache, and viral symptoms.',
+      prescription: false,
+      approxPrice: '₹30 - ₹35 for strip of 15',
+      dosageNotice: 'Take as directed by doctor. Do not exceed 4 tablets in 24 hours.'
+    },
+    'paracetamol': {
+      name: 'Paracetamol 650mg / 500mg',
+      generic: 'Acetaminophen / Paracetamol',
+      category: 'Fever & Pain Relief',
+      desc: 'Safe and effective relief from fever, mild to moderate aches, and dental or joint discomfort.',
+      prescription: false,
+      approxPrice: '₹20 - ₹30 for strip of 10-15',
+      dosageNotice: 'Avoid consuming with other paracetamol-containing products.'
+    },
+    'crocin': {
+      name: 'Crocin Advance / 650mg',
+      generic: 'Paracetamol with Fast Release',
+      category: 'Fever & Headache',
+      desc: 'Rapidly dissolving formulation providing fast relief from fever and painful headaches.',
+      prescription: false,
+      approxPrice: '₹25 - ₹35 for strip of 15',
+      dosageNotice: 'Take with half a glass of water after food.'
+    },
+    'metformin': {
+      name: 'Metformin 500mg / 1000mg (Glycomet)',
+      generic: 'Metformin Hydrochloride (Sustained Release)',
+      category: 'Type-2 Diabetes Management',
+      desc: 'First-line prescription medication that helps control blood sugar levels by improving insulin sensitivity.',
+      prescription: true,
+      approxPrice: '₹40 - ₹70 for strip of 20',
+      dosageNotice: 'Prescription required. Take with or immediately after meals.'
+    },
+    'glycomet': {
+      name: 'Glycomet 500mg / SR',
+      generic: 'Metformin Hydrochloride SR',
+      category: 'Type-2 Diabetes Management',
+      desc: 'Trusted sustained-release formulation for daily glycemic control in diabetic seniors.',
+      prescription: true,
+      approxPrice: '₹45 - ₹65 for strip of 20',
+      dosageNotice: 'Requires valid prescription. Monitor blood glucose regularly.'
+    },
+    'telmisartan': {
+      name: 'Telmisartan 40mg (Telma 40)',
+      generic: 'Telmisartan (ARB Antihypertensive)',
+      category: 'High Blood Pressure & Heart Care',
+      desc: 'Relaxes blood vessels, effectively lowers elevated blood pressure, and protects kidney function in seniors.',
+      prescription: true,
+      approxPrice: '₹70 - ₹120 for strip of 15',
+      dosageNotice: 'Prescription required. Take at the same time every morning.'
+    },
+    'telma': {
+      name: 'Telma 40 Tablet',
+      generic: 'Telmisartan 40mg',
+      category: 'High Blood Pressure / Hypertension',
+      desc: 'Top brand Telmisartan for maintaining optimal blood pressure and heart wellness.',
+      prescription: true,
+      approxPrice: '₹90 - ₹130 for strip of 15',
+      dosageNotice: 'Prescription required. Do not skip doses without doctor consultation.'
+    },
+    'amlodipine': {
+      name: 'Amlodipine 5mg (Amlong / Stamlo)',
+      generic: 'Amlodipine Besylate',
+      category: 'Blood Pressure & Angina',
+      desc: 'Calcium channel blocker that widens arteries, lowering high blood pressure and preventing chest tightness.',
+      prescription: true,
+      approxPrice: '₹30 - ₹50 for strip of 15',
+      dosageNotice: 'Prescription required. May cause mild ankle swelling; report to physician.'
+    },
+    'atorvastatin': {
+      name: 'Atorvastatin 10mg / 20mg (Atorva / Storvas)',
+      generic: 'Atorvastatin (Statin)',
+      category: 'Cholesterol & Heart Protection',
+      desc: 'Reduces LDL (bad cholesterol) and triglycerides while elevating HDL (good cholesterol) to prevent cardiac events.',
+      prescription: true,
+      approxPrice: '₹80 - ₹160 for strip of 15',
+      dosageNotice: 'Prescription required. Take once daily at bedtime.'
+    },
+    'thyronorm': {
+      name: 'Thyronorm (25mcg / 50mcg / 100mcg)',
+      generic: 'Levothyroxine Sodium',
+      category: 'Thyroid Hormone Support',
+      desc: 'Synthetic thyroid hormone for hypothyroidism treatment; restores metabolism, energy, and mental clarity.',
+      prescription: true,
+      approxPrice: '₹140 - ₹190 for bottle of 100-120',
+      dosageNotice: 'Prescription required. Must be taken on an empty stomach with plain water, 30-45 mins before tea/breakfast.'
+    },
+    'shelcal': {
+      name: 'Shelcal 500 Tablet',
+      generic: 'Calcium Carbonate 500mg + Vitamin D3 250 IU',
+      category: 'Bone Health & Osteoporosis',
+      desc: 'Essential daily calcium and vitamin D3 formulation to strengthen senior bones, prevent fractures, and reduce joint stiffness.',
+      prescription: false,
+      approxPrice: '₹95 - ₹120 for strip of 15',
+      dosageNotice: 'Best taken after lunch or dinner.'
+    },
+    'calcium': {
+      name: 'Shelcal 500 / Calcium with Vitamin D3',
+      generic: 'Calcium 500mg + Cholecalciferol (D3)',
+      category: 'Joints & Bone Density',
+      desc: 'Replenishes bone mineral density, prevents brittle bones, and promotes joint mobility.',
+      prescription: false,
+      approxPrice: '₹90 - ₹120 for strip of 15',
+      dosageNotice: 'Take with a glass of water after main meals.'
+    },
+    'pan d': {
+      name: 'Pan-D Capsule',
+      generic: 'Pantoprazole 40mg + Domperidone 30mg SR',
+      category: 'Acidity, Gas & Acid Reflux (GERD)',
+      desc: 'Dual-action relief for severe heartburn, acidity, gas bloating, nausea, and morning gastric discomfort.',
+      prescription: true,
+      approxPrice: '₹140 - ₹190 for strip of 15',
+      dosageNotice: 'Take 30 minutes before breakfast on an empty stomach.'
+    },
+    'pantocid': {
+      name: 'Pantocid 40 Tablet',
+      generic: 'Pantoprazole Gastro-Resistant 40mg',
+      category: 'Acidity & Gastric Ulcer Care',
+      desc: 'Suppresses excess stomach acid secretion to heal gastric irritation and prevent heartburn.',
+      prescription: true,
+      approxPrice: '₹120 - ₹165 for strip of 15',
+      dosageNotice: 'Take early morning before breakfast.'
+    },
+    'ecosprin': {
+      name: 'Ecosprin 75 / 150 Tablet',
+      generic: 'Aspirin (Gastro-resistant / Low Dose)',
+      category: 'Blood Thinner & Cardiac Care',
+      desc: 'Prevents blood clots, reducing risk of secondary heart attacks and ischemic strokes in seniors.',
+      prescription: true,
+      approxPrice: '₹10 - ₹18 for strip of 14',
+      dosageNotice: 'Strictly as prescribed by cardiologist. Always take with food.'
+    },
+    'aspirin': {
+      name: 'Ecosprin 75mg / Aspirin',
+      generic: 'Acetylsalicylic acid (Low Dose)',
+      category: 'Blood Thinner & Heart Health',
+      desc: 'Low-dose platelet aggregation inhibitor for cardiovascular protection.',
+      prescription: true,
+      approxPrice: '₹10 - ₹15 for strip of 14',
+      dosageNotice: 'Take after meals with water. Do not stop without doctor advice.'
+    },
+    'combiflam': {
+      name: 'Combiflam Tablet',
+      generic: 'Ibuprofen 400mg + Paracetamol 325mg',
+      category: 'Joint & Muscle Pain Relief',
+      desc: 'Combination anti-inflammatory tablet for acute muscular spasms, arthritis pain, and swelling.',
+      prescription: false,
+      approxPrice: '₹35 - ₹48 for strip of 20',
+      dosageNotice: 'Always take after food. Seniors with kidney disease should consult doctor first.'
+    },
+    'januvia': {
+      name: 'Januvia 50mg / 100mg Tablet',
+      generic: 'Sitagliptin (DPP-4 Inhibitor)',
+      category: 'Advanced Diabetes Care',
+      desc: 'Regulates post-meal blood sugar surges without causing unwanted hypoglycemia (sugar drop).',
+      prescription: true,
+      approxPrice: '₹350 - ₹450 for strip of 7-14',
+      dosageNotice: 'Prescription required. Take once daily with or without food.'
+    },
+    'neurobion': {
+      name: 'Neurobion Forte Tablet',
+      generic: 'Vitamin B1, B2, B3, B5, B6 & B12',
+      category: 'Nerve Strength & Neuropathy',
+      desc: 'Nourishes peripheral nerves, relieves tingling, numbness, and burning sensations in hands and feet.',
+      prescription: false,
+      approxPrice: '₹38 - ₹45 for strip of 30',
+      dosageNotice: 'One tablet daily after food.'
+    },
+    'diabetes': {
+      name: 'Metformin 500mg SR / Glycomet (Diabetes Care)',
+      generic: 'Metformin Hydrochloride',
+      category: 'Type-2 Diabetes Management',
+      desc: 'Standard senior blood sugar stabilizer to prevent diabetic complications.',
+      prescription: true,
+      approxPrice: '₹40 - ₹65 for strip of 20',
+      dosageNotice: 'Requires doctor prescription. Check HbA1c every 3 months.'
+    },
+    'bp': {
+      name: 'Telmisartan 40mg / Amlodipine (Blood Pressure Care)',
+      generic: 'Telmisartan 40mg',
+      category: 'Hypertension / BP Management',
+      desc: 'Keeps senior blood pressure in healthy range (under 130/80 mmHg).',
+      prescription: true,
+      approxPrice: '₹70 - ₹120 for strip of 15',
+      dosageNotice: 'Requires doctor prescription. Measure BP twice weekly.'
+    }
+  };
+
+  let matchedKey = null;
+  for (const key of Object.keys(seniorMedicines)) {
+    if (lower.includes(key)) {
+      matchedKey = key;
+      break;
+    }
+  }
+
+  if (matchedKey) {
+    const info = seniorMedicines[matchedKey];
+    return {
+      medicineName: info.name,
+      searchTerm: matchedKey,
+      ...info
+    };
+  }
+
+  const cleanTokens = lower
+    .replace(/\b(let me to|go to|come to|lead me to|take me to|please|can you|search that|search this|search|order this|order that|order|buy|find|get|purchase|where is|link where|link for|links to|available|on internet|on google|online|medicine|medicines|dawa|dawai|karo|batao|chahiye|de do|ka link)\b/gi, ' ')
+    .replace(/[^\w\s-]/g, ' ')
+    .trim()
+    .replace(/\s+/g, ' ');
+
+  let extractedName = '';
+  if (cleanTokens.length > 1) {
+    extractedName = cleanTokens.split(' ').slice(0, 4).join(' ');
+  } else {
+    extractedName = 'Dolo 650';
+  }
+
+  const formattedName = extractedName.replace(/\b\w/g, c => c.toUpperCase());
+
+  return {
+    medicineName: formattedName,
+    searchTerm: extractedName,
+    generic: formattedName,
+    category: 'General Healthcare & Pharmacy',
+    desc: `Online ordering and price comparison for ${formattedName} across top verified Indian pharmacies.`,
+    prescription: false,
+    approxPrice: 'Standard Pharmacy Rates',
+    dosageNotice: 'Please verify with a registered medical practitioner before starting medication.'
+  };
+}
+
+function renderMedicineCard(med) {
+  const q = encodeURIComponent(med.searchTerm || med.medicineName);
+  const tata1mg = `https://www.1mg.com/search/all?name=${q}`;
+  const pharmEasy = `https://pharmeasy.in/search/all?name=${q}`;
+  const apollo = `https://www.apollopharmacy.in/search-medicines/${q}`;
+  const netmeds = `https://www.netmeds.com/catalogsearch/result/${q}/all`;
+  const googleBuy = `https://www.google.com/search?q=${encodeURIComponent((med.searchTerm || med.medicineName) + ' buy medicine online india')}`;
+
+  const rxBadge = med.prescription 
+    ? `<span class="med-rx-badge prescription-required">📄 Doctor Prescription Required</span>`
+    : `<span class="med-rx-badge otc-available">🟢 Available Over The Counter (OTC)</span>`;
+
+  return `
+    <div class="medicine-order-card">
+      <div class="med-card-top">
+        <div class="med-badge-row">
+          <span class="med-category-pill">💊 ${med.category || 'Medicine Ordering'}</span>
+          ${rxBadge}
+        </div>
+        <h3 class="med-card-title">${med.name || med.medicineName}</h3>
+        <div class="med-generic-info"><strong>Active Composition:</strong> ${med.generic || med.medicineName}</div>
+        <p class="med-card-desc">${med.desc || 'Find genuine stocks and compare prices across certified online pharmacies with door-step delivery in India.'}</p>
+        
+        <div class="med-quick-meta">
+          <div class="med-meta-item">
+            <span class="meta-label">Approx. Price Range</span>
+            <span class="meta-val">${med.approxPrice || 'Standard Pharmacy Rates'}</span>
+          </div>
+          <div class="med-meta-item">
+            <span class="meta-label">Senior Dosage Guide</span>
+            <span class="meta-val">${med.dosageNotice || 'Follow dosage prescribed by your physician.'}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="med-pharmacies-header">
+        <h4>🛒 Where to Buy (Click link to order directly):</h4>
+        <span class="verified-seal">✓ Verified Safe Indian Pharmacies</span>
+      </div>
+
+      <div class="med-pharmacies-grid">
+        <a href="${tata1mg}" target="_blank" rel="noopener noreferrer" class="pharmacy-link-card tata-1mg">
+          <div class="pharmacy-card-header">
+            <span class="pharmacy-icon">🟢</span>
+            <div>
+              <div class="pharmacy-name">Tata 1mg</div>
+              <div class="pharmacy-delivery">Doorstep Delivery • 100% Genuine</div>
+            </div>
+          </div>
+          <div class="pharmacy-perk">Home delivery across India + lab tests</div>
+          <div class="pharmacy-action-btn">Order on Tata 1mg ↗</div>
+        </a>
+
+        <a href="${pharmEasy}" target="_blank" rel="noopener noreferrer" class="pharmacy-link-card pharmeasy">
+          <div class="pharmacy-card-header">
+            <span class="pharmacy-icon">🟠</span>
+            <div>
+              <div class="pharmacy-name">PharmEasy</div>
+              <div class="pharmacy-delivery">Up to 20% Senior Discount</div>
+            </div>
+          </div>
+          <div class="pharmacy-perk">Easy reordering + Monthly refill reminder</div>
+          <div class="pharmacy-action-btn">Order on PharmEasy ↗</div>
+        </a>
+
+        <a href="${apollo}" target="_blank" rel="noopener noreferrer" class="pharmacy-link-card apollo">
+          <div class="pharmacy-card-header">
+            <span class="pharmacy-icon">🔵</span>
+            <div>
+              <div class="pharmacy-name">Apollo Pharmacy</div>
+              <div class="pharmacy-delivery">Fast Express Delivery (2 to 4 hrs)</div>
+            </div>
+          </div>
+          <div class="pharmacy-perk">Direct from Apollo's 5000+ local stores</div>
+          <div class="pharmacy-action-btn">Order on Apollo ↗</div>
+        </a>
+
+        <a href="${netmeds}" target="_blank" rel="noopener noreferrer" class="pharmacy-link-card netmeds">
+          <div class="pharmacy-card-header">
+            <span class="pharmacy-icon">🟣</span>
+            <div>
+              <div class="pharmacy-name">Netmeds</div>
+              <div class="pharmacy-delivery">India Ki Pharmacy • Reliance Care</div>
+            </div>
+          </div>
+          <div class="pharmacy-perk">Cash on delivery &amp; senior wallet perks</div>
+          <div class="pharmacy-action-btn">Order on Netmeds ↗</div>
+        </a>
+      </div>
+
+      <div class="med-extra-search">
+        <a href="${googleBuy}" target="_blank" rel="noopener noreferrer" class="btn btn-ghost btn-sm" style="display:inline-flex;align-items:center;gap:6px;">
+          🔍 Check Other Local Chemists on Google ↗
+        </a>
+      </div>
+
+      <div class="med-safety-box">
+        🛡️ <strong>Senior Safety Note:</strong> Keep your physician's prescription ready when ordering. Many prescription medications cannot be dispensed without a valid Rx. Never alter your dosage without medical guidance.
+      </div>
+    </div>
+  `;
+}
+
+async function handleGlobalVoiceCommand(userText, orb, statusEl, transcriptEl, resultsContainerId) {
+  if (transcriptEl) transcriptEl.textContent = `"${userText}"`;
+  if (statusEl) statusEl.textContent = 'Processing command...';
+  if (orb) {
+    orb.classList.remove('listening', 'speaking');
+    orb.classList.add('thinking');
+  }
+
+  const cleanText = userText.trim();
+  const lower = cleanText.toLowerCase();
+
+  // 1. Check Section Navigation Commands
+  const navMatch = parseNavigationCommand(lower);
+  if (navMatch) {
+    const confirmationText = `Taking you to the ${navMatch.title} section right now.`;
+    if (statusEl) statusEl.textContent = `Navigating to ${navMatch.title}...`;
+    speakText(confirmationText, 
+      () => {
+        if (orb) { orb.classList.remove('thinking'); orb.classList.add('speaking'); }
+      },
+      () => {
+        if (orb) orb.classList.remove('speaking', 'thinking');
+        if (statusEl) statusEl.textContent = 'Tap the microphone to speak';
+        closeVoiceAssistantModal();
+        navigate(navMatch.viewId);
+      }
+    );
+    setTimeout(() => {
+      closeVoiceAssistantModal();
+      navigate(navMatch.viewId);
+    }, 2200);
+    return;
+  }
+
+  // 2. Check Medicine Search & Ordering Commands
+  const medMatch = parseMedicineCommand(cleanText, lower);
+  if (medMatch) {
+    const cardHtml = renderMedicineCard(medMatch);
+    
+    // Target container
+    let container = resultsContainerId ? document.getElementById(resultsContainerId) : null;
+    if (!container) {
+      openVoiceAssistantModal();
+      container = document.getElementById('modal-medicine-results');
+    }
+    
+    if (container) {
+      container.innerHTML = cardHtml;
+      container.style.display = 'block';
+      container.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+
+    const spokenMessage = `I searched for ${medMatch.medicineName}. Direct online ordering links from Tata 1mg, PharmEasy, and Apollo Pharmacy are ready for home delivery.`;
+    if (statusEl) statusEl.textContent = `Found purchase links for ${medMatch.medicineName}`;
+    
+    speakText(spokenMessage,
+      () => {
+        if (orb) { orb.classList.remove('thinking'); orb.classList.add('speaking'); }
+      },
+      () => {
+        if (orb) orb.classList.remove('speaking', 'thinking');
+        if (statusEl) statusEl.textContent = 'Tap the microphone to speak';
+      }
+    );
+    return;
+  }
+
+  // 3. Fallback: Google-style Voice Search / Senior AI Assistant Answer
+  try {
+    const responseText = await fetchVoiceSearch(userText);
+    speakText(responseText,
+      () => {
+        if (orb) {
+          orb.classList.remove('thinking', 'listening');
+          orb.classList.add('speaking');
+          if (statusEl) statusEl.textContent = 'Speaking response...';
+        }
+      },
+      () => {
+        if (orb) orb.classList.remove('speaking', 'thinking');
+        if (statusEl) statusEl.textContent = 'Tap the microphone to speak';
+      }
+    );
+  } catch (err) {
+    console.error("Voice search error:", err);
+    if (orb) orb.classList.remove('thinking', 'speaking');
+    if (statusEl) statusEl.textContent = 'Tap the microphone to speak';
+  }
+}
+
+function openVoiceAssistantModal() {
+  const modal = document.getElementById('voice-assistant-modal');
+  if (!modal) return;
+  modal.style.display = 'flex';
+  modal.classList.add('open');
+
+  initVoiceUI('modal-voice-orb', 'modal-voice-status', 'modal-voice-transcript', 'modal-medicine-results');
+
+  const transcriptEl = document.getElementById('modal-voice-transcript');
+  if (transcriptEl) transcriptEl.textContent = '';
+
+  const statusEl = document.getElementById('modal-voice-status');
+  if (statusEl) statusEl.textContent = 'Tap the microphone to speak';
+
+  setTimeout(() => {
+    const modalOrb = document.getElementById('modal-voice-orb');
+    if (modalOrb && !modalOrb.classList.contains('listening') && !modalOrb.classList.contains('speaking')) {
+      modalOrb.click();
+    }
+  }, 350);
+}
+
+function closeVoiceAssistantModal() {
+  const modal = document.getElementById('voice-assistant-modal');
+  if (modal) {
+    modal.classList.remove('open');
+    modal.style.display = 'none';
+  }
+  stopSpeaking();
+  const modalOrb = document.getElementById('modal-voice-orb');
+  if (modalOrb) {
+    modalOrb.classList.remove('listening', 'speaking', 'thinking');
+  }
+}
+
+function handleVoiceModalBackdrop(e) {
+  if (e.target.id === 'voice-assistant-modal') {
+    closeVoiceAssistantModal();
+  }
+}
+
+function simulateVoicePhrase(phrase) {
+  const orb = document.getElementById('modal-voice-orb');
+  const statusEl = document.getElementById('modal-voice-status');
+  const transcriptEl = document.getElementById('modal-voice-transcript');
+  handleGlobalVoiceCommand(phrase, orb, statusEl, transcriptEl, 'modal-medicine-results');
+}
+
+function simulateCompanionVoicePhrase(phrase) {
+  const orb = document.getElementById('companion-voice-orb');
+  const statusEl = document.getElementById('companion-voice-status');
+  const transcriptEl = document.getElementById('companion-voice-transcript');
+  handleGlobalVoiceCommand(phrase, orb, statusEl, transcriptEl, 'companion-medicine-results');
+}
+
+function initVoiceUI(orbId, statusId, transcriptId, resultsContainerId = null) {
   const orb = document.getElementById(orbId);
   const statusEl = document.getElementById(statusId);
   const transcriptEl = document.getElementById(transcriptId);
@@ -1932,56 +2520,16 @@ function initVoiceUI(orbId, statusId, transcriptId) {
   function setTranscript(text) { if (transcriptEl) transcriptEl.textContent = text; }
 
   async function processVoiceCommand(userText) {
-    setTranscript(`"${userText}"`);
-    setStatus('Thinking...');
-    orb.classList.remove('listening', 'speaking');
-    orb.classList.add('thinking');
-
-    // Navigation shortcuts check
-    const lower = userText.toLowerCase();
-    if (lower.includes('photo') || lower.includes('vault')) {
-      speakText("Opening your Photo Vault.",
-        () => { orb.classList.remove('thinking'); orb.classList.add('speaking'); setStatus('Opening Vault...'); },
-        () => { orb.classList.remove('speaking'); setStatus('Tap the microphone to speak'); navigate('vault'); }
-      );
-      return;
-    }
-    if (lower.includes('friend') || lower.includes('reconnect')) {
-      speakText("Opening Old Friends reconnect section.",
-        () => { orb.classList.remove('thinking'); orb.classList.add('speaking'); setStatus('Opening Friends...'); },
-        () => { orb.classList.remove('speaking'); setStatus('Tap the microphone to speak'); navigate('reconnect'); }
-      );
-      return;
-    }
-
-    // Google-style Voice Search Execution (Speaks answer, never modifies personal chatbot history)
-    try {
-      const responseText = await fetchVoiceSearch(userText);
-
-      speakText(responseText,
-        () => {
-          orb.classList.remove('thinking', 'listening');
-          orb.classList.add('speaking');
-          setStatus('Speaking response...');
-        },
-        () => {
-          orb.classList.remove('speaking', 'thinking');
-          setStatus('Tap the microphone to speak');
-        }
-      );
-    } catch (err) {
-      console.error("Voice search error:", err);
-      orb.classList.remove('thinking', 'speaking');
-      setStatus('Tap the microphone to speak');
-    }
+    await handleGlobalVoiceCommand(userText, orb, statusEl, transcriptEl, resultsContainerId);
   }
 
   function startSimulatedListening() {
     const demos = [
-      'What is the price of milk and vegetables today?',
-      'Tell me a home remedy for knee joint pain',
-      'What is the normal blood pressure for senior citizens?',
-      'Who won the 1983 Cricket World Cup?'
+      'Take me to News section',
+      'Go to Wellness section',
+      'Order Dolo 650 medicine on internet',
+      'Search BP medicine Telmisartan',
+      'Search Diabetes medicine Metformin'
     ];
     const demo = demos[Math.floor(Math.random() * demos.length)];
     setStatus('Listening...');
@@ -3099,8 +3647,10 @@ function initApp() {
     console.error('navigate error:', e);
   }
 
-  // Landing page voice
+  // Voice UI initializations
   try { initVoiceUI('voice-orb', 'voice-status', 'voice-transcript'); } catch (e) { }
+  try { initVoiceUI('modal-voice-orb', 'modal-voice-status', 'modal-voice-transcript', 'modal-medicine-results'); } catch (e) { }
+  try { initVoiceUI('companion-voice-orb', 'companion-voice-status', 'companion-voice-transcript', 'companion-medicine-results'); } catch (e) { }
 
   // Hero animation
   try { initHero(); } catch (e) { }

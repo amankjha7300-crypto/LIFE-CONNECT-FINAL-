@@ -46,6 +46,11 @@
       </div>
 
       <div class="nav-actions" id="nav-actions">
+        <button id="nav-mic-btn" class="nav-mic-btn" onclick="openVoiceAssistantModal()" title="Voice Assistant &amp; Navigation (Speak 'Go to news', 'Order medicine', etc.)" aria-label="Open Voice Assistant">
+          <span class="nav-mic-icon">🎙️</span>
+          <span class="nav-mic-label">Voice Assistant</span>
+          <span class="nav-mic-pulse"></span>
+        </button>
         <button class="btn btn-secondary btn-sm" onclick="navigate('login')">Login</button>
         <button class="btn btn-primary btn-sm" onclick="navigate('signup')">Get Started</button>
         <button id="dark-mode-toggle" class="btn btn-ghost btn-sm" title="Toggle dark mode">🌙</button>
@@ -59,6 +64,9 @@
 
   <!-- Mobile Menu -->
   <div id="mobile-menu" role="dialog" aria-modal="true" aria-label="Navigation menu">
+    <button class="mobile-menu__link" onclick="openVoiceAssistantModal()" style="color:var(--cosmic-orange, #F47B20);font-weight:700;background:rgba(244,123,32,0.08);">
+      🎙️ Voice Assistant (Speak &amp; Order)
+    </button>
     <button class="mobile-menu__link" data-nav="home" onclick="navigate('home')">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
@@ -1414,6 +1422,23 @@
               </div>
               <p class="voice-status" id="companion-voice-status" aria-live="polite">Tap to talk to your companion</p>
               <p class="voice-transcript" id="companion-voice-transcript" aria-live="polite"></p>
+
+              <!-- Medicine search results container inside companion -->
+              <div id="companion-medicine-results" class="medicine-results-container" style="display:none;margin-top:24px;text-align:left;"></div>
+
+              <!-- Quick Voice Commands -->
+              <div class="voice-suggestions" style="margin-top:28px;max-width:600px;margin-left:auto;margin-right:auto;">
+                <div class="voice-suggestions__label">💡 Try saying or tapping:</div>
+                <div class="voice-chips-grid" style="justify-content:center;">
+                  <button class="voice-chip" onclick="simulateCompanionVoicePhrase('Go to News section')">📰 Go to News</button>
+                  <button class="voice-chip" onclick="simulateCompanionVoicePhrase('Take me to Wellness')">🧘 Take me to Wellness</button>
+                  <button class="voice-chip" onclick="simulateCompanionVoicePhrase('Order Dolo 650')">💊 Order Dolo 650</button>
+                  <button class="voice-chip" onclick="simulateCompanionVoicePhrase('Search BP medicine Telmisartan')">🩺 Search BP Telmisartan</button>
+                  <button class="voice-chip" onclick="simulateCompanionVoicePhrase('Search Diabetes medicine Metformin')">💉 Diabetes Metformin</button>
+                  <button class="voice-chip" onclick="simulateCompanionVoicePhrase('Go to Memories')">📻 Go to Memories</button>
+                  <button class="voice-chip" onclick="simulateCompanionVoicePhrase('Take me to Reconnect')">🤝 Reconnect</button>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -2191,6 +2216,68 @@
     </div>
   </div>
 
+  <!-- ============================================================ VOICE ASSISTANT & MEDICINE MODAL -->
+  <div class="modal-overlay" id="voice-assistant-modal" role="dialog" aria-modal="true" aria-labelledby="voice-modal-title"
+    onclick="handleVoiceModalBackdrop(event)" style="display:none;align-items:center;justify-content:center;">
+    <div class="modal voice-modal-box" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeVoiceAssistantModal()" aria-label="Close Voice Assistant">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+
+      <div class="voice-modal-header">
+        <div class="voice-modal-badge">
+          <span class="live-mic-dot"></span> Smart Voice Navigator &amp; Medicine Assistant
+        </div>
+        <h2 id="voice-modal-title" class="voice-modal-title">How can I help you today?</h2>
+        <p class="voice-modal-sub">Speak naturally to navigate to any section (e.g. <em>"Go to News"</em>) or search and order medicines online (e.g. <em>"Order Dolo 650"</em>).</p>
+      </div>
+
+      <!-- Voice Orb Interface inside Modal -->
+      <div class="voice-modal-orb-area">
+        <div class="voice-orb-wrap">
+          <button class="voice-orb modal-voice-orb" id="modal-voice-orb" aria-label="Start voice command">
+            <svg width="50" height="50" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" />
+              <path d="M19 10v2a7 7 0 01-14 0v-2" />
+              <line x1="12" y1="19" x2="12" y2="23" />
+              <line x1="8" y1="23" x2="16" y2="23" />
+            </svg>
+          </button>
+          <div class="voice-rings" aria-hidden="true">
+            <div class="voice-ring"></div>
+            <div class="voice-ring"></div>
+            <div class="voice-ring"></div>
+          </div>
+        </div>
+        <p class="voice-status" id="modal-voice-status" aria-live="polite">Tap the microphone to speak</p>
+        <div class="voice-transcript-box">
+          <p class="voice-transcript" id="modal-voice-transcript" aria-live="polite"></p>
+        </div>
+      </div>
+
+      <!-- Quick Action Pills -->
+      <div class="voice-suggestions">
+        <div class="voice-suggestions__label">💡 Try saying or tapping:</div>
+        <div class="voice-chips-grid">
+          <button class="voice-chip" onclick="simulateVoicePhrase('Go to News section')">📰 Go to News</button>
+          <button class="voice-chip" onclick="simulateVoicePhrase('Take me to Wellness')">🧘 Take me to Wellness</button>
+          <button class="voice-chip" onclick="simulateVoicePhrase('Order Dolo 650 medicine')">💊 Order Dolo 650</button>
+          <button class="voice-chip" onclick="simulateVoicePhrase('Search BP medicine Telmisartan')">🩺 Search BP Telmisartan</button>
+          <button class="voice-chip" onclick="simulateVoicePhrase('Search Diabetes medicine Metformin')">💉 Diabetes Metformin</button>
+          <button class="voice-chip" onclick="simulateVoicePhrase('Go to Memories section')">📻 Go to Memories</button>
+          <button class="voice-chip" onclick="simulateVoicePhrase('Take me to Reconnect')">🤝 Reconnect Friends</button>
+          <button class="voice-chip" onclick="simulateVoicePhrase('Go to For You videos')">📺 For You Videos</button>
+        </div>
+      </div>
+
+      <!-- Medicine & Action Results Container -->
+      <div id="modal-medicine-results" class="medicine-results-container" style="display:none;margin-top:20px;"></div>
+    </div>
+  </div>
+
   <!-- Toast Container -->
   <div id="toast-container" class="toast-container" role="alert" aria-live="polite"></div>
 
@@ -2203,7 +2290,7 @@
       // Initialize voice on companion page
       document.addEventListener('viewchange', (e) => {
         if (e.detail === 'companion') {
-          initVoiceUI('companion-voice-orb', 'companion-voice-status', 'companion-voice-transcript');
+          initVoiceUI('companion-voice-orb', 'companion-voice-status', 'companion-voice-transcript', 'companion-medicine-results');
         }
         if (e.detail === 'voice') {
           initVoiceUI('voice-page-orb', 'voice-page-status', 'voice-page-transcript');

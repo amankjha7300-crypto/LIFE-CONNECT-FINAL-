@@ -4661,3 +4661,448 @@ body[data-theme="dark"] .video-player-modal-box {
   color: #f8fafc;
 }
 
+
+/* ================================================================
+   UNIVERSAL VOICE ASSISTANT & ONLINE MEDICINE ORDERING SYSTEM
+   ================================================================ */
+
+.nav-mic-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #FFF5EB 0%, #FFE8D6 100%);
+  border: 2px solid var(--cosmic-orange, #F47B20);
+  color: #C0392B;
+  padding: 6px 16px;
+  border-radius: 24px;
+  font-size: 13.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all var(--transition-base, 0.25s ease);
+  box-shadow: 0 2px 8px rgba(244, 123, 32, 0.18);
+  position: relative;
+  text-decoration: none;
+}
+
+.nav-mic-btn:hover {
+  background: var(--cosmic-orange, #F47B20);
+  color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(244, 123, 32, 0.35);
+}
+
+.nav-mic-icon {
+  font-size: 16px;
+  display: inline-block;
+  animation: micBounce 2s infinite ease-in-out;
+}
+
+@keyframes micBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+.nav-mic-pulse {
+  position: absolute;
+  inset: -3px;
+  border-radius: 26px;
+  border: 2px solid var(--cosmic-orange, #F47B20);
+  opacity: 0;
+  animation: navMicPulseAnim 2.5s infinite;
+  pointer-events: none;
+}
+
+@keyframes navMicPulseAnim {
+  0% { transform: scale(0.96); opacity: 0.8; }
+  70% { transform: scale(1.12); opacity: 0; }
+  100% { transform: scale(1.12); opacity: 0; }
+}
+
+/* Voice Modal Specifics */
+.voice-modal-box {
+  max-width: 660px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  background: var(--white, #FFFFFF);
+  border-radius: 20px;
+  padding: 36px 32px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
+  position: relative;
+  border: 1.5px solid rgba(244, 123, 32, 0.25);
+  box-sizing: border-box;
+}
+
+.voice-modal-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.voice-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #FFF5EB;
+  border: 1px solid #FED7AA;
+  color: #C2410C;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+
+.live-mic-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #EA580C;
+  box-shadow: 0 0 6px #EA580C;
+  animation: pulseDot 1.4s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+.voice-modal-title {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--text-dark, #263126);
+  margin-bottom: 6px;
+}
+
+.voice-modal-sub {
+  font-size: 14px;
+  color: var(--text-sec, #5A6B5A);
+  line-height: 1.5;
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.voice-modal-orb-area {
+  text-align: center;
+  padding: 24px 0 16px;
+  background: #FDFBF7;
+  border: 1px solid #F1E9DA;
+  border-radius: 16px;
+  margin-bottom: 20px;
+}
+
+.voice-transcript-box {
+  min-height: 38px;
+  margin-top: 8px;
+  padding: 0 20px;
+}
+
+.voice-suggestions {
+  margin-top: 16px;
+}
+
+.voice-suggestions__label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-sec, #5A6B5A);
+  margin-bottom: 8px;
+}
+
+.voice-chips-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.voice-chip {
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  padding: 7px 13px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.voice-chip:hover {
+  background: #FFF5EB;
+  border-color: var(--cosmic-orange, #F47B20);
+  color: #C2410C;
+  transform: translateY(-1px);
+}
+
+/* Medicine Order Cards */
+.medicine-order-card {
+  background: #FFFFFF;
+  border: 2px solid #FED7AA;
+  border-radius: 16px;
+  padding: 22px;
+  margin-top: 16px;
+  box-shadow: 0 8px 24px rgba(244, 123, 32, 0.08);
+  text-align: left;
+  animation: fadeIn 0.3s ease;
+}
+
+.med-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+
+.med-category-pill {
+  background: #FFF7ED;
+  color: #C2410C;
+  border: 1px solid #FED7AA;
+  font-weight: 700;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.med-rx-badge {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 12px;
+}
+
+.prescription-required {
+  background: #FEE2E2;
+  color: #DC2626;
+  border: 1px solid #FCA5A5;
+}
+
+.otc-available {
+  background: #ECFDF5;
+  color: #059669;
+  border: 1px solid #A7F3D0;
+}
+
+.med-card-title {
+  font-family: var(--font-serif, Georgia, serif);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-dark, #263126);
+  margin-bottom: 6px;
+}
+
+.med-generic-info {
+  font-size: 13.5px;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.med-card-desc {
+  font-size: 14px;
+  color: var(--text-sec, #5A6B5A);
+  line-height: 1.5;
+  margin-bottom: 16px;
+}
+
+.med-quick-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background: #F8FAF9;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 18px;
+}
+
+.meta-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #64748B;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.meta-val {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #1E293B;
+  margin-top: 2px;
+}
+
+.med-pharmacies-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.med-pharmacies-header h4 {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-dark, #263126);
+  margin: 0;
+}
+
+.verified-seal {
+  font-size: 12px;
+  font-weight: 700;
+  color: #059669;
+  background: #ECFDF5;
+  border: 1px solid #A7F3D0;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.med-pharmacies-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.pharmacy-link-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  background: #FFFFFF;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 12px;
+  padding: 14px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+}
+
+.pharmacy-link-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+}
+
+.pharmacy-link-card.tata-1mg { border-color: #A7F3D0; }
+.pharmacy-link-card.tata-1mg:hover { border-color: #059669; background: #F0FDF4; }
+
+.pharmacy-link-card.pharmeasy { border-color: #FED7AA; }
+.pharmacy-link-card.pharmeasy:hover { border-color: #EA580C; background: #FFF7ED; }
+
+.pharmacy-link-card.apollo { border-color: #BAE6FD; }
+.pharmacy-link-card.apollo:hover { border-color: #0284C7; background: #F0F9FF; }
+
+.pharmacy-link-card.netmeds { border-color: #E9D5FF; }
+.pharmacy-link-card.netmeds:hover { border-color: #9333EA; background: #FAF5FF; }
+
+.pharmacy-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.pharmacy-name {
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--text-dark, #263126);
+}
+
+.pharmacy-delivery {
+  font-size: 11.5px;
+  color: #64748B;
+}
+
+.pharmacy-perk {
+  font-size: 12.5px;
+  color: #475569;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.pharmacy-action-btn {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--cosmic-orange, #F47B20);
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.med-safety-box {
+  background: #FFFBEB;
+  border-left: 4px solid #F59E0B;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  color: #92400E;
+  line-height: 1.5;
+  margin-top: 12px;
+}
+
+/* Dark Mode Support for Voice & Medicine Components */
+body.dark-mode .nav-mic-btn,
+body[data-theme="dark"] .nav-mic-btn {
+  background: #2D3748;
+  border-color: var(--cosmic-orange, #F47B20);
+  color: #FBD38D;
+}
+
+body.dark-mode .voice-modal-box,
+body[data-theme="dark"] .voice-modal-box {
+  background: #1A202C;
+  color: #F7FAFC;
+  border-color: #4A5568;
+}
+
+body.dark-mode .voice-modal-title,
+body[data-theme="dark"] .voice-modal-title {
+  color: #FFFFFF;
+}
+
+body.dark-mode .voice-modal-orb-area,
+body[data-theme="dark"] .voice-modal-orb-area {
+  background: #2D3748;
+  border-color: #4A5568;
+}
+
+body.dark-mode .voice-chip,
+body[data-theme="dark"] .voice-chip {
+  background: #2D3748;
+  border-color: #4A5568;
+  color: #E2E8F0;
+}
+
+body.dark-mode .medicine-order-card,
+body[data-theme="dark"] .medicine-order-card {
+  background: #2D3748;
+  border-color: #4A5568;
+}
+
+body.dark-mode .med-card-title,
+body.dark-mode .pharmacy-name,
+body[data-theme="dark"] .med-card-title,
+body[data-theme="dark"] .pharmacy-name {
+  color: #FFFFFF;
+}
+
+body.dark-mode .med-quick-meta,
+body[data-theme="dark"] .med-quick-meta {
+  background: #1A202C;
+  border-color: #4A5568;
+}
+
+body.dark-mode .pharmacy-link-card,
+body[data-theme="dark"] .pharmacy-link-card {
+  background: #1A202C;
+  border-color: #4A5568;
+}
+
+body.dark-mode .med-safety-box,
+body[data-theme="dark"] .med-safety-box {
+  background: #422006;
+  border-color: #F59E0B;
+  color: #FEF3C7;
+}

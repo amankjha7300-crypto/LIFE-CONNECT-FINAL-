@@ -2234,7 +2234,12 @@
           <span class="live-mic-dot"></span> Smart Voice Navigator &amp; Medicine Assistant
         </div>
         <h2 id="voice-modal-title" class="voice-modal-title">How can I help you today?</h2>
-        <p class="voice-modal-sub">Speak naturally to navigate to any section (e.g. <em>"Go to News"</em>) or search and order medicines online (e.g. <em>"Order Dolo 650"</em>).</p>
+        <p class="voice-modal-sub">Speak naturally in English or Hindi (e.g. <em>"I want to view videos"</em>, <em>"वीडियो दिखाओ"</em>, <em>"Order Dolo 650"</em>).</p>
+
+        <div class="voice-lang-switch">
+          <button id="voice-lang-en" class="voice-lang-btn active" onclick="setVoiceLanguage('en-IN')" title="Listen in Indian English">🇮🇳 English</button>
+          <button id="voice-lang-hi" class="voice-lang-btn" onclick="setVoiceLanguage('hi-IN')" title="Listen in Hindi (हिंदी)">🇮🇳 हिंदी (Hindi)</button>
+        </div>
       </div>
 
       <!-- Voice Orb Interface inside Modal -->
@@ -2264,14 +2269,14 @@
       <div class="voice-suggestions">
         <div class="voice-suggestions__label">💡 Try saying or tapping:</div>
         <div class="voice-chips-grid">
-          <button class="voice-chip" onclick="simulateVoicePhrase('Go to News section')">📰 Go to News</button>
-          <button class="voice-chip" onclick="simulateVoicePhrase('Take me to Wellness')">🧘 Take me to Wellness</button>
+          <button class="voice-chip" onclick="simulateVoicePhrase('I want to view videos')">📺 View Videos / वीडियो दिखाओ</button>
+          <button class="voice-chip" onclick="simulateVoicePhrase('Go to News section')">📰 News / समाचार सुनाओ</button>
+          <button class="voice-chip" onclick="simulateVoicePhrase('Take me to Wellness')">🧘 Wellness / योग व्यायाम</button>
           <button class="voice-chip" onclick="simulateVoicePhrase('Order Dolo 650 medicine')">💊 Order Dolo 650</button>
           <button class="voice-chip" onclick="simulateVoicePhrase('Search BP medicine Telmisartan')">🩺 Search BP Telmisartan</button>
           <button class="voice-chip" onclick="simulateVoicePhrase('Search Diabetes medicine Metformin')">💉 Diabetes Metformin</button>
-          <button class="voice-chip" onclick="simulateVoicePhrase('Go to Memories section')">📻 Go to Memories</button>
-          <button class="voice-chip" onclick="simulateVoicePhrase('Take me to Reconnect')">🤝 Reconnect Friends</button>
-          <button class="voice-chip" onclick="simulateVoicePhrase('Go to For You videos')">📺 For You Videos</button>
+          <button class="voice-chip" onclick="simulateVoicePhrase('Go to Memories section')">📻 Memories / पुरानी यादें</button>
+          <button class="voice-chip" onclick="simulateVoicePhrase('Take me to Reconnect')">🤝 Reconnect / पुराने दोस्त</button>
         </div>
       </div>
 

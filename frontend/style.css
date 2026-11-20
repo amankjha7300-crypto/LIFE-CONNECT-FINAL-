@@ -4890,6 +4890,52 @@ body[data-theme="dark"] .video-player-modal-box {
   padding: 0 20px;
 }
 
+.voice-lang-switch {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 12px 0 16px;
+}
+
+.voice-lang-btn {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border, #E2D9C8);
+  background: var(--cream, #FFFDF8);
+  color: var(--text-dark, #2C2A29);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.voice-lang-btn:hover {
+  background: var(--orange-light, #FFF3E6);
+  border-color: var(--cosmic-orange, #F47B20);
+}
+
+.voice-lang-btn.active {
+  background: var(--cosmic-orange, #F47B20) !important;
+  border-color: var(--cosmic-orange, #F47B20) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 2px 8px rgba(244, 123, 32, 0.28);
+}
+
+body.dark-mode .voice-lang-btn,
+body[data-theme="dark"] .voice-lang-btn {
+  background: #2D3748;
+  border-color: #4A5568;
+  color: #F7FAFC;
+}
+
+body.dark-mode .voice-lang-btn.active,
+body[data-theme="dark"] .voice-lang-btn.active {
+  background: var(--cosmic-orange, #F47B20) !important;
+  border-color: var(--cosmic-orange, #F47B20) !important;
+  color: #FFFFFF !important;
+}
+
 .voice-suggestions {
   margin-top: 16px;
 }

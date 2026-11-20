@@ -10,6 +10,7 @@ import secrets
 import sys
 from pathlib import Path
 from datetime import datetime, date
+import re
 
 CURRENT_DIR = Path(__file__).parent.resolve()
 if str(CURRENT_DIR) not in sys.path:
@@ -824,16 +825,23 @@ class VoiceSearchRequest(BaseModel):
 
 @router.post("/voice/search", tags=["Voice Search Assistant"])
 async def voice_search_endpoint(req: VoiceSearchRequest):
-    """Google-style voice search engine answering general queries, market prices, facts, and remedies."""
+    """Google-style voice search engine answering general queries, market prices, facts, remedies, and section navigation."""
     query = req.query.strip()
     if not query:
         raise HTTPException(status_code=400, detail="Search query cannot be empty.")
     try:
         spoken_answer = await get_voice_search_response(query)
+        navigate_to = None
+        nav_match = re.search(r"\[NAVIGATE:([a-zA-Z0-9_-]+)\]", spoken_answer)
+        if nav_match:
+            navigate_to = nav_match.group(1)
+            spoken_answer = re.sub(r"\[NAVIGATE:[a-zA-Z0-9_-]+\]", "", spoken_answer).strip()
+
         return {
             "success": True,
             "query": query,
             "answer": spoken_answer,
+            "navigate_to": navigate_to,
             "type": "voice_search_result"
         }
     except Exception as e:

@@ -138,7 +138,29 @@ async def _compute_voice_search(query_text: str) -> str:
                     "1. Direct Answer First: Give the exact answer in the first sentence, just like Google Voice Assistant / Google Search Knowledge Graph.\n"
                     "2. Spoken Optimization: Keep answers between 2 to 4 clear, spoken-friendly sentences. Avoid complex bullet symbols or markdown tables since this will be read aloud.\n"
                     "3. Indian Context: When asked about prices or groceries, give realistic Indian retail market benchmarks (in ₹ INR). When asked about health, give comforting home remedies alongside a reminder to consult their doctor.\n"
-                    "4. Persona: Fast, smart, polite, and helpful voice search engine."
+                    "4. Persona: Fast, smart, polite, and helpful voice search engine.\n\n"
+                    "SECTION NAVIGATION & INTENT ROUTING (HIGH LEVEL):\n"
+                    "- If the user asks to see, open, watch, or navigate to ANY section of LifeConnect (in English, Hindi, or Hinglish):\n"
+                    "  * Videos / Entertainment / Movies / Songs ('i want to view videos', 'video dikha', 'video dekhna hai', 'gaane sunao', 'movies dikhao'):\n"
+                    "    Respond: 'Taking you to the For You Videos and Entertainment section right now. [NAVIGATE:content]' (or in Hindi: 'Aapko Videos aur Manoranjan section me le jaa rahe hain. [NAVIGATE:content]').\n"
+                    "  * News / Samachar / Headlines ('samachar sunao', 'aaj ki khabar', 'show news'):\n"
+                    "    Respond: 'Taking you to the 24-Hour News section right now. [NAVIGATE:news]'.\n"
+                    "  * Wellness / Yoga / Exercises / Walking ('swasthya', 'yoga sikhna hai', 'show exercises'):\n"
+                    "    Respond: 'Taking you to the Senior Wellness & Yoga section right now. [NAVIGATE:wellness]'.\n"
+                    "  * Memories / Photos / Nostalgia ('purani yaadein', 'photos dikhao', 'memory vault'):\n"
+                    "    Respond: 'Taking you to the Nostalgia & Memory Vault right now. [NAVIGATE:memories]'.\n"
+                    "  * Reconnect / Friends / Classmates ('purane dost', 'find friends', 'batchmates khojo'):\n"
+                    "    Respond: 'Taking you to the Reconnect section to find your old friends. [NAVIGATE:reconnect]'.\n"
+                    "  * Community / Clubs ('senior clubs', 'mandal', 'groups'):\n"
+                    "    Respond: 'Taking you to the Senior Community & Clubs section right now. [NAVIGATE:community]'.\n"
+                    "  * AI Companion ('mitra se baat', 'talk to companion'):\n"
+                    "    Respond: 'Opening your AI Life Companion chat right now. [NAVIGATE:companion]'.\n"
+                    "  * Dashboard / My Home ('mera ghar', 'my dashboard'):\n"
+                    "    Respond: 'Taking you to your personal Home Dashboard. [NAVIGATE:dashboard]'.\n"
+                    "  * Home / Main Screen ('home page', 'mukhya pristh'):\n"
+                    "    Respond: 'Taking you back to the Home page. [NAVIGATE:home]'.\n"
+                    "  * Profile / Settings ('meri profile', 'account settings'):\n"
+                    "    Respond: 'Opening your Profile and Account Settings. [NAVIGATE:profile]'."
                 )
             }
             
@@ -205,6 +227,31 @@ async def _compute_voice_search(query_text: str) -> str:
 
     if has_kw(["hello", "hi", "hey", "hullo", "kaise ho", "kya haal"]):
         return "Hello and welcome! I am your Voice Assistant. You can ask me anything — today's grocery and vegetable prices, health remedies, weather, cricket facts, or daily knowledge."
+
+    # Section Navigation & Training (Hindi + English + Hinglish)
+    if has_kw(["video", "videos", "dikha", "dikhao", "dekhna", "chalao", "gaana", "gaane", "music", "song", "songs", "movie", "movies", "cinema", "chitrahaar", "manoranjan", "sangeet", "retro"]):
+        return "Taking you to the For You Videos and Entertainment section right now. [NAVIGATE:content]"
+
+    if has_kw(["samachar", "khabar", "akhbar", "bulletin", "headline", "headlines"]):
+        return "Taking you to the 24-Hour News & City Updates section right now. [NAVIGATE:news]"
+
+    if has_kw(["swasthya", "wellness", "yoga", "exercise", "exercises", "vyayam", "kasrat", "aasan", "pranayam", "walk"]):
+        return "Taking you to the Senior Wellness & Yoga section right now. [NAVIGATE:wellness]"
+
+    if has_kw(["yaad", "yaadein", "photo", "photos", "album", "tasveer", "tasveerein", "vault", "memory", "memories"]):
+        return "Taking you to the Nostalgia & Memory Vault right now. [NAVIGATE:memories]"
+
+    if has_kw(["dost", "batchmate", "batchmates", "classmate", "classmates", "school friend", "reconnect"]):
+        return "Taking you to the Reconnect section to find your old classmates and friends. [NAVIGATE:reconnect]"
+
+    if has_kw(["community", "senior club", "samuh", "mandal"]):
+        return "Taking you to the Senior Community & Clubs section right now. [NAVIGATE:community]"
+
+    if has_kw(["companion", "mitra", "guru", "saheli"]):
+        return "Opening your AI Companion chat right now. [NAVIGATE:companion]"
+
+    if has_kw(["dashboard", "mera ghar", "my home"]):
+        return "Taking you to your personal Home Dashboard right now. [NAVIGATE:dashboard]"
 
     # 1. Milk & Dairy Search
     if has_kw(["milk", "doodh", "dairy", "paneer", "curd", "dahi"]):

@@ -1746,6 +1746,31 @@ function stopSpeaking() {
   currentSpeechUtterance = null;
 }
 
+let currentVoiceLang = localStorage.getItem('lc_voice_lang') || 'en-IN';
+
+function setVoiceLanguage(lang) {
+  currentVoiceLang = lang;
+  localStorage.setItem('lc_voice_lang', lang);
+
+  const enBtn = document.getElementById('voice-lang-en');
+  const hiBtn = document.getElementById('voice-lang-hi');
+  if (enBtn && hiBtn) {
+    if (lang === 'hi-IN') {
+      hiBtn.classList.add('active');
+      enBtn.classList.remove('active');
+    } else {
+      enBtn.classList.add('active');
+      hiBtn.classList.remove('active');
+    }
+  }
+
+  if (window._activeVoiceRecognition) {
+    window._activeVoiceRecognition.lang = lang;
+  }
+
+  showToast(lang === 'hi-IN' ? 'आवाज़ पहचान हिंदी में सेट है (Voice: Hindi)' : 'Voice recognition set to Indian English', 'info');
+}
+
 function speakText(text, onStartCallback, onEndCallback) {
   stopSpeaking();
   if (!text || !text.trim()) {
@@ -1762,9 +1787,12 @@ function speakText(text, onStartCallback, onEndCallback) {
     utterance.pitch = 1.0;
     utterance.volume = 1.0;
 
+    const isHindi = /[\u0900-\u097F]/.test(cleanText) || (typeof currentVoiceLang !== 'undefined' && currentVoiceLang === 'hi-IN');
+    utterance.lang = isHindi ? 'hi-IN' : 'en-IN';
+
     const voices = window.speechSynthesis.getVoices();
     const preferredVoice = voices.find(v =>
-      v.lang.startsWith('hi') || v.lang.includes('en-IN') || v.name.includes('India') || v.name.includes('Natural')
+      isHindi ? (v.lang.startsWith('hi') || v.name.includes('Hindi')) : (v.lang.includes('en-IN') || v.name.includes('India') || v.name.includes('Natural'))
     ) || voices.find(v => v.lang.startsWith('en'));
 
     if (preferredVoice) utterance.voice = preferredVoice;
@@ -1788,6 +1816,23 @@ function speakText(text, onStartCallback, onEndCallback) {
     if (voices.length === 0 && 'onvoiceschanged' in window.speechSynthesis) {
       window.speechSynthesis.onvoiceschanged = () => {
         const v2 = window.speechSynthesis.getVoices();
+        const p2 = v2.find(v =>
+          isHindi ? (v.lang.startsWith('hi') || v.name.includes('Hindi')) : (v.lang.includes('en-IN') || v.name.includes('India'))
+        ) || v2.find(v => v.lang.startsWith('en'));
+        if (p2) utterance.voice = p2;
+      };
+    }
+
+    try {
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn("Speech speak error:", e);
+      if (onEndCallback) onEndCallback();
+    }
+  } else {
+    if (onEndCallback) onEndCallback();
+  }
+}
         const p2 = v2.find(v => v.lang.startsWith('hi') || v.lang.includes('en-IN')) || v2[0];
         if (p2) utterance.voice = p2;
       };
@@ -1829,7 +1874,10 @@ async function fetchVoiceSearch(queryText) {
     });
     if (res.ok) {
       const data = await res.json();
-      return data.answer || "I found search results for your query.";
+      return {
+        answer: data.answer || "I found search results for your query.",
+        navigate_to: data.navigate_to || null
+      };
     }
   } catch (err) {
     console.warn("Backend voice search offline, using local search fallback:", err);
@@ -1837,6 +1885,23 @@ async function fetchVoiceSearch(queryText) {
 
   // Local Voice Search Fallback
   const q = queryText.toLowerCase().trim();
+
+  // Navigation Intents (Local Fallback)
+  if (q.includes('video') || q.includes('dikha') || q.includes('dekhna') || q.includes('gaana') || q.includes('chitrahaar') || q.includes('गाने') || q.includes('वीडियो')) {
+    return { answer: "Taking you to the For You Videos and Entertainment section right now.", navigate_to: "content" };
+  }
+  if (q.includes('news') || q.includes('samachar') || q.includes('khabar') || q.includes('समाचार')) {
+    return { answer: "Taking you to the 24-Hour News & City Updates section right now.", navigate_to: "news" };
+  }
+  if (q.includes('wellness') || q.includes('yoga') || q.includes('swasthya') || q.includes('kasrat') || q.includes('vyayam') || q.includes('योग')) {
+    return { answer: "Taking you to the Senior Wellness & Yoga section right now.", navigate_to: "wellness" };
+  }
+  if (q.includes('memory') || q.includes('memories') || q.includes('photo') || q.includes('yaad') || q.includes('yaadein') || q.includes('फोटो') || q.includes('याद')) {
+    return { answer: "Taking you to the Nostalgia & Memory Vault right now.", navigate_to: "memories" };
+  }
+  if (q.includes('reconnect') || q.includes('friend') || q.includes('dost') || q.includes('batchmate') || q.includes('दोस्त')) {
+    return { answer: "Taking you to the Reconnect section to find your old classmates and friends.", navigate_to: "reconnect" };
+  }
 
   // Sacred Gayatri Mantra & Mantras
   if (q.includes('gayatri') || q.includes('gaytri') || q.includes('gayatree') || q.includes('savitur') || q.includes('prachodayat')) {
@@ -1917,78 +1982,200 @@ async function fetchVoiceSearch(queryText) {
 // UNIVERSAL VOICE NAVIGATION & ONLINE MEDICINE ORDERING ENGINE
 // ----------------------------------------------------------------
 
-function parseNavigationCommand(lower) {
+function parseNavigationCommand(text) {
+  if (!text) return null;
+  const raw = String(text).trim();
+  const lower = raw.toLowerCase();
+
   const routes = [
+    {
+      viewId: 'content',
+      title: 'For You Entertainment & Videos',
+      titleHi: 'वीडियो और मनोरंजन',
+      keywords: [
+        // English
+        'video', 'videos', 'view video', 'view videos', 'watch video', 'watch videos', 'play video',
+        'show video', 'show videos', 'play videos', 'entertainment', 'song', 'songs', 'music',
+        'retro', 'cinema', 'movie', 'movies', 'chitrahaar', 'vividh bharati', 'radio', 'serials',
+        'buniyaad', 'hum log', 'dd national', 'doordarshan', 'clips', 'episodes', 'tv show', 'tv serial',
+        'content', 'for you', 'foryou',
+        // Hindi / Hinglish Romanized
+        'video dikha', 'video dikhao', 'video dekhna', 'videos dekho', 'video dekha', 'video dekhna hai',
+        'video play karo', 'video chalao', 'video open karo', 'video kholo', 'video lagao',
+        'mujhe video dekhna hai', 'mujhe video dikhao', 'video sunao', 'video dikha do', 'video dekh lo',
+        'video dekhu', 'video dekhun', 'film dikha', 'film dikhao', 'film dekhna hai', 'movie dikhao',
+        'cinema dikhao', 'gaana', 'gaane', 'gaana sunao', 'gaane sunao', 'gane sunao', 'purane gane',
+        'geet', 'sangeet', 'sangeet suno', 'manoranjan', 'manoranjan dikhao',
+        'lata ji ke gane', 'kishore kumar ke gane', 'rafi ke gane', 'chitrahaar dikhao',
+        'natak dikhao', 'dharaavahik',
+        // Devanagari Hindi
+        'वीडियो', 'वीडियो दिखा', 'वीडियो दिखाओ', 'वीडियो देखना है', 'वीडियो चलाओ', 'वीडियो खोलो',
+        'गाने', 'गाने सुनाओ', 'पुराने गाने', 'मनोरंजन', 'गीत', 'संगीत', 'सिनेमा', 'फिल्म', 'नाटक'
+      ]
+    },
     {
       viewId: 'news',
       title: '24-Hour News & City Updates',
-      keywords: ['news', 'samachar', 'headline', 'headlines', 'khabar', 'akhbar', 'breaking news']
+      titleHi: '24-घंटे के समाचार और खबरें',
+      keywords: [
+        // English
+        'news', 'daily news', 'bulletin', 'headlines', 'city news', 'breaking news', 'updates',
+        'current affairs', 'newspaper', 'latest news', 'today news',
+        // Hindi / Hinglish Romanized
+        'samachar', 'samachar sunao', 'samachar dikhao', 'khabar', 'khabrein', 'aaj ki khabar',
+        'taza khabar', 'akhbar', 'news dikhao', 'news sunao', 'kya chal raha hai', 'breaking khabar',
+        'desh ki khabar', 'city samachar',
+        // Devanagari Hindi
+        'समाचार', 'समाचार सुनाओ', 'खबर', 'अख़बार', 'ताज़ा खबर', 'आज की खबर', 'न्यूज़'
+      ]
     },
     {
       viewId: 'wellness',
       title: 'Senior Wellness, Walking & Yoga',
-      keywords: ['wellness', 'exercise', 'exercises', 'yoga', 'stretch', 'stretching', 'swasthya', 'fitness', 'health', 'walking', 'routine', 'routines', 'breathing']
+      titleHi: 'सीनियर स्वास्थ्य, योग और व्यायाम',
+      keywords: [
+        // English
+        'wellness', 'exercise', 'exercises', 'yoga', 'stretching', 'stretch', 'walking',
+        'morning walk', 'health', 'fitness', 'breathing', 'pranayama', 'routine', 'daily routine',
+        'senior health', 'healthy habits',
+        // Hindi / Hinglish Romanized
+        'swasthya', 'kasrat', 'vyayam', 'vyayam dikhao', 'yoga sikhna hai', 'walk par jana',
+        'tahelna', 'subah ki sair', 'sehat', 'aasan', 'pranayam', 'swasthya tips', 'sehat ka dhyan',
+        'ghutne ka vyayam',
+        // Devanagari Hindi
+        'स्वास्थ्य', 'व्यायाम', 'कसरत', 'योग', 'प्राणायाम', 'सुबह की सैर', 'सेहत', 'आसन'
+      ]
     },
     {
       viewId: 'memories',
       title: 'Nostalgia & Memory Vault',
-      keywords: ['memory', 'memories', 'vault', 'photo', 'photos', 'album', 'yaad', 'yaadein', 'purani yaadein', 'nostalgia']
+      titleHi: 'पुरानी यादें और मेमोरी वॉल्ट',
+      keywords: [
+        // English
+        'memory', 'memories', 'vault', 'memory vault', 'photo', 'photos', 'album', 'photo album',
+        'pictures', 'nostalgia', 'nostalgic', 'past memories', 'old memories', 'family photos',
+        'childhood memories',
+        // Hindi / Hinglish Romanized
+        'yaad', 'yaadein', 'yaadon ka pitara', 'purani yaadein', 'photo dikhao', 'tasveer',
+        'tasveerein', 'meri photo', 'album dikhao', 'purana zamana', 'bachpan ki yaadein',
+        'purani tasveerein',
+        // Devanagari Hindi
+        'याद', 'यादें', 'पुरानी यादें', 'तस्वीरें', 'फोटो', 'एल्बम', 'यादों का पिटारा', 'बचपन'
+      ]
     },
     {
       viewId: 'reconnect',
       title: 'Old Friends & Batchmates Reconnect',
-      keywords: ['reconnect', 'friend', 'friends', 'dost', 'batchmate', 'batchmates', 'school friend', 'college', 'classmate', 'classmates', 'alumni']
-    },
-    {
-      viewId: 'content',
-      title: 'For You Entertainment & Music',
-      keywords: ['for you', 'foryou', 'content', 'song', 'songs', 'gaana', 'gaane', 'music', 'video', 'videos', 'movie', 'movies', 'cinema', 'retro', 'radio', 'vividh bharati']
+      titleHi: 'पुराने दोस्त और साथी',
+      keywords: [
+        // English
+        'reconnect', 'find friends', 'friend', 'friends', 'batchmate', 'batchmates', 'classmate',
+        'classmates', 'school friends', 'college friends', 'alumni', 'search friends', 'old buddies',
+        'batchmates search',
+        // Hindi / Hinglish Romanized
+        'dost', 'dosto', 'doston ko dhundo', 'purane dost', 'school ke dost', 'college ke dost',
+        'saathi', 'mitra khojo', 'dost se milo', 'batchmate dhundo', 'classmate khojo',
+        'purane sathi', 'bachpan ke dost',
+        // Devanagari Hindi
+        'दोस्त', 'पुराने दोस्त', 'मित्र', 'साथी', 'स्कूल के दोस्त', 'कॉलेज के दोस्त', 'सहपाठी'
+      ]
     },
     {
       viewId: 'community',
       title: 'Senior Community & Clubs',
-      keywords: ['community', 'club', 'clubs', 'group', 'groups', 'mandal', 'samuh', 'seniors', 'discussion']
+      titleHi: 'सीनियर कम्युनिटी और क्लब',
+      keywords: [
+        // English
+        'community', 'club', 'clubs', 'group', 'groups', 'senior club', 'discussion',
+        'join group', 'circle', 'senior society', 'forum',
+        // Hindi / Hinglish Romanized
+        'samuh', 'mandal', 'senior group', 'baat cheet', 'samaj', 'seniors mandal',
+        'charcha', 'club dikhao', 'group me jao',
+        // Devanagari Hindi
+        'समुदाय', 'मंडल', 'समूह', 'क्लब', 'चर्चा', 'सीनियर क्लब'
+      ]
     },
     {
       viewId: 'companion',
       title: 'AI Life Companion',
-      keywords: ['companion', 'mitra', 'saheli', 'guru', 'ai friend', 'ai companion', 'chat', 'assistant']
+      titleHi: 'एआई साथी (मित्र / गुरु / सहेली)',
+      keywords: [
+        // English
+        'companion', 'ai companion', 'ai friend', 'mitra', 'guru', 'saheli', 'talk to companion',
+        'chat with ai', 'assistant', 'virtual friend',
+        // Hindi / Hinglish Romanized
+        'mitra se baat', 'guru ji', 'saheli', 'saathi se baat', 'ai se baat karo',
+        'companion se baat karni hai', 'dost se baat karo',
+        // Devanagari Hindi
+        'मित्र', 'गुरु', 'सहेली', 'साथी', 'बात करो', 'एआई साथी'
+      ]
     },
     {
       viewId: 'dashboard',
       title: 'My Home Dashboard',
-      keywords: ['dashboard', 'my home', 'my dashboard']
+      titleHi: 'मेरा घर डैशबोर्ड',
+      keywords: [
+        // English
+        'dashboard', 'my home', 'my dashboard', 'overview', 'my space',
+        // Hindi / Hinglish Romanized
+        'mera ghar', 'dashboard dikhao', 'mera dashboard', 'home dashboard',
+        // Devanagari Hindi
+        'मेरा घर', 'डैशबोर्ड'
+      ]
     },
     {
       viewId: 'home',
       title: 'Home',
-      keywords: ['home', 'homepage', 'main page', 'start', 'mukhya']
+      titleHi: 'होम पेज',
+      keywords: [
+        // English
+        'home', 'homepage', 'main page', 'start page', 'go to home', 'back to home',
+        // Hindi / Hinglish Romanized
+        'home par chalo', 'mukhya pristh', 'shuru me jao', 'main screen',
+        // Devanagari Hindi
+        'होम', 'मुख्य पृष्ठ'
+      ]
     },
     {
       viewId: 'profile',
       title: 'Profile & Account Settings',
-      keywords: ['profile', 'account', 'settings', 'user profile', 'my profile']
+      titleHi: 'प्रोफाइल और सेटिंग्स',
+      keywords: [
+        // English
+        'profile', 'my profile', 'account', 'user settings', 'edit profile',
+        // Hindi / Hinglish Romanized
+        'meri profile', 'account dikhao', 'khata', 'profile settings',
+        // Devanagari Hindi
+        'प्रोफाइल', 'खाता'
+      ]
     }
   ];
 
-  const navPrefixes = [
-    'let me to', 'let me go to', 'lead me to', 'take me to', 'go to', 'come to',
-    'open', 'show', 'show me', 'navigate to', 'switch to', 'bring me to', 'visit',
-    'chalo', 'kholo', 'dikhao', 'le chalo', 'section'
-  ];
-
-  const hasNavIntent = navPrefixes.some(p => lower.includes(p)) || lower.includes('section');
-
+  // Specific multi-word keywords first (longest match)
   for (const route of routes) {
-    for (const kw of route.keywords) {
-      if (lower.includes(kw)) {
+    const sortedKeywords = route.keywords.slice().sort((a, b) => b.length - a.length);
+    for (const kw of sortedKeywords) {
+      if (lower.includes(kw.toLowerCase())) {
         return route;
       }
     }
   }
 
-  if (hasNavIntent && lower.includes('section')) {
-    return { viewId: 'home', title: 'Home' };
+  // Verb + Target Stems
+  if (lower.includes('video') || lower.includes('vidio') || lower.includes('film') || lower.includes('movie') || lower.includes('gaana') || lower.includes('गाने') || lower.includes('वीडियो')) {
+    return routes.find(r => r.viewId === 'content');
+  }
+  if (lower.includes('news') || lower.includes('samachar') || lower.includes('khabar') || lower.includes('समाचार')) {
+    return routes.find(r => r.viewId === 'news');
+  }
+  if (lower.includes('yoga') || lower.includes('walk') || lower.includes('exercise') || lower.includes('swasthya') || lower.includes('योग') || lower.includes('स्वास्थ्य')) {
+    return routes.find(r => r.viewId === 'wellness');
+  }
+  if (lower.includes('memory') || lower.includes('photo') || lower.includes('yaad') || lower.includes('फोटो') || lower.includes('याद')) {
+    return routes.find(r => r.viewId === 'memories');
+  }
+  if (lower.includes('friend') || lower.includes('dost') || lower.includes('batchmate') || lower.includes('दोस्त')) {
+    return routes.find(r => r.viewId === 'reconnect');
   }
 
   return null;
@@ -2358,10 +2545,17 @@ async function handleGlobalVoiceCommand(userText, orb, statusEl, transcriptEl, r
   const lower = cleanText.toLowerCase();
 
   // 1. Check Section Navigation Commands
-  const navMatch = parseNavigationCommand(lower);
+  const navMatch = parseNavigationCommand(cleanText);
   if (navMatch) {
-    const confirmationText = `Taking you to the ${navMatch.title} section right now.`;
-    if (statusEl) statusEl.textContent = `Navigating to ${navMatch.title}...`;
+    const isHindi = /[\u0900-\u097F]/.test(cleanText) || 
+      /\b(dikha|dikhao|dekhna|dekho|dekhu|dekhun|chalao|kholo|sunao|chalo|le chalo|samachar|khabar|swasthya|yaadein|dost|mera|mujhe|aaj|karo)\b/i.test(cleanText) ||
+      (typeof currentVoiceLang !== 'undefined' && currentVoiceLang === 'hi-IN');
+
+    const confirmationText = isHindi 
+      ? `जी, आपको ${navMatch.titleHi || navMatch.title} सेक्शन में ले जा रहे हैं।`
+      : `Taking you to the ${navMatch.title} section right now.`;
+
+    if (statusEl) statusEl.textContent = isHindi ? `${navMatch.titleHi || navMatch.title} खोल रहे हैं...` : `Navigating to ${navMatch.title}...`;
     speakText(confirmationText, 
       () => {
         if (orb) { orb.classList.remove('thinking'); orb.classList.add('speaking'); }
@@ -2415,7 +2609,10 @@ async function handleGlobalVoiceCommand(userText, orb, statusEl, transcriptEl, r
 
   // 3. Fallback: Google-style Voice Search / Senior AI Assistant Answer
   try {
-    const responseText = await fetchVoiceSearch(userText);
+    const searchRes = await fetchVoiceSearch(userText);
+    const responseText = (typeof searchRes === 'object' && searchRes !== null) ? (searchRes.answer || '') : searchRes;
+    const navTarget = (typeof searchRes === 'object' && searchRes !== null) ? searchRes.navigate_to : null;
+
     speakText(responseText,
       () => {
         if (orb) {
@@ -2427,8 +2624,18 @@ async function handleGlobalVoiceCommand(userText, orb, statusEl, transcriptEl, r
       () => {
         if (orb) orb.classList.remove('speaking', 'thinking');
         if (statusEl) statusEl.textContent = 'Tap the microphone to speak';
+        if (navTarget) {
+          closeVoiceAssistantModal();
+          navigate(navTarget);
+        }
       }
     );
+    if (navTarget) {
+      setTimeout(() => {
+        closeVoiceAssistantModal();
+        navigate(navTarget);
+      }, 2400);
+    }
   } catch (err) {
     console.error("Voice search error:", err);
     if (orb) orb.classList.remove('thinking', 'speaking');
@@ -2515,11 +2722,16 @@ function initVoiceUI(orbId, statusId, transcriptId, resultsContainerId = null) {
 
   function startSimulatedListening() {
     const demos = [
+      'I want to view videos',
+      'Video dikha',
       'Take me to News section',
+      'Samachar sunao',
       'Go to Wellness section',
+      'Swasthya aur yoga dikhao',
       'Order Dolo 650 medicine on internet',
       'Search BP medicine Telmisartan',
-      'Search Diabetes medicine Metformin'
+      'Purani yaadein dikhao',
+      'Purane dost dhoondo'
     ];
     const demo = demos[Math.floor(Math.random() * demos.length)];
     setStatus('Listening...');
@@ -2538,8 +2750,9 @@ function initVoiceUI(orbId, statusId, transcriptId, resultsContainerId = null) {
     try {
       localRecognition = new SpeechRecognition();
       localRecognition.continuous = false;
-      localRecognition.lang = 'en-IN';
+      localRecognition.lang = currentVoiceLang || 'en-IN';
       localRecognition.interimResults = true;
+      window._activeVoiceRecognition = localRecognition;
 
       localRecognition.onresult = (e) => {
         const transcript = Array.from(e.results).map(r => r[0].transcript).join('');
@@ -2593,6 +2806,8 @@ function initVoiceUI(orbId, statusId, transcriptId, resultsContainerId = null) {
 
     if (SpeechRecognition && localRecognition) {
       try {
+        localRecognition.lang = currentVoiceLang || 'en-IN';
+        window._activeVoiceRecognition = localRecognition;
         localRecognition.start();
       } catch (e) {
         startSimulatedListening();

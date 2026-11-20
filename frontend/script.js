@@ -1830,16 +1830,6 @@ function speakText(text, onStartCallback, onEndCallback) {
       if (onEndCallback) onEndCallback();
     }
   } else {
-    if (onEndCallback) onEndCallback();
-  }
-}
-        const p2 = v2.find(v => v.lang.startsWith('hi') || v.lang.includes('en-IN')) || v2[0];
-        if (p2) utterance.voice = p2;
-      };
-    }
-
-    window.speechSynthesis.speak(utterance);
-  } else {
     // Backend TTS voice stream fallback
     fetch(`${API_BASE_URL}/audio/voice`, {
       method: 'POST',

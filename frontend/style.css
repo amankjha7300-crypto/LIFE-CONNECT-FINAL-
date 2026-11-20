@@ -4666,33 +4666,41 @@ body[data-theme="dark"] .video-player-modal-box {
    UNIVERSAL VOICE ASSISTANT & ONLINE MEDICINE ORDERING SYSTEM
    ================================================================ */
 
+.nav-left-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
 .nav-mic-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, #FFF5EB 0%, #FFE8D6 100%);
+  justify-content: center;
+  background: linear-gradient(135deg, #FFF5EB 0%, #FFE4CE 100%);
   border: 2px solid var(--cosmic-orange, #F47B20);
   color: #C0392B;
-  padding: 6px 16px;
-  border-radius: 24px;
-  font-size: 13.5px;
-  font-weight: 700;
+  font-size: 19px;
   cursor: pointer;
   transition: all var(--transition-base, 0.25s ease);
-  box-shadow: 0 2px 8px rgba(244, 123, 32, 0.18);
+  box-shadow: 0 2px 8px rgba(244, 123, 32, 0.22);
   position: relative;
-  text-decoration: none;
+  flex-shrink: 0;
+  padding: 0;
 }
 
 .nav-mic-btn:hover {
   background: var(--cosmic-orange, #F47B20);
   color: #FFFFFF;
-  transform: translateY(-2px);
-  box-shadow: 0 4px 14px rgba(244, 123, 32, 0.35);
+  transform: translateY(-2px) scale(1.06);
+  box-shadow: 0 4px 14px rgba(244, 123, 32, 0.4);
 }
 
 .nav-mic-icon {
-  font-size: 16px;
+  font-size: 18px;
   display: inline-block;
   animation: micBounce 2s infinite ease-in-out;
 }
@@ -4704,8 +4712,8 @@ body[data-theme="dark"] .video-player-modal-box {
 
 .nav-mic-pulse {
   position: absolute;
-  inset: -3px;
-  border-radius: 26px;
+  inset: -4px;
+  border-radius: 50%;
   border: 2px solid var(--cosmic-orange, #F47B20);
   opacity: 0;
   animation: navMicPulseAnim 2.5s infinite;

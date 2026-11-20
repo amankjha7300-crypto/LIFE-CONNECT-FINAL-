@@ -18,17 +18,24 @@
   <!-- ================================================================ NAVBAR -->
   <nav id="navbar" role="navigation" aria-label="Main navigation">
     <div class="container nav-inner">
-      <a class="nav-logo" onclick="navigate('home')" href="#home" aria-label="LifeConnect Home">
-        <div class="nav-logo__icon" aria-hidden="true">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-            <path d="M12 2L8 6H4l2 4-4 2 4 2-2 4h4l4 4 4-4h4l-2-4 4-2-4-2 2-4h-4z" />
-          </svg>
-        </div>
-        <span>
-          <span class="nav-logo__name">LifeConnect</span>
-          <span class="nav-logo__sub">For a beautiful life after 50</span>
-        </span>
-      </a>
+      <div class="nav-left-group">
+        <button id="nav-mic-btn" class="nav-mic-btn" onclick="openVoiceAssistantModal()" title="Voice Assistant &amp; Navigation (Click to speak 'Go to news', 'Order medicine', etc.)" aria-label="Open Voice Assistant">
+          <span class="nav-mic-icon">🎙️</span>
+          <span class="nav-mic-pulse"></span>
+        </button>
+
+        <a class="nav-logo" onclick="navigate('home')" href="#home" aria-label="LifeConnect Home">
+          <div class="nav-logo__icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M12 2L8 6H4l2 4-4 2 4 2-2 4h4l4 4 4-4h4l-2-4 4-2-4-2 2-4h-4z" />
+            </svg>
+          </div>
+          <span>
+            <span class="nav-logo__name">LifeConnect</span>
+            <span class="nav-logo__sub">For a beautiful life after 50</span>
+          </span>
+        </a>
+      </div>
 
       <div class="nav-links" role="list">
         <button class="nav-link active" data-nav="home" onclick="navigate('home')" role="listitem">Home</button>
@@ -46,11 +53,6 @@
       </div>
 
       <div class="nav-actions" id="nav-actions">
-        <button id="nav-mic-btn" class="nav-mic-btn" onclick="openVoiceAssistantModal()" title="Voice Assistant &amp; Navigation (Speak 'Go to news', 'Order medicine', etc.)" aria-label="Open Voice Assistant">
-          <span class="nav-mic-icon">🎙️</span>
-          <span class="nav-mic-label">Voice Assistant</span>
-          <span class="nav-mic-pulse"></span>
-        </button>
         <button class="btn btn-secondary btn-sm" onclick="navigate('login')">Login</button>
         <button class="btn btn-primary btn-sm" onclick="navigate('signup')">Get Started</button>
         <button id="dark-mode-toggle" class="btn btn-ghost btn-sm" title="Toggle dark mode">🌙</button>

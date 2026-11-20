@@ -871,11 +871,6 @@ function updateNavForAuth() {
 
   if (loggedIn && user) {
     navActions.innerHTML = `
-      <button id="nav-mic-btn" class="nav-mic-btn" onclick="openVoiceAssistantModal()" title="Voice Assistant & Navigation (Speak 'Go to news', 'Order medicine', etc.)" aria-label="Open Voice Assistant">
-        <span class="nav-mic-icon">🎙️</span>
-        <span class="nav-mic-label">Voice</span>
-        <span class="nav-mic-pulse"></span>
-      </button>
       <button class="nav-avatar" onclick="navigate('dashboard')" title="My Dashboard" aria-label="Go to dashboard">${user.avatar || user.name.charAt(0)}</button>
       <button class="btn btn-secondary btn-sm" onclick="navigate('profile')">Profile</button>
       <button class="btn btn-ghost btn-sm" onclick="logout()">Sign Out</button>
@@ -883,11 +878,6 @@ function updateNavForAuth() {
     `;
   } else {
     navActions.innerHTML = `
-      <button id="nav-mic-btn" class="nav-mic-btn" onclick="openVoiceAssistantModal()" title="Voice Assistant & Navigation (Speak 'Go to news', 'Order medicine', etc.)" aria-label="Open Voice Assistant">
-        <span class="nav-mic-icon">🎙️</span>
-        <span class="nav-mic-label">Voice</span>
-        <span class="nav-mic-pulse"></span>
-      </button>
       <button class="btn btn-secondary btn-sm" onclick="navigate('login')">Login</button>
       <button class="btn btn-primary btn-sm" onclick="navigate('signup')">Get Started</button>
       <button id="dark-mode-toggle" class="btn btn-ghost btn-sm dark-mode-toggle" title="${darkTitle}" aria-label="${darkTitle}">${darkIcon}</button>

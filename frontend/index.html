@@ -17,7 +17,7 @@
 
   <!-- ================================================================ NAVBAR -->
   <nav id="navbar" role="navigation" aria-label="Main navigation">
-    <div class="container nav-inner">
+    <div class="nav-container nav-inner">
       <div class="nav-left-group">
         <button id="nav-mic-btn" class="nav-mic-btn" onclick="openVoiceAssistantModal()" title="Voice Assistant &amp; Navigation (Click to speak 'Go to news', 'Order medicine', etc.)" aria-label="Open Voice Assistant">
           <span class="nav-mic-icon">🎙️</span>
@@ -55,7 +55,7 @@
       <div class="nav-actions" id="nav-actions">
         <button class="btn btn-secondary btn-sm" onclick="navigate('login')">Login</button>
         <button class="btn btn-primary btn-sm" onclick="navigate('signup')">Get Started</button>
-        <button id="dark-mode-toggle" class="btn btn-ghost btn-sm" title="Toggle dark mode">🌙</button>
+        <button id="dark-mode-toggle" class="dark-mode-toggle" title="Toggle dark mode" aria-label="Toggle dark mode">🌙</button>
       </div>
 
       <button class="nav-hamburger" aria-label="Open menu" aria-expanded="false">

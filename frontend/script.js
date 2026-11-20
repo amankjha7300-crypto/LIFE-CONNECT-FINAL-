@@ -874,13 +874,13 @@ function updateNavForAuth() {
       <button class="nav-avatar" onclick="navigate('dashboard')" title="My Dashboard" aria-label="Go to dashboard">${user.avatar || user.name.charAt(0)}</button>
       <button class="btn btn-secondary btn-sm" onclick="navigate('profile')">Profile</button>
       <button class="btn btn-ghost btn-sm" onclick="logout()">Sign Out</button>
-      <button id="dark-mode-toggle" class="btn btn-ghost btn-sm dark-mode-toggle" title="${darkTitle}" aria-label="${darkTitle}">${darkIcon}</button>
+      <button id="dark-mode-toggle" class="dark-mode-toggle" title="${darkTitle}" aria-label="${darkTitle}">${darkIcon}</button>
     `;
   } else {
     navActions.innerHTML = `
       <button class="btn btn-secondary btn-sm" onclick="navigate('login')">Login</button>
       <button class="btn btn-primary btn-sm" onclick="navigate('signup')">Get Started</button>
-      <button id="dark-mode-toggle" class="btn btn-ghost btn-sm dark-mode-toggle" title="${darkTitle}" aria-label="${darkTitle}">${darkIcon}</button>
+      <button id="dark-mode-toggle" class="dark-mode-toggle" title="${darkTitle}" aria-label="${darkTitle}">${darkIcon}</button>
     `;
   }
 

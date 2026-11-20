@@ -849,15 +849,27 @@ select.form-input {
   left: 0;
   right: 0;
   z-index: 1000;
-  height: var(--nav-height);
-  background: rgba(255, 248, 232, .92);
+  height: var(--nav-height, 70px);
+  background: rgba(255, 248, 232, .94);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--border-light);
   transition: box-shadow var(--transition-base);
+  width: 100%;
 }
 
 #navbar.scrolled {
   box-shadow: var(--shadow-md);
+}
+
+.nav-container,
+#navbar .container {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 clamp(16px, 2.4vw, 36px) !important;
+  box-sizing: border-box !important;
+  height: 100%;
 }
 
 .nav-inner {
@@ -865,7 +877,15 @@ select.form-input {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: clamp(8px, 1.2vw, 20px);
+  width: 100%;
+}
+
+.nav-left-group {
+  display: flex;
+  align-items: center;
+  gap: clamp(8px, 1vw, 12px);
+  flex-shrink: 0;
 }
 
 .nav-logo {
@@ -885,6 +905,7 @@ select.form-input {
   align-items: center;
   justify-content: center;
   color: var(--cream);
+  flex-shrink: 0;
 }
 
 .nav-logo__name {
@@ -894,6 +915,7 @@ select.form-input {
   color: var(--text-dark);
   letter-spacing: -.01em;
   display: block;
+  white-space: nowrap;
 }
 
 .nav-logo__sub {
@@ -901,20 +923,22 @@ select.form-input {
   color: var(--text-sec);
   display: block;
   margin-top: 1px;
+  white-space: nowrap;
 }
 
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 2px;
+  gap: clamp(2px, 0.3vw, 7px);
   flex: 1;
   justify-content: center;
+  min-width: 0;
 }
 
 .nav-link {
-  padding: 6px 10px;
+  padding: 6px clamp(6px, 0.55vw, 10px);
   border-radius: var(--radius-sm);
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 500;
   color: var(--text-sec);
   transition: all var(--transition-fast);
@@ -922,6 +946,7 @@ select.form-input {
   cursor: pointer;
   background: none;
   border: none;
+  flex-shrink: 0;
 }
 
 .nav-link:hover,
@@ -933,14 +958,70 @@ select.form-input {
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   flex-shrink: 0;
 }
 
+.nav-actions .btn-sm {
+  padding: 7px 14px !important;
+  min-height: 36px !important;
+  height: 36px !important;
+  font-size: 13.5px !important;
+  border-radius: 8px !important;
+  white-space: nowrap;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+#dark-mode-toggle,
+.nav-actions .dark-mode-toggle {
+  width: 38px !important;
+  height: 38px !important;
+  min-width: 38px !important;
+  min-height: 38px !important;
+  max-width: 38px !important;
+  max-height: 38px !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 18px !important;
+  line-height: 1 !important;
+  background: var(--cream, #FFFDF8) !important;
+  border: 1.5px solid var(--border, #E2D9C8) !important;
+  color: var(--text-dark, #2C2A29) !important;
+  cursor: pointer !important;
+  flex-shrink: 0 !important;
+  transition: all var(--transition-base, 0.2s ease) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+  margin-left: 2px !important;
+  box-sizing: border-box !important;
+}
+
+#dark-mode-toggle:hover,
+.nav-actions .dark-mode-toggle:hover {
+  background: var(--orange-light, #FFF3E6) !important;
+  border-color: var(--cosmic-orange, #F47B20) !important;
+  transform: rotate(15deg) scale(1.06) !important;
+}
+
+body[data-theme="dark"] #dark-mode-toggle,
+body.dark-mode #dark-mode-toggle,
+body[data-theme="dark"] .nav-actions .dark-mode-toggle,
+body.dark-mode .nav-actions .dark-mode-toggle {
+  background: #232C22 !important;
+  border-color: #3D4A3C !important;
+  color: #FBD38D !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4) !important;
+}
+
 .nav-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
+  width: 36px !important;
+  height: 36px !important;
+  min-width: 36px !important;
+  border-radius: 50% !important;
   background: var(--green-light);
   border: 2px solid var(--green-deep);
   display: flex;
@@ -952,6 +1033,7 @@ select.form-input {
   font-size: 15px;
   cursor: pointer;
   transition: all var(--transition-fast);
+  flex-shrink: 0;
 }
 
 .nav-avatar:hover {
@@ -3045,13 +3127,16 @@ select.form-input {
   .nav-logo__sub {
     display: none;
   }
+  .nav-links {
+    gap: 3px;
+  }
   .nav-link {
-    padding: 5px 8px;
-    font-size: 13.5px;
+    padding: 5px 7px;
+    font-size: 13px;
   }
 }
 
-@media (max-width:1080px) {
+@media (max-width:1140px) {
   .nav-links {
     display: none;
   }
